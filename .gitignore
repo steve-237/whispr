@@ -1,0 +1,42 @@
+# Environments & IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+
+# Gemini / IA / Logs
+.gemini/
+brain/
+scratch/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Backend (Java / Spring Boot / Maven)
+backend/target/
+backend/!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+*.mtree
+*.orig
+
+# Frontend (Angular / Node.js)
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/tmp/
+frontend/out-tsc/
+frontend/.cache/
+
+# Docker / Environment variables
+.env
+*.env.local
+*.env.*.local
+docker-compose.override.yml

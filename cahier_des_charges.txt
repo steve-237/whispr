@@ -1,0 +1,2563 @@
+
+
+
+
+CAHIER DES CHARGES
+
+FONCTIONNEL ET TECHNIQUE
+
+Plateforme de messages anonymes via lien personnel
+
+Sécurisée – Modérée – Assistée par IA – Respectueuse de la vie privée
+
+Web (responsive) – évolutif vers Mobile
+
+
+
+
+Version 1.0
+
+Date : Juin 2026
+
+Statut : Document de travail – V1
+
+Destinataires :
+
+Équipes Produit, UX/UI, Frontend, Backend, Sécurité, DevOps, Data/IA, QA
+
+Document confidentiel – usage interne et partenaires du projet
+
+
+
+Table des matières
+TOC \h \o &quot;1-3&quot;
+
+
+
+
+1. Vision produit
+
+
+1.1 Contexte
+
+Les applications de messages anonymes via lien personnel (NGL, Sendit, Tellonym) ont connu un succès viral massif, portées par un partage naturel sur les réseaux sociaux (Stories Instagram, TikTok, Snapchat). Ce succès révèle un besoin fort : permettre à un utilisateur de recevoir des retours, compliments, confessions ou avis honnêtes de son entourage sans barrière d’identification pour l’expéditeur.
+
+Ces plateformes souffrent cependant de limites récurrentes : modération insuffisante conduisant à des phénomènes de harcèlement, monétisation agressive, transparence limitée sur l’usage des données, et absence d’outils avancés (statistiques, IA, personnalisation).
+
+Le projet « Whispr » (nom de travail) vise à créer une plateforme de messages anonymes de nouvelle génération, combinant une expérience virale et ludique avec une sécurité, une modération par IA et une protection de la vie privée significativement supérieures aux solutions existantes.
+
+
+1.2 Problèmes résolus
+
+
+Modération insuffisante : la plupart des plateformes existantes laissent passer des messages toxiques, insultants ou de harcèlement sans détection proactive.
+
+
+Manque de contrôle pour l’utilisateur : peu d’outils de filtrage, de blocage ou de gestion fine des messages reçus.
+
+
+Absence d’outils d’analyse : aucune plateforme n’offre nativement une analyse de sentiment ou un résumé IA des messages reçus.
+
+
+Personnalisation limitée : peu de personnalisation de la page de profil publique par rapport à des outils comme Linktree.
+
+
+Transparence insuffisante sur les données collectées (adresse IP, traçabilité) et sur les mécanismes anti-abus.
+
+
+1.3 Objectifs du projet
+
+
+Permettre à tout utilisateur de créer gratuitement un compte et d’obtenir un lien personnel unique en moins de 2 minutes.
+
+
+Garantir l’anonymat complet de l’expéditeur du point de vue du destinataire, tout en conservant des journaux techniques pseudonymisés exploitables uniquement en cas d’abus avéré ou d’obligation légale.
+
+
+Intégrer une modération par intelligence artificielle dès l’envoi du message (avant même sa réception par le destinataire).
+
+
+Proposer des fonctionnalités innovantes (réponses vidéo/audio, analyse de sentiment, widgets, mode « Question du jour ») différenciant nettement la plateforme.
+
+
+Construire une architecture sécurisée, scalable et conforme au RGPD dès la conception (Privacy by Design).
+
+
+1.4 Utilisateurs cibles
+Profil
+Description
+Visiteur anonyme
+Toute personne recevant un lien et souhaitant envoyer un message sans créer de compte
+Utilisateur (créateur de lien)
+Personne ayant créé un compte pour recevoir des messages via son lien personnel : créateurs de contenu, adolescents, jeunes adultes, marques personnelles
+Administrateur
+Équipe interne chargée de la modération, de la sécurité et du pilotage de la plateforme
+
+
+1.5 Cas d’utilisation principaux
+
+
+Un créateur de contenu partage son lien dans sa story Instagram et reçoit des messages de ses abonnés, qu’il peut republier en story (réponse publique).
+
+
+Un adolescent utilise le mode « Question du jour » pour recueillir des retours ludiques de ses amis.
+
+
+Un utilisateur Premium personnalise sa page de profil avec un thème et un lien personnalisé (ex. : app.com/@moncreateurpseudo).
+
+
+Un utilisateur reçoit un message toxique automatiquement filtré par l’IA avant même son affichage, et peut consulter un résumé IA de ses messages de la semaine.
+
+
+Un administrateur traite un signalement de harcèlement, consulte le journal d’audit pseudonymisé et suspend le compte à l’origine de l’abus.
+
+
+1.6 Contraintes du projet
+
+
+1.6.1 Contraintes fonctionnelles
+
+
+L’envoi d’un message doit rester possible sans création de compte (friction minimale pour le visiteur anonyme).
+
+
+La modération IA doit s’exécuter avant la remise du message au destinataire (latence cible &lt; 2 secondes).
+
+
+Disponibilité Web responsive dès le MVP, architecture préparée pour une extension mobile native ultérieure.
+
+
+1.6.2 Contraintes techniques
+
+
+Architecture scalable capable d’absorber des pics de trafic viraux (partage sur réseaux sociaux à fort effet de levier).
+
+
+Anonymisation/pseudonymisation des données techniques (IP) dès la collecte, conformément au RGPD.
+
+
+Disponibilité cible de 99,9 % (SLA).
+
+
+1.6.3 Contraintes légales
+
+
+Conformité RGPD stricte : minimisation des données, consentement explicite, droits d’accès/rectification/effacement.
+
+
+Respect des obligations légales de conservation des journaux techniques à des fins de lutte contre les abus (durée encadrée et proportionnée).
+
+
+Protection renforcée des utilisateurs mineurs (contrôles d’âge, modération accrue, restrictions de fonctionnalités sensibles).
+
+
+
+2. Interfaces utilisateurs
+
+
+La plateforme expose trois interfaces distinctes : Visiteur anonyme (sans compte), Utilisateur (propriétaire d’un lien) et Administrateur (back-office de modération).
+
+
+2.1 Interface Visiteur anonyme
+
+Le Visiteur accède à une page publique (via le lien personnel d’un Utilisateur) sans jamais avoir besoin de créer de compte.
+
+
+2.1.1 Ouverture du lien
+
+
+Chargement de la page publique du destinataire : pseudo, photo de profil, thème personnalisé, question du jour éventuelle.
+
+
+Message d’accroche configurable par le propriétaire du lien (ex. : « Envoie-moi un message anonyme ! »).
+
+
+2.1.2 Saisie du message
+
+
+Champ de texte libre avec compteur de caractères en temps réel (limite configurable, ex. : 500 caractères).
+
+
+Ajout optionnel d’un emoji ou d’une réaction prédéfinie en complément du texte.
+
+
+Suggestions de messages pré-remplis (ex. : « Tu es genial ! ») pour réduire la friction de rédaction.
+
+
+2.1.3 CAPTCHA et confirmation
+
+
+Vérification CAPTCHA invisible (ex. : reCAPTCHA v3 ou hCaptcha) déclenchée avant l’envoi, avec CAPTCHA visible en cas de score de risque élevé.
+
+
+Passage du message dans le filtre de modération IA (section 8) avant confirmation d’envoi.
+
+
+Écran de confirmation après envoi réussi, avec option de partager à son tour le lien (« Crée ton propre lien ! ») pour favoriser la viralité.
+
+
+2.1.4 Préférences d’affichage
+
+
+Basculement entre thème clair et thème sombre, avec mémorisation de la préférence localement (sans compte).
+
+
+Page entièrement responsive (mobile-first, la majorité du trafic étant issue de réseaux sociaux mobiles).
+
+
+2.2 Interface Utilisateur
+
+L’Utilisateur est le propriétaire d’un compte et d’un lien personnel, seul habilité à consulter les messages reçus.
+
+
+2.2.1 Compte et accès
+
+
+Inscription, connexion, récupération de mot de passe, vérification email (section 3).
+
+
+Tableau de bord central : aperçu des nouveaux messages, statistiques rapides, accès au lien personnel.
+
+
+2.2.2 Gestion du lien personnel
+
+
+Génération automatique du lien à l’inscription (section 4).
+
+
+Génération d’un QR Code associé, téléchargeable et partageable.
+
+
+Personnalisation du lien (Premium) et de la page de profil publique (photo, bio, thème, question du jour).
+
+
+2.2.3 Boîte de réception
+
+
+Liste des messages reçus avec date, heure, favoris, archivage, suppression, filtres et recherche (section 5).
+
+
+Réponse publique optionnelle à un message (republication anonymisée avec la réponse de l’utilisateur, exportable en image pour les stories).
+
+
+2.2.4 Statistiques
+
+
+Nombre de vues du lien, nombre de messages reçus, taux de conversion vue ? message.
+
+
+Statistiques avancées (Premium) : évolution dans le temps, répartition par source de trafic, analyse de sentiment agrégée (section 9).
+
+
+2.2.5 Notifications et paramètres
+
+
+Gestion des préférences de notification (push, email, interne – section 6).
+
+
+Paramètres de confidentialité et de sécurité (2FA, sessions actives, suppression de compte).
+
+
+Gestion de l’abonnement Premium (section 7).
+
+
+2.3 Interface Administrateur
+
+Rôle interne réservé à l’équipe d’exploitation, avec accès renforcé par MFA obligatoire.
+
+
+2.3.1 Gestion des utilisateurs et comptes
+
+
+Recherche, consultation et actions sur les comptes : suspension, bannissement, réactivation.
+
+
+Fiche utilisateur 360° : profil, historique de signalements reçus/émis, statut d’abonnement.
+
+
+2.3.2 Gestion des signalements et messages signalés
+
+
+File de traitement des signalements avec priorisation selon le score de risque IA (section 9).
+
+
+Consultation du message signalé, du contexte et de la décision à prendre (suppression, avertissement, transmission aux autorités si légalement requis).
+
+
+2.3.3 Statistiques et tableau de bord analytique
+
+
+Indicateurs globaux : utilisateurs actifs, messages envoyés, taux de messages filtrés par l’IA, taux de signalement.
+
+
+Tableau de bord prédictif de la charge de modération et des tendances d’abus.
+
+
+2.3.4 Détection des bots et du spam
+
+
+Vue des comptes et adresses IP pseudonymisées présentant un comportement suspect (volume anormal de messages, patterns répétitifs).
+
+
+Actions rapides : blocage temporaire, bannissement définitif, mise en liste de surveillance.
+
+
+2.3.5 Journal d’activité et gestion des rôles
+
+
+Audit log complet de toute action d’administration (voir section 2.4 pour le détail du système d’audit).
+
+
+Gestion des rôles internes (Super Admin, Modérateur, Support) avec permissions granulaires (RBAC).
+
+
+Export des journaux à des fins d’audit interne ou de réponse à une réquisition légale.
+
+
+2.4 Système d’audit et association message ? journaux techniques
+
+
+Ce système est conçu pour concilier l’anonymat perçu par le destinataire avec la nécessité de lutter contre les abus et de répondre aux obligations légales, dans le strict respect du RGPD.
+
+
+Chaque message envoyé est associé, en base technique séparée et à accès restreint, à un enregistrement d’audit contenant : adresse IP pseudonymisée (hachage salé non réversible sans clé détenue séparément), horodatage précis, user-agent, empreinte d’appareil (fingerprint) et score de risque IA.
+
+
+Cette association n’est JAMAIS visible du destinataire du message ; elle reste invisible sauf pour les administrateurs habilités dans le cadre strict d’un signalement instruit ou d’une obligation légale.
+
+
+L’accès à la table d’audit est soumis à une permission RBAC dédiée (« AUDIT_ACCESS »), distincte des permissions de modération standard, et chaque consultation est elle-même journalisée (audit de l’audit).
+
+
+La dépseudonymisation complète de l’IP (levée du hachage) n’est possible que via une procédure exceptéonnelle à double validation (Super Admin + DPO), réservée aux cas de réquisition judiciaire ou de menace grave avérée (menace de mort, contenu pédocriminel, etc.).
+
+
+Politique de rétention : les journaux d’audit pseudonymisés sont conservés 12 mois (durée alignée sur les obligations légales de conservation des données de connexion), puis supprimés automatiquement.
+
+
+
+3. Inscription
+
+
+3.1 Champs du formulaire d’inscription
+Champ
+Type
+Obligatoire
+Règle de validation
+Prénom
+Texte
+Oui
+2 à 50 caractères
+Nom
+Texte
+Oui
+2 à 50 caractères
+Pseudo
+Texte
+Oui
+3 à 20 caractères, alphanumérique + underscore, unique en base
+Email
+Email
+Oui
+Format RFC 5322, unicité en base, vérification obligatoire
+Téléphone
+Texte
+Non
+Format E.164 si renseigné, utile pour la récupération de compte
+Mot de passe
+Mot de passe
+Oui
+Min. 8 caractères, 1 majuscule, 1 chiffre, 1 spécial
+Confirmation mot de passe
+Mot de passe
+Oui
+Doit correspondre au mot de passe
+Photo de profil
+Upload image
+Non
+JPEG/PNG/WebP, max 5 Mo, recadrage carré proposé
+Langue
+Liste déroulante
+Oui
+Langues supportées par la plateforme
+Pays
+Liste déroulante
+Oui
+Liste ISO 3166, utile pour la conformité régionale (RGPD, âge minimum)
+
+
+3.2 Parcours d’inscription
+
+
+Saisie des informations personnelles (formulaire ci-dessus).
+
+
+Vérification de la disponibilité du pseudo en temps réel (debounce + appel API).
+
+
+Acceptation des CGU/CGV et de la politique de confidentialité (case non pré-cochée).
+
+
+Déclaration de la date de naissance ou confirmation d’âge minimum (13 ou 16 ans selon la juridiction, conformément au RGPD).
+
+
+Envoi d’un email de confirmation avec lien de vérification (valable 24h).
+
+
+Le compte est utilisable immédiatement en mode restreint ; certaines fonctionnalités (réception de messages publique) sont débloquées après vérification email.
+
+
+Génération automatique du lien personnel (section 4) et redirection vers le tableau de bord.
+
+
+3.3 Méthodes de connexion
+
+
+Email + mot de passe, avec règles de complexité imposées et hachage Argon2.
+
+
+Connexion sociale OAuth2 (Google, optionnellement Apple/Facebook selon la roadmap) pour réduire la friction d’inscription.
+
+
+Récupération de mot de passe via lien à usage unique envoyé par email, valable 30 minutes.
+
+
+3.4 Règles métier et cas limites
+
+
+Un pseudo est réservé dès validation de l’inscription, mais libéré si le compte n’est pas vérifié par email dans les 7 jours.
+
+
+Liste de pseudos interdits (mots réservés : « admin », « support », termes injurieux) filtrée à la création.
+
+
+Un utilisateur déclarant un âge inférieur au minimum légal se voit refuser la création de compte avec message explicite.
+
+
+3.5 Critères d’acceptation
+
+
+Étant donné un pseudo déjà pris, quand l’utilisateur le saisit, alors un message d’erreur s’affiche en temps réel sans nécessiter la soumission du formulaire.
+
+
+Étant donné une inscription valide complète, quand l’utilisateur valide le formulaire, alors un compte est créé, un email de vérification est envoyé et le lien personnel est généré automatiquement.
+
+
+4. Lien personnel
+
+
+4.1 Format du lien
+
+
+Format par défaut : https://app.com/@pseudo (lisible et mémorisable, basé sur le pseudo choisi à l’inscription).
+
+
+Format alternatif : https://app.com/u/identifiant (identifiant technique stable, utilisé en secours si le pseudo est amené à changer).
+
+
+Le lien basé sur le pseudo est mis à jour automatiquement si l’utilisateur change de pseudo ; l’ancien lien reste actif en redirection 301 pendant une période de grâce (ex. : 30 jours) pour éviter de casser les partages existants.
+
+
+4.2 Actions disponibles sur le lien
+
+
+Copie en un clic dans le presse-papier.
+
+
+Partage rapide vers les plateformes cibles (TikTok, Instagram, WhatsApp, Snapchat, Facebook, X, Threads) via l’API de partage natif du navigateur (Web Share API) ou des boutons dédiés.
+
+
+Génération d’un QR Code (statique par défaut, dynamique en Premium – voir section 10.8) téléchargeable en PNG/SVG.
+
+
+Personnalisation du lien (Premium) : choix d’un identifiant personnalisé distinct du pseudo, dans la limite des règles de nommage.
+
+
+4.3 Personnalisation de la page publique associée
+
+
+Thème visuel : couleurs, arrière-plan, police (thèmes prédéfinis gratuits, thèmes personnalisés Premium).
+
+
+Message d’accroche personnalisable au-dessus du champ de saisie.
+
+
+Activation du mode « Question du jour » (section 10.5) affichant une question suggestive au visiteur.
+
+
+Widgets intégrables sur des sites tiers ou réseaux sociaux (section 10.6).
+
+
+4.4 Règles métier
+
+
+Le lien est utilisable dès la création du compte, sans attendre la vérification email complète (mais les messages ne sont délivrés qu’après vérification, pour éviter l’exploitation de comptes non vérifiés à des fins d’abus).
+
+
+Un utilisateur peut désactiver temporairement la réception de nouveaux messages sans supprimer son compte (« Mode pause »).
+
+
+4.5 Critères d’acceptation
+
+
+Étant donné un utilisateur consultant son tableau de bord, quand il clique sur « Copier le lien », alors le lien est copié dans le presse-papier et une confirmation visuelle s’affiche.
+
+
+Étant donné un visiteur scannant le QR Code, quand la lecture est effectuée, alors il est redirigé vers la page publique correspondante en moins de 2 secondes.
+
+
+
+5. Boîte de réception
+
+
+5.1 Fonctionnalités
+
+
+Liste des messages reçus, triés par défaut du plus récent au plus ancien, avec date et heure de réception.
+
+
+Marquage en favori d’un message pour le retrouver facilement.
+
+
+Archivage d’un message (retiré de la liste principale sans suppression définitive).
+
+
+Suppression définitive d’un message (irréversible, avec confirmation).
+
+
+Filtres : messages non lus, favoris, archivés, par plage de dates, par catégorie IA (section 9.5).
+
+
+Recherche textuelle dans le contenu des messages reçus.
+
+
+Réponse publique optionnelle : l’utilisateur rédige une réponse qui génère un visuel partageable (image ou courte vidéo) incluant le message original anonymisé et la réponse, prêt à publier en story.
+
+
+Export des messages (Premium) au format PDF ou CSV.
+
+
+5.2 Cycle de vie d’un message
+Statut
+Description
+Reçu (non lu)
+Message livré après validation du filtre de modération IA
+Lu
+Consulté par le destinataire
+Favori
+Marqué comme important par le destinataire
+Archivé
+Retiré de la liste principale, conservé et consultable via filtre dédié
+Supprimé
+Suppression logique côté utilisateur ; purge définitive différée (section 11.5)
+Signalé
+Transmis à la modération par le destinataire (section 8.5)
+Bloqué par IA
+Message n’ayant jamais atteint la boîte de réception, filtré en amont (section 8.1)
+
+
+5.3 Règles métier
+
+
+Un message supprimé par l’utilisateur reste accessible à la modération pendant la durée de rétention légale (section 11.5), même s’il n’est plus visible côté utilisateur.
+
+
+La réponse publique ne révèle jamais l’identité de l’expéditeur, même indirectement (pas d’horodatage précis affiché publiquement, pas de métadonnées exploitables).
+
+
+Le nombre de messages affichés en historique dépend de l’offre (gratuite : 30 derniers jours ; Premium : illimité, voir section 7).
+
+
+5.4 Critères d’acceptation
+
+
+Étant donné un utilisateur avec 50 messages reçus, quand il filtre sur « Favoris », alors seuls les messages marqués favoris s’affichent, sans rechargement complet de la page.
+
+
+Étant donné un message supprimé par l’utilisateur, quand celui-ci consulte à nouveau sa boîte de réception, alors ce message n’apparaît plus, mais reste consultable par un administrateur habilité pendant la période de rétention.
+
+
+6. Notifications
+
+
+6.1 Canaux
+Canal
+Cas d’usage
+Technologie
+Push (Web)
+Nouveau message reçu, résumé IA disponible
+Web Push API / Firebase Cloud Messaging
+Email
+Nouveau message (récapitulatif groupé), alerte de sécurité, facturation Premium
+Service transactionnel (SES/SendGrid)
+Notifications internes (in-app)
+Centre de notifications, badges non lus
+WebSocket + persistance base de données
+
+
+6.2 Catalogue des notifications
+
+
+Nouveau message reçu (avec regroupement anti-spam : pas plus d’une notification push par intervalle configurable en cas d’afflux).
+
+
+Résumé IA hebdomadaire disponible (Premium).
+
+
+Alerte de sécurité : nouvelle connexion depuis un appareil inconnu, changement de mot de passe.
+
+
+Confirmation ou échec de paiement de l’abonnement Premium.
+
+
+Message signalé traité par la modération (retour à l’utilisateur ayant signalé).
+
+
+Rappel de vérification email si non complétée après 24h.
+
+
+6.3 Préférences
+
+Chaque utilisateur peut activer/désactiver indépendamment les canaux Push et Email pour chaque catégorie de notification, à l’exception des alertes de sécurité critiques (toujours actives).
+
+
+7. Abonnement Premium
+
+
+7.1 Fonctionnalités incluses
+Fonctionnalité
+Détail
+Thèmes personnalisés
+Bibliothèque étendue de thèmes visuels et personnalisation complète des couleurs/arrière-plans
+Lien personnalisé
+Choix d’un identifiant de lien distinct du pseudo (section 4.2)
+Statistiques avancées
+Évolution dans le temps, sources de trafic, analyse de sentiment agrégée (section 9.7)
+Suppression des publicités
+Aucune publicité affichée sur le tableau de bord ni la page publique
+Réponses vidéo
+Enregistrement d’une réponse vidéo courte à un message reçu (section 10.1)
+Réponses vocales
+Enregistrement d’une réponse audio à un message reçu (section 10.2)
+Téléchargement des messages
+Export illimité au format PDF/CSV de l’intégralité de l’historique
+QR Code dynamique
+QR Code modifiable sans changer l’impression physique existante (section 10.8)
+Historique illimité
+Conservation des messages au-delà des 30 jours de l’offre gratuite
+
+
+7.2 Modèle de facturation
+
+
+Abonnement mensuel ou annuel (avec réduction), paiement récurrent via Stripe.
+
+
+Période d’essai gratuite proposée à la première souscription (ex. : 7 jours), sans engagement.
+
+
+Résiliation possible à tout moment, effective à la fin de la période déjà payée.
+
+
+7.3 Règles métier
+
+
+Un utilisateur résiliant son abonnement Premium conserve l’accès aux fonctionnalités jusqu’à la fin de la période facturée, puis repasse automatiquement à l’offre gratuite.
+
+
+Les messages et statistiques déjà accumulés au-delà du quota gratuit restent visibles en lecture seule après résiliation, sans possibilité d’export supplémentaire.
+
+
+
+8. Modération
+
+
+La modération constitue un pilier central de la plateforme : elle intervient avant même la remise du message au destinataire, contrairement à la plupart des solutions existantes qui modèrent uniquement a posteriori.
+
+
+8.1 Filtre IA contre les insultes et le harcèlement
+
+
+Chaque message est analysé par le modèle de détection de toxicité (section 9.1) avant d’être transmis au destinataire.
+
+
+Classification en niveaux de risque : Faible (livré normalement), Moyen (livré avec avertissement visuel discret au destinataire), Élevé (bloqué automatiquement, expéditeur notifié d’un rejet générique sans détail sur la raison exacte, pour éviter le contournement).
+
+
+Détection spécifique des patterns de harcèlement répété : messages multiples à caractère négatif envoyés au même destinataire depuis des sources corrélées (même empreinte d’appareil malgré IP différentes).
+
+
+8.2 Filtre anti-spam
+
+
+Détection de contenu répétitif, de liens suspects ou de tentatives de phishing dans les messages.
+
+
+Blocage automatique des messages contenant des URLs non whitelistées vers des domaines connus pour du spam/phishing.
+
+
+8.3 Détection des robots (bots)
+
+
+Analyse comportementale côté client (vitesse de frappe, mouvements de souris/tactile) en complément du CAPTCHA.
+
+
+Score de confiance CAPTCHA invisible (reCAPTCHA v3 / hCaptcha) ; en dessous d’un seuil, un CAPTCHA visible est imposé avant validation.
+
+
+Détection de volumes anormaux de messages depuis une même source technique (empreinte d’appareil, plage IP) sur une fenêtre de temps courte.
+
+
+8.4 Limitation du nombre de messages
+
+
+Limitation du nombre de messages qu’un même visiteur anonyme peut envoyer à un même destinataire sur une période donnée (ex. : 5 messages par heure), basée sur l’empreinte d’appareil et l’IP pseudonymisée.
+
+
+Limitation globale du nombre de messages envoyés depuis une même source technique vers l’ensemble de la plateforme, pour contenir les campagnes de spam massif.
+
+
+8.5 Signalement par les utilisateurs
+
+
+Le destinataire signale un message reçu depuis sa boîte de réception, avec un motif catégorisé (insulte, harcèlement, contenu illicite, spam, autre).
+
+
+Le signalement entre dans la file de modération avec une priorité déterminée par le score de risque IA déjà calculé à l’envoi.
+
+
+Un modérateur ou administrateur consulte le message, le contexte et prend une décision (suppression, avertissement, escalade).
+
+
+Le signalant est informé du traitement de son signalement (sans détail sur la sanction éventuelle appliquée à l’expéditeur, pour préserver la confidentialité des procédures).
+
+
+8.6 Blocage et suspension
+
+
+Un utilisateur destinataire peut bloquer une source d’envoi récurrente identifiée comme abusive (basé sur l’empreinte d’appareil, sans jamais révéler l’identité à l’utilisateur lui-même).
+
+
+Un administrateur peut suspendre temporairement ou bannir définitivement un compte à l’origine d’abus avérés, ainsi que bloquer une source technique même sans compte associé (visiteur anonyme récurrent).
+
+
+8.7 Modération communautaire (innovation)
+
+Un système optionnel de modération communautaire permet à un panel d’utilisateurs volontaires et vérifiés (statut « Modérateur communautaire », accordé après candidature et validation par l’équipe) de voter sur des signalements ambigus ne relevant pas d’un cas évident, en complément de la modération IA et professionnelle, afin d’absorber le volume croissant de signalements à mesure que la plateforme croît (voir section 10.9).
+
+
+8.8 Critères d’acceptation
+
+
+Étant donné un message contenant une insulte grave, quand il est soumis, alors il est bloqué automatiquement et n’atteint jamais la boîte de réception du destinataire, en moins de 2 secondes.
+
+
+Étant donné un visiteur ayant déjà envoyé 5 messages à un même destinataire dans l’heure, quand il tente un 6e envoi, alors le système refuse l’envoi avec un message explicite.
+
+
+9. Intelligence artificielle
+
+
+Le module IA sécurise, enrichit et différencie l’expérience, aussi bien côté modération que côté utilisateur final.
+
+
+9.1 Détection des messages toxiques
+
+Chaque message est soumis à un modèle de classification de toxicité (modèle NLP entraîné/fine-tuné sur la détection d’insultes, de harcèlement et de discours haineux, en complément d’un appel à un LLM généraliste pour les cas ambigus). Le modèle retourne une classification (Faible/Moyen/Élevé) et une liste de catégories détectées (insulte, menace, harcèlement sexuel, incitation à la haine, etc.).
+
+
+9.2 Analyse du niveau de risque
+
+Au-delà du contenu du message isolé, un score de risque global est calculé en combinant : le score de toxicité du message, l’historique de comportement de la source technique (empreinte d’appareil), la fréquence d’envoi récente, et les signalements passés associés à cette source. Ce score alimente la priorisation de la file de modération (section 2.3.3) et les seuils de blocage automatique.
+
+
+9.3 Proposition de réponses
+
+Pour aider l’utilisateur à répondre publiquement à un message reçu, l’IA propose 2 à 3 suggestions de réponse adaptées au ton du message (bienveillant, humoristique, neutre), que l’utilisateur peut éditer avant publication.
+
+
+9.4 Résumé des messages
+
+Fonctionnalité phare Premium : l’IA génère un résumé hebdomadaire (ou sur demande) des messages reçus, mettant en évidence les thèmes récurrents, le ton général et les messages les plus positifs, sans jamais citer intégralement un message individuel de manière à préserver une forme de confidentialité même dans le résumé partagé (ex. : capture d’écran).
+
+
+9.5 Classement automatique des messages
+
+Chaque message reçu est automatiquement catégorisé (Compliment, Question, Confession, Critique constructive, Humour, Autre) pour faciliter le filtrage dans la boîte de réception (section 5.1).
+
+
+9.6 Détection des doublons
+
+L’IA identifie les messages quasi identiques envoyés en rafale (même contenu ou contenu très proche), typiques de campagnes de spam ou de harcèlement coordonné, et les regroupe visuellement pour l’utilisateur plutôt que de saturer sa boîte de réception.
+
+
+9.7 Analyse de sentiment (statistiques avancées)
+
+Les statistiques avancées Premium incluent une analyse de sentiment agrégée sur l’ensemble des messages reçus (proportion de messages positifs/neutres/négatifs sur la période), avec évolution dans le temps sous forme de graphique.
+
+
+9.8 Modèles IA compatibles
+Fonction IA
+Modèles compatibles
+Remarques
+Détection de toxicité (temps réel)
+Modèle classifieur interne fine-tuné (léger, faible latence) + Perspective API en complément
+Doit répondre en &lt; 500 ms pour respecter la contrainte de latence globale &lt; 2s
+Analyse de cas ambigus / génération de résumés / suggestions de réponse
+GPT-4o, Claude 3.5 Sonnet, Gemini Pro, Mistral
+Utilisés en asynchrone (non bloquant pour la remise du message), sauf pour les cas de score intermédiaire nécessitant un second avis rapide
+Analyse de sentiment
+Modèle NLP spécialisé (interne ou API dédiée)
+Calcul en batch (asynchrone), pas de contrainte de latence forte
+Détection de doublons
+Similarité par embeddings texte (ex. : modèle d’embedding léger)
+Comparaison rapide par distance vectorielle
+
+
+9.9 Contraintes techniques
+
+
+La chaine de modération temps réel (toxicité + risque) doit répondre en moins de 2 secondes au total pour ne pas dégrader l’expérience d’envoi du visiteur.
+
+
+En cas d’indisponibilité du service IA principal, une stratégie de repli (modèle local léger de secours, ou mise en file d’attente avec modération différée et alerte visiteur) doit être appliquée plutôt que de bloquer totalement l’envoi.
+
+
+Les fonctions asynchrones (résumé, sentiment, doublons) ne doivent jamais bloquer la remise immédiate d’un message jugé sûr.
+
+
+
+10. Fonctionnalités innovantes
+
+
+Ces fonctionnalités différencient nettement la plateforme des solutions existantes (NGL, Sendit, Tellonym). Leur priorisation est détaillée dans la roadmap (section 18).
+
+
+10.1 Réponses vidéo (Premium)
+
+L’utilisateur peut enregistrer une courte réponse vidéo (max 60 secondes) à un message reçu, générant un visuel combinant le texte du message original (anonymisé) et la vidéo de réponse, exporté dans un format optimisé pour les stories (9:16).
+
+
+10.2 Réponses vocales (Premium)
+
+Alternative audio à la réponse vidéo : enregistrement d’un message vocal (max 60 secondes) associé au message reçu, avec ondes sonores animées générées automatiquement pour le rendu visuel exportable.
+
+
+10.3 Réactions emoji
+
+Le destinataire peut réagir à un message reçu avec un emoji rapide (??, ??, ??, ??) sans rédiger de réponse complète, pour un engagement léger et rapide.
+
+
+10.4 Calendrier des messages
+
+Vue calendrier de l’historique des messages reçus, permettant de visualiser les jours de forte activité (ex. : après un partage viral) et de naviguer chronologiquement.
+
+
+10.5 Mode « Question du jour »
+
+Chaque jour, une question suggérée (ex. : « Quel est ton souvenir préféré avec moi ? ») peut être affichée sur la page publique de l’utilisateur à la place du message d’accroche par défaut, renouvelée automatiquement chaque jour (banque de questions gérée par l’équipe produit, avec possibilité pour l’utilisateur de choisir sa propre question).
+
+
+10.6 Widgets pour Instagram, TikTok et sites web
+
+
+Widget web embarquable (iframe ou script) permettant d’intégrer un bouton « Envoie-moi un message anonyme » directement sur un site personnel ou un blog.
+
+
+Sticker/lien optimisé pour Instagram Stories (format d’image pré-conçu à télécharger avec le lien intégré).
+
+
+Format vidéo overlay optimisé pour TikTok, incitant au clic sur le lien en bio.
+
+
+10.7 Personnalisation avancée de la page de profil
+
+Au-delà des thèmes de base, personnalisation fine (Premium) : disposition des éléments, ajout de liens secondaires (à la manière de Linktree) vers d’autres réseaux sociaux ou sites, arrière-plan animé ou vidéo courte.
+
+
+10.8 QR Code dynamique (Premium)
+
+Contrairement au QR Code statique (qui encode directement l’URL finale), le QR Code dynamique encode une URL intermédiaire redirigeant vers le lien réel, permettant de changer la destination sans avoir à réimprimer le QR Code physique (ex. : sur un support marketing, un badge, un flyer).
+
+
+10.9 Modération communautaire
+
+Décrite en détail en section 8.7 : un panel d’utilisateurs volontaires vérifiés contribue au traitement des signalements ambigus, en complément de l’IA et de l’équipe professionnelle.
+
+
+10.10 Synthèse des axes d’innovation
+Fonctionnalité
+Bénéfice principal
+Complexité de mise en œuvre
+Réponses vidéo / vocales
+Engagement accru, contenu partageable viral
+Élevée (traitement multimédia, modération audio/vidéo)
+Résumé IA des messages
+Différenciation forte, valeur perçue Premium
+Moyenne
+Widgets multi-plateformes
+Acquisition organique, effet réseau
+Moyenne
+Question du jour
+Engagement récurrent, rétention
+Faible
+QR Code dynamique
+Usage marketing/print durable
+Faible
+Modération communautaire
+Scalabilité de la modération à coût maîtrisé
+Élevée (gouvernance, formation, contrôle qualité)
+
+
+
+11. Modèle de base de données
+
+
+Modèle en PostgreSQL. Le détail exhaustif des colonnes figure en Annexe A. La table AUDIT_LOGS est isolée avec des permissions d’accès distinctes, conformément au système d’audit décrit en section 2.4.
+
+
+11.1 Entités principales
+
+
+USERS – Identité, authentification (email, mot de passe haché, pseudo, langue, pays).
+
+
+PROFILES – Informations publiques affichées : photo, bio, thème, question du jour active.
+
+
+LINKS – Lien personnel associé à un utilisateur (slug, type statique/personnalisé, statut actif/pause).
+
+
+MESSAGES – Message envoyé : contenu, type (texte/vidéo/audio pour la réponse), statut, catégorie IA, score de toxicité.
+
+
+NOTIFICATIONS – Notifications envoyées aux utilisateurs (type, canal, statut lu).
+
+
+REPORTS (Signalements) – Signalement d’un message : motif, statut, décision, modérateur assigné.
+
+
+SUBSCRIPTIONS (Abonnements) – Abonnement Premium actif (offre, statut, dates de début/fin).
+
+
+PAYMENTS – Transactions de facturation liées à un abonnement.
+
+
+SESSIONS – Sessions actives d’authentification (appareil, dernière activité, token associé).
+
+
+AUDIT_LOGS – Journal technique pseudonymisé associé à chaque message (IP hachée, user-agent, empreinte d’appareil, horodatage) – table isolée à accès restreint.
+
+
+SETTINGS (Paramètres) – Préférences utilisateur (notifications, confidentialité, thème).
+
+
+BLOCKED_SOURCES – Sources techniques bloquées par un utilisateur ou un administrateur (empreinte d’appareil).
+
+
+ADMIN_ROLES / PERMISSIONS – Rôles internes et permissions granulaires (RBAC).
+
+
+11.2 Relations clés
+Entité source
+Cardinalité
+Entité cible
+Description
+USERS
+1—1
+PROFILES
+Chaque utilisateur possède un profil public
+USERS
+1—1
+LINKS
+Chaque utilisateur possède un lien personnel (avec historique de slugs précédents)
+LINKS
+1—N
+MESSAGES
+Un lien reçoit plusieurs messages
+MESSAGES
+1—1
+AUDIT_LOGS
+Chaque message est associé à un enregistrement d’audit pseudonymisé (table isolée)
+MESSAGES
+0—1
+REPORTS
+Un message peut faire l’objet d’un signalement
+USERS
+1—1
+SUBSCRIPTIONS
+Un utilisateur possède un abonnement actif (Gratuit par défaut)
+SUBSCRIPTIONS
+1—N
+PAYMENTS
+Un abonnement Premium génère des transactions périodiques
+USERS
+1—N
+SESSIONS
+Un utilisateur peut avoir plusieurs sessions actives (multi-appareils)
+USERS
+1—N
+BLOCKED_SOURCES
+Un utilisateur bloque plusieurs sources techniques indésirables
+USERS (Admin)
+N—N
+ADMIN_ROLES
+Un compte administrateur possède un ou plusieurs rôles internes
+
+
+11.3 Description textuelle du diagramme ERD
+
+
+11.3.1 Pôle Identité
+
+USERS est relié à PROFILES (informations publiques), LINKS (lien personnel), SETTINGS (préférences) et SESSIONS (authentification multi-appareils).
+
+
+11.3.2 Pôle Message et modération
+
+LINKS reçoit des MESSAGES. Chaque MESSAGES est systématiquement relié à un AUDIT_LOGS (table séparée, accès restreint) et peut être relié à un REPORTS en cas de signalement par le destinataire.
+
+
+11.3.3 Pôle Facturation
+
+USERS possède un SUBSCRIPTIONS qui génère des PAYMENTS à chaque échéance de facturation.
+
+
+11.3.4 Pôle Administration
+
+Les comptes administrateurs (sous-ensemble de USERS) sont reliés à ADMIN_ROLES, qui définissent les PERMISSIONS accordées, notamment la permission spéciale d’accès à AUDIT_LOGS.
+
+
+11.4 Stratégie d’indexation
+
+
+Index unique sur LINKS(slug) pour la résolution rapide du lien personnel.
+
+
+Index composite sur MESSAGES(link_id, status, created_at) pour l’affichage rapide de la boîte de réception filtrée.
+
+
+Index sur AUDIT_LOGS(hashed_ip, created_at) pour la détection de comportements suspects par source technique.
+
+
+Index sur REPORTS(status, priority_score) pour la file de modération prioriseé.
+
+
+Index full-text sur MESSAGES(content) pour la fonction de recherche dans la boîte de réception.
+
+
+11.5 Politique de rétention des données
+Type de donnée
+Durée de conservation
+Action après expiration
+Messages (offre gratuite)
+30 jours (visibles côté utilisateur)
+Passage en lecture seule puis archivage automatique
+Messages supprimés par l’utilisateur
+Purge définitive après la durée de rétention légale (AUDIT_LOGS lié)
+Suppression physique irréversible
+AUDIT_LOGS (IP pseudonymisée, user-agent)
+12 mois
+Suppression automatique
+Transactions et factures (PAYMENTS)
+10 ans (obligation comptable)
+Archivage froid
+Comptes utilisateurs inactifs
+3 ans sans connexion
+Notification puis anonymisation
+Journal d’activité administrateur
+5 ans
+Archivage puis suppression
+
+
+
+12. API REST
+
+
+Préfixe /api/v1/, authentification JWT (sauf endpoints publics listés), réponses JSON. Détail complet en Annexe B (spécification OpenAPI).
+
+
+12.1 Authentification
+Méthode
+Endpoint
+Description
+POST
+/api/v1/auth/register
+Création de compte
+POST
+/api/v1/auth/login
+Connexion email + mot de passe
+POST
+/api/v1/auth/oauth/google
+Connexion via Google
+POST
+/api/v1/auth/logout
+Déconnexion et invalidation du Refresh Token
+POST
+/api/v1/auth/refresh
+Renouvellement de l’Access Token
+POST
+/api/v1/auth/verify-email
+Vérification de l’adresse email
+POST
+/api/v1/auth/forgot-password
+Demande de réinitialisation du mot de passe
+POST
+/api/v1/auth/reset-password
+Réinitialisation effective du mot de passe
+POST
+/api/v1/auth/mfa/enable
+Activation de la double authentification
+
+
+12.2 Profil et lien personnel
+Méthode
+Endpoint
+Description
+GET
+/api/v1/users/me
+Récupérer le profil de l’utilisateur connecté
+PUT
+/api/v1/users/me
+Mettre à jour le profil (bio, photo, thème)
+GET
+/api/v1/users/check-username
+Vérifier la disponibilité d’un pseudo
+GET
+/api/v1/links/me
+Récupérer le lien personnel et son statut
+PUT
+/api/v1/links/me/custom-slug
+Personnaliser le lien (Premium)
+PUT
+/api/v1/links/me/pause
+Activer/désactiver le mode pause
+GET
+/api/v1/links/me/qrcode
+Générer le QR Code du lien
+GET
+/api/public/v1/profile/{slug}
+Récupérer les infos publiques d’un profil (page visiteur, public)
+
+
+12.3 Messages (envoi et boîte de réception)
+Méthode
+Endpoint
+Description
+POST
+/api/public/v1/messages
+Envoyer un message anonyme (public, protégé par CAPTCHA + rate limiting)
+GET
+/api/v1/messages
+Lister/filtrer les messages reçus (statut, favoris, catégorie, recherche)
+GET
+/api/v1/messages/{id}
+Détail d’un message
+PUT
+/api/v1/messages/{id}/favorite
+Marquer/démarquer un message en favori
+PUT
+/api/v1/messages/{id}/archive
+Archiver un message
+DELETE
+/api/v1/messages/{id}
+Supprimer un message (suppression logique)
+POST
+/api/v1/messages/{id}/public-reply
+Publier une réponse publique (texte, vidéo ou audio)
+POST
+/api/v1/messages/{id}/report
+Signaler un message
+GET
+/api/v1/messages/export
+Exporter les messages (Premium, PDF/CSV)
+
+
+12.4 Intelligence artificielle
+Méthode
+Endpoint
+Description
+POST
+/internal/ai/moderate
+Analyse de toxicité d’un message (appel interne synchrone, non exposé publiquement)
+GET
+/api/v1/ai/weekly-summary
+Récupérer le résumé IA hebdomadaire (Premium)
+GET
+/api/v1/ai/reply-suggestions/{messageId}
+Obtenir des suggestions de réponse pour un message
+GET
+/api/v1/ai/sentiment-analysis
+Récupérer l’analyse de sentiment agrégée (Premium)
+
+
+12.5 Notifications et abonnement
+Méthode
+Endpoint
+Description
+GET
+/api/v1/notifications
+Lister les notifications de l’utilisateur
+PUT
+/api/v1/notifications/{id}/read
+Marquer une notification comme lue
+PUT
+/api/v1/notifications/preferences
+Mettre à jour les préférences de notification
+GET
+/api/v1/subscriptions/me
+Consulter l’abonnement actif
+POST
+/api/v1/subscriptions/upgrade
+Souscrire ou changer d’offre Premium
+POST
+/api/v1/subscriptions/cancel
+Résilier l’abonnement Premium
+POST
+/api/v1/webhooks/stripe
+Webhook entrant du prestataire de paiement
+
+
+12.6 Statistiques
+Méthode
+Endpoint
+Description
+GET
+/api/v1/stats/overview
+Statistiques de base (vues, messages reçus, taux de conversion)
+GET
+/api/v1/stats/advanced
+Statistiques avancées Premium (évolution, sources, sentiment)
+
+
+12.7 Administration
+Méthode
+Endpoint
+Description
+GET
+/api/v1/admin/users
+Lister/filtrer les utilisateurs
+PUT
+/api/v1/admin/users/{id}/status
+Suspendre, bannir ou réactiver un compte
+GET
+/api/v1/admin/reports
+Lister la file de signalements (triée par priorité)
+PUT
+/api/v1/admin/reports/{id}/resolve
+Résoudre un signalement (décision de modération)
+GET
+/api/v1/admin/audit-logs
+Consulter les journaux d’audit (permission AUDIT_ACCESS requise)
+POST
+/api/v1/admin/audit-logs/deanonymize
+Procédure exceptionnelle de dépseudonymisation (double validation)
+GET
+/api/v1/admin/stats
+Statistiques globales et tableau de bord analytique
+GET
+/api/v1/admin/bots/suspicious
+Lister les sources suspectes de bots/spam
+PUT
+/api/v1/admin/roles/{userId}
+Attribuer un rôle administrateur
+GET
+/api/v1/admin/activity-log
+Consulter le journal d’activité des actions administrateur
+POST
+/api/v1/admin/export
+Exporter des journaux à des fins d’audit ou de réquisition légale
+
+
+12.8 Conventions générales
+
+
+Pagination : `page` et `size`, réponse incluant `totalElements` et `totalPages`.
+
+
+Codes HTTP standards : 200, 201, 204, 400, 401, 403, 404, 409, 422, 429, 500.
+
+
+Format d’erreur uniforme : `{ &quot;timestamp&quot;:.., &quot;status&quot;:.., &quot;error&quot;:.., &quot;message&quot;:.., &quot;path&quot;:.. }`.
+
+
+Endpoint public d’envoi de message (`/api/public/v1/messages`) soumis à limitation de débit stricte par IP/empreinte d’appareil et à vérification CAPTCHA obligatoire.
+
+
+
+13. Architecture technique
+
+
+13.1 Vue d’ensemble
+
+Architecture modulaire (modular monolith évolutif vers micro-services), conteneurisée, déployée sur Kubernetes, conçue pour absorber des pics de trafic viraux soudains (partage massif sur réseaux sociaux) tout en isolant la chaîne de modération temps réel, critique en termes de latence.
+
+
+13.2 Stack technique retenue
+Couche
+Technologie
+Justification
+Frontend
+Angular + Angular Material + Tailwind CSS
+Interface riche (tableau de bord, éditeur de thème, statistiques) ; Angular Material pour les composants accessibles, Tailwind pour la personnalisation rapide de la page publique
+Backend
+Spring Boot + Spring Security + JWT + OAuth2 + WebSocket
+Écosystème robuste pour la gestion de l’authentification, des rôles et des notifications temps réel
+Base de données
+PostgreSQL
+SGBD relationnel transactionnel (ACID), adapté à la structure relationnelle du modèle (section 11)
+Cache
+Redis
+Cache de sessions, limitation de débit (rate limiting) par IP/empreinte d’appareil, compteurs de messages, files d’attente légères
+Stockage objet
+Amazon S3
+Photos de profil, réponses vidéo/audio, exports PDF/CSV
+Modération IA
+Service interne dédié (Python/FastAPI ou Java) + appels aux fournisseurs LLM externes pour les cas ambigus
+Isolation du pipeline de modération, scalable indépendamment, avec stratégie de repli en cas d’indisponibilité (section 9.9)
+Temps réel
+WebSocket (STOMP sur Spring)
+Notifications in-app, badges de messages non lus en temps réel
+Conteneurisation
+Docker
+Standardisation des environnements de build/déploiement
+Orchestration
+Kubernetes
+Scalabilité horizontale automatique, essentielle pour absorber les pics de trafic viraux
+Cloud
+AWS
+EKS pour Kubernetes, RDS pour PostgreSQL, ElastiCache pour Redis, S3 pour le stockage, CloudFront en CDN
+
+
+13.3 Schéma logique (description textuelle)
+
+
+Couche Clients : application Web responsive (Angular).
+
+
+Couche Edge : CDN CloudFront pour les assets statiques et médias, WAF, API Gateway / Load Balancer avec autoscaling agressif pour absorber les pics viraux.
+
+
+Couche Services métier : Service Auth, Service Users/Profiles, Service Links, Service Messages, Service Moderation (IA), Service Notifications, Service Billing (Stripe), Service Admin.
+
+
+Couche Asynchrone : file de messages (SQS ou Kafka) pour les traitements différés (génération de résumé IA, analyse de sentiment, export de données).
+
+
+Couche Données : PostgreSQL (primaire + réplicas de lecture), Redis (cache et rate limiting), S3 (médias).
+
+
+Couche Observabilité : CloudWatch/Prometheus-Grafana, ELK pour les logs, OpenTelemetry pour le traçage distribué, alerting dédié sur la latence de la chaîne de modération.
+
+
+13.4 Architecture de la chaîne de modération temps réel
+
+Lorsqu’un visiteur soumet un message : (1) vérification CAPTCHA et rate limiting via Redis ; (2) appel synchrone au Service Moderation qui exécute le modèle de classification léger (&lt; 500 ms) ; (3) si le score est ambigu (zone intermédiaire), appel complémentaire à un LLM externe avec timeout strict (repli sur la décision du modèle léger si le LLM ne répond pas à temps) ; (4) décision finale (livraison, avertissement ou blocage) ; (5) le message et son enregistrement d’audit sont persistés en base de façon transactionnelle.
+
+Les traitements non critiques en latence (résumé IA, analyse de sentiment, détection de doublons) sont déportés en asynchrone via la file de messages, consommés par des workers dédiés.
+
+
+13.5 Gestion des pics de trafic viraux
+
+
+Autoscaling horizontal agressif configuré sur des seuils bas de latence/CPU pour anticiper une croissance brutale du trafic suite à un partage viral.
+
+
+Cache CDN agressif sur les pages publiques de profil (contenu largement statique) avec invalidation ciblée lors des mises à jour de profil.
+
+
+File d’attente de secours pour l’envoi de messages en cas de saturation momentée du Service Moderation, avec traitement différé de quelques secondes plutôt que rejet pur et simple.
+
+
+13.6 Environnements
+Environnement
+Usage
+Particularités
+Développement (dev)
+Développement quotidien
+Modération IA en mode simulé/mock, données fictives
+Recette (staging)
+QA, UAT
+Données anonymisées, tests de charge simulant un pic viral
+Production
+Utilisateurs finaux
+Haute disponibilité, autoscaling agressif, monitoring renforcé sur la latence de modération
+
+
+
+14. Sécurité
+
+
+La sécurité est un pilier fondamental de la plateforme, étant donné la sensibilité particulière d’un service de messages anonymes vis-à-vis des risques de harcèlement et d’abus.
+
+
+14.1 Authentification (JWT / OAuth2)
+
+
+JWT : Access Token (durée de vie 15 minutes) + Refresh Token (30 jours, glissant), avec rotation des clés de signature (RS256).
+
+
+Liste noire des tokens révoqués maintenue dans Redis, vérifiée à chaque requête authentifiée.
+
+
+OAuth2 utilisé pour la connexion sociale (Google) avec scopes limités au strict nécessaire (email, nom, photo).
+
+
+Le payload JWT contient l’identifiant utilisateur, le(s) rôle(s), la date d’émission/expiration et un identifiant de session unique permettant la révocation ciblée.
+
+
+14.2 Double authentification (MFA)
+
+
+MFA TOTP (application d’authentification) disponible pour tout utilisateur, fortement recommandée et activable en un clic.
+
+
+MFA obligatoire pour tous les comptes Administrateur, sans exception.
+
+
+Codes de récupération de secours (10 codes à usage unique) générés à l’activation du MFA.
+
+
+14.3 Chiffrement
+
+
+HTTPS/TLS 1.2+ obligatoire sur l’ensemble des échanges (Web, API, WebSocket).
+
+
+Mots de passe hachés avec Argon2 (ou bcrypt à défaut), jamais stockés en clair.
+
+
+Adresses IP pseudonymisées via hachage salé avant stockage dans AUDIT_LOGS (section 2.4), le sel étant conservé séparément avec un accès restreint (procédure de dépseudonymisation exceptéonnelle).
+
+
+Chiffrement au repos des données sensibles en base (ex. : données de facturation) et des médias stockés en S3 (chiffrement côté serveur, SSE-S3 ou SSE-KMS).
+
+
+14.4 Protection contre les attaques courantes
+Risque
+Mesures de protection
+XSS (Cross-Site Scripting)
+Échappement systématique des entrées utilisateurs à l’affichage (contenu des messages notamment), Content Security Policy (CSP) stricte, sanitisation du contenu affiché sur les pages publiques
+CSRF (Cross-Site Request Forgery)
+Jetons CSRF sur les formulaires sensibles, SameSite=Strict sur les cookies, vérification de l’en-tête Origin/Referer
+Injection SQL
+Requêtes paramétrées / ORM (JPA/Hibernate), validation stricte de toutes les entrées côté serveur
+Brute force / credential stuffing
+Limitation de débit sur les endpoints d’authentification, CAPTCHA après échecs répétés, verrouillage temporaire du compte après 5 tentatives
+Abus de l’envoi de message anonyme (spam, harcèlement de masse)
+CAPTCHA invisible systématique, limitation de débit par IP/empreinte d’appareil, modération IA temps réel (section 8-9)
+Fuite de données via API
+DTO dédiés filtrant les champs exposés, pagination obligatoire, audit des accès à la table AUDIT_LOGS
+
+
+14.5 Limitation de débit et CAPTCHA
+
+
+Rate limiting global par IP et par empreinte d’appareil sur l’endpoint public d’envoi de message (ex. : 20 requêtes/heure).
+
+
+CAPTCHA invisible (reCAPTCHA v3 ou hCaptcha) en première ligne, avec CAPTCHA visible imposé si le score de confiance est faible.
+
+
+Rate limiting spécifique sur les endpoints d’authentification pour contrer les attaques par force brute.
+
+
+14.6 Conformité RGPD
+
+
+Privacy by Design et by Default : collecte minimale des données, pseudonymisation systématique des IP dès la collecte.
+
+
+Base légale clairement identifiée pour chaque traitement (exécution du contrat pour le service, intérêt légitime pour la lutte anti-abus, consentement pour les cookies non essentiels).
+
+
+Droits des utilisateurs : accès, rectification, effacement, portabilité, opposition, exerçables depuis les paramètres du compte ou via demande au support.
+
+
+Registre des traitements tenu à jour, désignation d’un référent protection des données (DPO) impliqué notamment dans la procédure de dépseudonymisation exceptéonnelle (section 2.4).
+
+
+Protection renforcée des utilisateurs mineurs : consentement parental si requis selon la juridiction, restrictions sur certaines fonctionnalités sensibles (réponses vidéo publiques notamment).
+
+
+14.7 Politique de conservation des données
+
+Détaillée en section 11.5 (base de données). En synthèse : les messages sont conservés selon l’offre souscrite, les journaux d’audit pseudonymisés 12 mois, les données de facturation 10 ans (obligation comptable), et les comptes inactifs sont anonymisés après 3 ans.
+
+
+14.8 Sauvegardes et continuité d’activité
+
+
+Sauvegardes automatiques quotidiennes de la base de données avec rétention glissante de 30 jours et réplication multi-zone de disponibilité.
+
+
+Tests de restauration périodiques et plan de reprise d’activité documenté (objectifs RTO/RPO).
+
+
+
+15. Wireframes
+
+
+Descriptions textuelles destinées à servir de base à la création des maquettes haute-fidélité par l’équipe UX/UI.
+
+
+15.1 Principes directeurs
+
+
+Mobile-first : la majorité du trafic provient de liens partagés sur réseaux sociaux mobiles (Stories, bio TikTok/Instagram).
+
+
+Parcours d’envoi minimal : zéro friction pour le visiteur anonyme, aucune étape superflue.
+
+
+Accessibilité visée au niveau AA des WCAG 2.1.
+
+
+15.2 Page publique (Visiteur anonyme)
+
+
+En-tête : photo de profil, pseudo, message d’accroche ou question du jour.
+
+
+Zone centrale : champ de saisie du message avec compteur de caractères en temps réel sous le champ.
+
+
+Boutons de réactions emoji rapides sous le champ de texte (optionnel avant envoi).
+
+
+Bouton principal « Envoyer » en bas d’écran, désactivé tant que le champ est vide.
+
+
+Toggle thème clair/sombre en haut à droite de l’écran.
+
+
+Écran de confirmation post-envoi : icône de succès, message « Message envoyé anonymement ! », bouton « Crée ton propre lien ».
+
+
+15.3 Tableau de bord Utilisateur
+
+
+En-tête : photo de profil, pseudo, lien personnel avec bouton copier, QR Code accessible en un clic.
+
+
+Bloc statistiques rapides : vues, messages reçus, nouveaux messages non lus.
+
+
+Bloc « Suggestions IA » : lien vers le résumé hebdomadaire si Premium.
+
+
+Accès rapide à la boîte de réception, aux paramètres et à la personnalisation du profil depuis un menu latéral (desktop) ou une barre de navigation basse (mobile).
+
+
+15.4 Boîte de réception
+
+
+Barre de filtres en haut : Tous, Non lus, Favoris, Archivés, avec barre de recherche.
+
+
+Liste de cartes messages : extrait du texte, date/heure relative (« il y a 2h »), icône de catégorie IA, actions rapides (favori, archiver, supprimer, répondre) au survol ou par glissement (mobile).
+
+
+Vue détaillée d’un message au clic : texte complet, options de réponse publique (texte/vidéo/audio selon l’offre), bouton de signalement discret.
+
+
+15.5 Personnalisation du profil
+
+
+Éditeur avec aperçu en temps réel (écran divisé : formulaire à gauche, aperçu mobile à droite sur desktop ; onglets sur mobile).
+
+
+Sélection de thème par galerie de vignettes, éditeur de couleurs personnalisé (Premium).
+
+
+Configuration de la question du jour : activation/désactivation, choix parmi une banque de questions ou saisie libre.
+
+
+15.6 Interface Administration
+
+
+Menu latéral fixe : Tableau de bord, Utilisateurs, Signalements, Détection Bots/Spam, Journal d’activité, Paramètres, Rôles.
+
+
+Tableau de bord central avec cartes de KPI (utilisateurs actifs, messages du jour, taux de blocage IA, signalements en attente) et graphiques d’évolution.
+
+
+File de signalements sous forme de tableau trié par priorité, avec panneau latéral de détail au clic sur une ligne.
+
+
+15.7 Parcours utilisateur complet – de la réception à la réponse publique
+
+
+Un visiteur envoie un message anonyme via le lien partagé en story Instagram.
+
+
+Le message passe la modération IA en moins de 2 secondes et est livré à la boîte de réception.
+
+
+L’utilisateur reçoit une notification push et consulte le message.
+
+
+Il rédige une réponse publique texte, aidé par une suggestion IA.
+
+
+Le système génère un visuel exporté prêt à partager en story, incluant le message anonymisé et la réponse.
+
+
+L’utilisateur partage ce visuel sur Instagram, incitant de nouveaux visiteurs à cliquer sur le lien.
+
+
+
+16. User Stories
+
+
+Les User Stories ci-dessous couvrent l’ensemble des modules fonctionnels de la plateforme, au format « En tant que ... je souhaite ... afin de ... ». Elles constituent la base du backlog produit et du découpage en sprints (voir section 18).
+
+
+16.1 Inscription et authentification
+
+
+En tant que visiteur, je souhaite créer un compte avec mon email et mon mot de passe, afin de commencer à recevoir des messages anonymes.
+
+
+En tant que visiteur, je souhaite vérifier la disponibilité de mon pseudo en temps réel, afin de choisir un pseudo unique sans essai-erreur.
+
+
+En tant que visiteur, je souhaite m’inscrire via Google, afin de créer un compte rapidement sans mot de passe supplémentaire.
+
+
+En tant que nouvel utilisateur, je souhaite recevoir un email de vérification, afin de activer pleinement mon compte.
+
+
+En tant que utilisateur, je souhaite me connecter avec mon email et mon mot de passe, afin de accéder à ma boîte de réception.
+
+
+En tant que utilisateur, je souhaite réinitialiser mon mot de passe oublié, afin de retrouver l’accès à mon compte.
+
+
+En tant que utilisateur, je souhaite activer la double authentification, afin de sécuriser davantage mon compte.
+
+
+En tant que utilisateur, je souhaite me déconnecter de tous mes appareils, afin de protéger mon compte après un appareil perdu.
+
+
+En tant que utilisateur, je souhaite voir la liste de mes sessions actives, afin de détecter une connexion suspecte.
+
+
+En tant que administrateur, je souhaite imposer le MFA aux comptes internes, afin de renforcer la sécurité du back-office.
+
+
+En tant que utilisateur, je souhaite modifier mes informations personnelles, afin de garder mon profil à jour.
+
+
+En tant que utilisateur, je souhaite supprimer mon compte définitivement, afin de exercer mon droit à l’oubli.
+
+
+En tant que nouvel utilisateur, je souhaite déclarer mon âge à l’inscription, afin de accéder à un service adapté à ma tranche d’âge.
+
+
+En tant que utilisateur mineur, je souhaite bénéficier de restrictions adaptées sur les fonctionnalités sensibles, afin de être protégé conformément à mon âge.
+
+
+16.2 Lien personnel
+
+
+En tant que utilisateur, je souhaite obtenir automatiquement un lien personnel à l’inscription, afin de commencer à le partager immédiatement.
+
+
+En tant que utilisateur, je souhaite copier mon lien en un clic, afin de le partager rapidement.
+
+
+En tant que utilisateur, je souhaite générer un QR Code de mon lien, afin de le partager hors ligne (affiche, badge).
+
+
+En tant que utilisateur, je souhaite partager rapidement mon lien vers TikTok, Instagram ou Snapchat, afin de l’intégrer directement dans mes publications.
+
+
+En tant que utilisateur Premium, je souhaite personnaliser l’identifiant de mon lien, afin de avoir un lien plus mémorisable ou en accord avec ma marque personnelle.
+
+
+En tant que utilisateur, je souhaite changer mon pseudo sans casser les liens déjà partagés, afin de éviter de perdre du trafic après un changement de nom.
+
+
+En tant que utilisateur, je souhaite mettre mon lien en pause temporairement, afin de arrêter de recevoir des messages sans supprimer mon compte.
+
+
+En tant que utilisateur, je souhaite personnaliser le message d’accroche de ma page publique, afin de donner le ton à mes visiteurs.
+
+
+En tant que utilisateur, je souhaite choisir un thème visuel pour ma page publique, afin de personnaliser mon image.
+
+
+En tant que utilisateur Premium, je souhaite accéder à des thèmes personnalisés avancés, afin de différencier ma page des comptes gratuits.
+
+
+En tant que utilisateur Premium, je souhaite générer un QR Code dynamique, afin de changer la destination sans réimprimer mon support physique.
+
+
+En tant que utilisateur, je souhaite intégrer un widget sur mon site personnel, afin de recevoir des messages depuis mon propre site web.
+
+
+16.3 Visiteur et envoi de message
+
+
+En tant que visiteur, je souhaite envoyer un message anonyme sans créer de compte, afin de donner mon avis sans barrière d’inscription.
+
+
+En tant que visiteur, je souhaite voir un compteur de caractères en temps réel, afin de respecter la limite imposée.
+
+
+En tant que visiteur, je souhaite utiliser un message pré-rempli suggéré, afin de envoyer un message rapidement sans rédiger moi-même.
+
+
+En tant que visiteur, je souhaite ajouter une réaction emoji à mon message, afin de exprimer une émotion supplémentaire.
+
+
+En tant que visiteur, je souhaite basculer entre thème clair et sombre, afin de adapter l’affichage à ma préférence.
+
+
+En tant que visiteur, je souhaite recevoir une confirmation après l’envoi de mon message, afin de être sûr qu’il a bien été transmis.
+
+
+En tant que visiteur, je souhaite être invité à créer mon propre lien après l’envoi, afin de découvrir le service à mon tour.
+
+
+En tant que visiteur, je souhaite répondre à la question du jour proposée, afin de participer de façon ludique.
+
+
+En tant que visiteur, je souhaite passer un CAPTCHA invisible sans effort, afin de envoyer mon message sans friction si je suis un humain.
+
+
+En tant que visiteur, je souhaite être bloqué si j’envoie trop de messages au même destinataire, afin de comprendre que la plateforme protège ses utilisateurs contre le spam.
+
+
+En tant que visiteur, je souhaite voir un message d’erreur clair si mon message est refusé, afin de comprendre que je dois reformuler sans connaître le détail exact de la règle enfreinte.
+
+
+En tant que visiteur, je souhaite consulter la page publique même hors connexion après un premier chargement, afin de terminer la rédaction de mon message malgré une coupure réseau brève.
+
+
+16.4 Boîte de réception
+
+
+En tant que utilisateur, je souhaite consulter la liste de mes messages reçus, afin de suivre les retours de mon entourage.
+
+
+En tant que utilisateur, je souhaite voir la date et l’heure de réception de chaque message, afin de situer temporellement les messages.
+
+
+En tant que utilisateur, je souhaite marquer un message en favori, afin de le retrouver facilement plus tard.
+
+
+En tant que utilisateur, je souhaite archiver un message, afin de l’écarter sans le supprimer définitivement.
+
+
+En tant que utilisateur, je souhaite supprimer un message définitivement, afin de nettoyer ma boîte de réception.
+
+
+En tant que utilisateur, je souhaite filtrer mes messages par statut (non lus, favoris, archivés), afin de organiser ma consultation.
+
+
+En tant que utilisateur, je souhaite rechercher un message par mot-clé, afin de retrouver rapidement un message précis.
+
+
+En tant que utilisateur, je souhaite répondre publiquement à un message reçu, afin de partager mes échanges avec ma communauté.
+
+
+En tant que utilisateur Premium, je souhaite répondre à un message par une vidéo courte, afin de créer un contenu engageant pour mes stories.
+
+
+En tant que utilisateur Premium, je souhaite répondre à un message par un message vocal, afin de communiquer rapidement sans écrire.
+
+
+En tant que utilisateur, je souhaite voir des suggestions de réponse générées par IA, afin de gagner du temps dans ma rédaction.
+
+
+En tant que utilisateur, je souhaite signaler un message inapproprié, afin de protéger la communauté et ma propre sérénité.
+
+
+En tant que utilisateur, je souhaite voir mes messages classés automatiquement par catégorie, afin de identifier rapidement les compliments, questions ou critiques.
+
+
+En tant que utilisateur, je souhaite voir les messages en doublon regroupés, afin de ne pas être submergé par une rafale de messages identiques.
+
+
+En tant que utilisateur Premium, je souhaite exporter mes messages en PDF ou CSV, afin de conserver une trace hors plateforme.
+
+
+En tant que utilisateur, je souhaite visualiser mes messages sur un calendrier, afin de identifier les périodes de forte activité.
+
+
+16.5 Notifications
+
+
+En tant que utilisateur, je souhaite recevoir une notification push à chaque nouveau message, afin de être informé en temps réel.
+
+
+En tant que utilisateur, je souhaite recevoir un récapitulatif par email de mes nouveaux messages, afin de suivre l’activité sans ouvrir l’application en permanence.
+
+
+En tant que utilisateur, je souhaite être averti d’une connexion depuis un nouvel appareil, afin de détecter un accès non autorisé.
+
+
+En tant que utilisateur, je souhaite personnaliser mes préférences de notification par canal, afin de ne pas être sursollicité.
+
+
+En tant que utilisateur, je souhaite consulter mes notifications passées dans un centre dédié, afin de ne rien manquer même hors connexion.
+
+
+En tant que utilisateur, je souhaite être notifié du traitement de mon signalement, afin de savoir que ma demande a été prise en compte.
+
+
+En tant que utilisateur, je souhaite être notifié d’un échec de paiement de mon abonnement, afin de régulariser rapidement ma situation.
+
+
+En tant que utilisateur Premium, je souhaite être notifié quand mon résumé IA hebdomadaire est disponible, afin de le consulter sans avoir à vérifier manuellement.
+
+
+16.6 Premium et facturation
+
+
+En tant que utilisateur, je souhaite consulter les avantages de l’offre Premium, afin de décider si l’abonnement correspond à mes besoins.
+
+
+En tant que utilisateur, je souhaite souscrire à l’abonnement Premium, afin de débloquer les fonctionnalités avancées.
+
+
+En tant que utilisateur, je souhaite bénéficier d’une période d’essai gratuite, afin de tester le Premium avant de m’engager.
+
+
+En tant que utilisateur, je souhaite résilier mon abonnement à tout moment, afin de arrêter la facturation sans contrainte.
+
+
+En tant que utilisateur, je souhaite consulter l’historique de mes factures, afin de suivre mes dépenses.
+
+
+En tant que utilisateur, je souhaite changer de moyen de paiement, afin de continuer à payer mon abonnement sans interruption.
+
+
+En tant que utilisateur, je souhaite conserver l’accès Premium jusqu’à la fin de la période payée après résiliation, afin de ne pas perdre le bénéfice de ce que j’ai déjà payé.
+
+
+En tant que utilisateur, je souhaite voir mes statistiques avancées (Premium), afin de mieux comprendre l’engagement de mon audience.
+
+
+En tant que utilisateur, je souhaite voir l’analyse de sentiment de mes messages reçus, afin de comprendre le ton général des retours.
+
+
+En tant que utilisateur, je souhaite naviguer sans publicité (Premium), afin de profiter d’une expérience épurée.
+
+
+16.7 Modération et sécurité
+
+
+En tant que utilisateur, je souhaite être protégé automatiquement des messages toxiques avant leur réception, afin de préserver ma santé mentale.
+
+
+En tant que utilisateur, je souhaite bloquer une source d’envoi récurrente abusive, afin de ne plus recevoir de messages de cette source.
+
+
+En tant que utilisateur, je souhaite signaler un message avec un motif précis, afin de aider la modération à traiter efficacement mon signalement.
+
+
+En tant que administrateur, je souhaite consulter la file de signalements triée par priorité, afin de traiter en premier les cas les plus urgents.
+
+
+En tant que administrateur, je souhaite consulter le contexte complet d’un message signalé, afin de prendre une décision éclairée.
+
+
+En tant que administrateur, je souhaite suspendre ou bannir un compte abusif, afin de protéger la communauté.
+
+
+En tant que administrateur, je souhaite bloquer une source technique même sans compte associé, afin de empêcher un visiteur anonyme récurrent de continuer à nuire.
+
+
+En tant que administrateur, je souhaite consulter les journaux d’audit pseudonymisés d’un message, afin de instruire un signalement grave.
+
+
+En tant que administrateur habilité, je souhaite déclencher la procédure de dépseudonymisation exceptéonnelle, afin de répondre à une réquisition judiciaire ou une menace grave.
+
+
+En tant que DPO, je souhaite valider une demande de dépseudonymisation en double contrôle, afin de garantir que cette action reste exceptéonnelle et justifiée.
+
+
+En tant que administrateur, je souhaite consulter les sources suspectées d’être des bots, afin de agir avant qu’elles ne causent des dommages.
+
+
+En tant que modérateur communautaire, je souhaite voter sur un signalement ambigu, afin de aider à absorber le volume de modération.
+
+
+En tant que administrateur, je souhaite consulter le journal d’activité des actions de modération, afin de assurer la traçabilité des décisions.
+
+
+En tant que administrateur, je souhaite exporter des journaux à des fins d’audit ou de réquisition légale, afin de répondre à une obligation externe.
+
+
+En tant que administrateur, je souhaite gérer les rôles et permissions internes, afin de limiter les accès selon le principe du moindre privilège.
+
+
+En tant que utilisateur, je souhaite être informé des raisons générales de refus d’un message sans connaître le détail exploitable, afin de comprendre sans pouvoir contourner le filtre.
+
+
+16.8 Intelligence artificielle
+
+
+En tant que utilisateur, je souhaite recevoir un résumé IA hebdomadaire de mes messages, afin de gagner du temps dans le suivi de mon activité.
+
+
+En tant que utilisateur, je souhaite voir mes messages classés automatiquement (compliment, question, critique), afin de prioriser ma lecture.
+
+
+En tant que utilisateur, je souhaite obtenir des suggestions de réponse contextualisées, afin de répondre plus rapidement et pertinemment.
+
+
+En tant que utilisateur, je souhaite voir l’évolution de l’analyse de sentiment de mes messages dans le temps, afin de comprendre la perception de mon audience.
+
+
+En tant que utilisateur, je souhaite être protégé même en cas d’indisponibilité temporaire du service IA principal, afin de continuer à recevoir des messages modérés de façon dégradée plutôt que bloquée.
+
+
+En tant que administrateur, je souhaite consulter le score de risque IA d’un message signalé, afin de prioriser mon traitement.
+
+
+En tant que administrateur, je souhaite ajuster les seuils de blocage automatique de l’IA, afin de affiner l’équilibre entre sécurité et faux positifs.
+
+
+En tant que utilisateur, je souhaite voir les messages en doublon fusionnés automatiquement, afin de avoir une boîte de réception plus lisible.
+
+
+En tant que administrateur, je souhaite consulter les statistiques d’utilisation du pipeline de modération IA, afin de anticiper les besoins de capacité.
+
+
+En tant que utilisateur, je souhaite obtenir une question du jour générée ou choisie automatiquement, afin de varier l’engagement de mes visiteurs sans effort.
+
+
+16.9 Fonctionnalités innovantes
+
+
+En tant que utilisateur Premium, je souhaite créer une réponse vidéo exportée au format story, afin de publier facilement sur mes réseaux sociaux.
+
+
+En tant que utilisateur Premium, je souhaite créer une réponse vocale avec visuel généré automatiquement, afin de répondre rapidement sans écrire tout en produisant un contenu partageable.
+
+
+En tant que utilisateur, je souhaite intégrer un widget sur mon profil Instagram ou TikTok, afin de faciliter l’accès à mon lien depuis mes réseaux.
+
+
+En tant que utilisateur, je souhaite personnaliser avancément ma page de profil avec des liens secondaires, afin de centraliser tous mes réseaux comme sur Linktree.
+
+
+En tant que utilisateur, je souhaite activer le mode Question du jour, afin de recevoir des réponses plus ciblées et ludiques.
+
+
+En tant que utilisateur, je souhaite choisir ma propre question du jour, afin de personnaliser l’engagement demandé à mes visiteurs.
+
+
+En tant que utilisateur, je souhaite visualiser un calendrier de mes messages reçus, afin de identifier les moments de forte activité.
+
+
+En tant que utilisateur, je souhaite générer un QR Code dynamique modifiable, afin de réutiliser un support physique même après un changement de lien.
+
+
+En tant que candidat modérateur communautaire, je souhaite postuler au statut de modérateur communautaire, afin de contribuer à la sécurité de la plateforme.
+
+
+En tant que utilisateur, je souhaite réagir avec un emoji rapide à un message reçu, afin de engager sans effort de rédaction.
+
+
+16.10 Administration générale
+
+
+En tant que administrateur, je souhaite consulter un tableau de bord analytique global, afin de piloter l’activité de la plateforme.
+
+
+En tant que administrateur, je souhaite consulter les statistiques d’utilisateurs actifs et de messages envoyés, afin de suivre la croissance du service.
+
+
+En tant que administrateur, je souhaite consulter le taux de messages bloqués par l’IA, afin de évaluer l’efficacité de la modération.
+
+
+En tant que administrateur, je souhaite gérer les comptes utilisateurs (suspendre, bannir, réactiver), afin de maintenir un environnement sain.
+
+
+En tant que administrateur, je souhaite exporter les statistiques globales, afin de produire des rapports pour les équipes métier.
+
+
+En tant que administrateur, je souhaite configurer les seuils de limitation de messages, afin de adapter la politique anti-spam à l’évolution des usages.
+
+
+En tant que administrateur, je souhaite gérer la liste des pseudos interdits, afin de éviter les usurpations ou contenus choquants dans les identifiants.
+
+
+En tant que administrateur, je souhaite consulter le tableau de bord prédictif de charge de modération, afin de anticiper les besoins en équipe de modération.
+
+
+En tant que administrateur, je souhaite désactiver temporairement une fonctionnalité via feature flag, afin de effectuer une maintenance sans interrompre tout le service.
+
+
+En tant que administrateur, je souhaite consulter l’historique complet d’un compte suspect, afin de prendre une décision éclairée de sanction.
+
+
+En tant que administrateur, je souhaite recevoir une alerte en cas de pic anormal de signalements, afin de réagir rapidement à une possible campagne d’abus coordonnée.
+
+
+En tant que utilisateur, je souhaite contacter le support depuis l’application, afin de obtenir de l’aide sans quitter la plateforme.
+
+
+En tant que administrateur, je souhaite consulter les journaux d’activité filtrés par type d’action, afin de auditer une catégorie spécifique d’opérations.
+
+
+En tant que administrateur, je souhaite générer un rapport de conformité RGPD sur demande, afin de répondre à un audit externe.
+
+Total : 122 User Stories couvrant l’ensemble du périmètre fonctionnel.
+
+
+
+17. Diagrammes UML et cas d’utilisation
+
+
+Décrits textuellement pour transposition graphique en notation UML standard (acteurs en bonhomme-bâton, cas d’utilisation en ellipses, relations « include »/« extend » en pointillés).
+
+
+17.1 Acteurs du système
+
+
+Visiteur anonyme (sans compte).
+
+
+Utilisateur (propriétaire d’un lien personnel).
+
+
+Utilisateur Premium (sous-rôle avec fonctionnalités étendues).
+
+
+Modérateur communautaire (statut spécial accordé à des utilisateurs volontaires).
+
+
+Administrateur (rôle interne).
+
+
+DPO (rôle interne spécifique pour la validation de dépseudonymisation).
+
+
+Système IA (modération, génération, analyse).
+
+
+Système de paiement externe (Stripe).
+
+
+17.2 Diagramme de cas d’utilisation – Visiteur anonyme
+
+
+Consulter la page publique d’un lien.
+
+
+Envoyer un message anonyme (inclut : Passer le CAPTCHA, Soumettre à la modération IA).
+
+
+Réagir avec un emoji (étend : Envoyer un message anonyme).
+
+
+Répondre à la question du jour (étend : Envoyer un message anonyme).
+
+
+Basculer le thème clair/sombre.
+
+
+Créer son propre compte (étend : Écran de confirmation post-envoi).
+
+
+17.3 Diagramme de cas d’utilisation – Utilisateur
+
+
+S’inscrire / Se connecter (inclut : Vérifier email ; étend : Se connecter via OAuth).
+
+
+Gérer mon lien personnel (inclut : Générer un QR Code, Personnaliser le slug si Premium).
+
+
+Personnaliser ma page de profil (inclut : Choisir un thème, Configurer la question du jour).
+
+
+Consulter ma boîte de réception (inclut : Filtrer, Rechercher).
+
+
+Gérer un message (inclut : Favori, Archiver, Supprimer ; étend : Répondre publiquement).
+
+
+Répondre publiquement à un message (étend : Réponse vidéo, Réponse vocale – Premium).
+
+
+Signaler un message.
+
+
+Bloquer une source d’envoi.
+
+
+Consulter mes statistiques (étend : Statistiques avancées si Premium).
+
+
+Gérer mon abonnement Premium (inclut : Souscrire, Résilier).
+
+
+Consulter le résumé IA de mes messages (interagit avec Système IA).
+
+
+17.4 Diagramme de cas d’utilisation – Modérateur communautaire
+
+
+Consulter la file de signalements ambigus assignés.
+
+
+Voter sur un signalement (inclut : Consulter le contexte du message).
+
+
+17.5 Diagramme de cas d’utilisation – Administrateur
+
+
+Consulter le tableau de bord analytique global.
+
+
+Gérer les utilisateurs (suspendre, bannir, réactiver).
+
+
+Traiter un signalement (étend : Supprimer le message, Avertir l’utilisateur, Sanctionner le compte).
+
+
+Consulter les journaux d’audit (permission AUDIT_ACCESS requise).
+
+
+Déclencher une demande de dépseudonymisation (interagit avec DPO pour double validation).
+
+
+Détecter et bloquer des sources suspectes de bots/spam.
+
+
+Gérer les rôles et permissions internes.
+
+
+Exporter des journaux à des fins légales.
+
+
+17.6 Fiches détaillées des cas d’utilisation principaux
+
+
+UC-01 – Envoyer un message anonyme
+Champ
+Description
+Acteur principal
+Visiteur anonyme
+Acteur secondaire
+Système IA (modération)
+Préconditions
+Le lien du destinataire est actif (pas en mode pause)
+Scénario principal
+1. Le visiteur ouvre le lien et rédige son message. 2. Il valide l’envoi (CAPTCHA invisible vérifié). 3. Le message est soumis au Service Modération IA. 4. Le score de risque est calculé en &lt; 2s. 5. Si le score est acceptable, le message est livré à la boîte de réception. 6. Confirmation affichée au visiteur.
+Scénarios alternatifs
+Score élevé ? blocage automatique avec message générique ; CAPTCHA visible si score de confiance faible
+Postconditions
+Le message et son enregistrement d’audit pseudonymisé sont persistés ; le destinataire est notifié
+
+
+UC-02 – Répondre publiquement à un message
+Champ
+Description
+Acteur principal
+Utilisateur
+Acteur secondaire
+Système IA (suggestions de réponse)
+Préconditions
+L’utilisateur a reçu au moins un message
+Scénario principal
+1. L’utilisateur ouvre un message reçu. 2. Il consulte les suggestions de réponse IA. 3. Il rédige ou enregistre sa réponse (texte/vidéo/audio). 4. Le système génère un visuel anonymisé prêt à partager. 5. L’utilisateur télécharge ou partage directement le visuel.
+Postconditions
+Le visuel généré ne contient aucune information permettant d’identifier l’expéditeur original
+
+
+UC-03 – Traiter un signalement
+Champ
+Description
+Acteur principal
+Administrateur (ou Modérateur communautaire pour les cas ambigus)
+Préconditions
+Un signalement a été déposé par un utilisateur ou détecté automatiquement par l’IA
+Scénario principal
+1. L’administrateur consulte la file de signalements triée par score de risque. 2. Il ouvre le détail du message et de son contexte. 3. Il prend une décision (suppression, avertissement, sanction du compte). 4. Le système exécute la décision et notifie le signalant.
+Scénarios alternatifs
+Cas ambigu ? transmission à un panel de modérateurs communautaires pour vote
+Postconditions
+Le signalement est clôturé, l’action journalisée dans le journal d’activité administrateur
+
+
+UC-04 – Dépseudonymisation exceptéonnelle d’une source technique
+Champ
+Description
+Acteur principal
+Administrateur Super Admin
+Acteur secondaire
+DPO (validation obligatoire)
+Préconditions
+Réquisition judiciaire reçue ou menace grave avérée (menace de mort, contenu illégal grave)
+Scénario principal
+1. Le Super Admin initie une demande de dépseudonymisation avec justification. 2. Le DPO examine la demande et la légitimité du motif. 3. Double validation requise avant levée du hachage de l’IP. 4. L’information dépseudonymisée est communiquée strictement dans le cadre légal applicable.
+Postconditions
+L’action est entièrement journalisée (audit de l’audit) et soumise à revue périodique de conformité
+
+
+
+18. Roadmap Agile
+
+
+18.1 Méthodologie
+
+Sprints de 2 semaines regroupés en 4 phases correspondant à des jalons produit majeurs. Backlog issu des 122 User Stories de la section 16.
+
+
+18.2 Phase 1 (Mois 1-2) – Fondations
+Sprint
+Contenu principal
+Sprint 0
+Cadrage technique : architecture, choix cloud (AWS), CI/CD, design system, mise en place du pipeline de modération IA de base
+Sprint 1
+Authentification complète (email, Google OAuth), vérification email, MFA
+Sprint 2
+Génération du lien personnel, page publique visiteur (sans modération IA avancée), thème clair/sombre
+Sprint 3
+Boîte de réception de base (liste, favoris, archivage, suppression), notifications push/email basiques
+
+Jalon Phase 1 : parcours complet « créer un compte ? obtenir un lien ? recevoir un message » fonctionnel en recette.
+
+
+18.3 Phase 2 (Mois 3-4) – Modération et sécurité
+Sprint
+Contenu principal
+Sprint 4
+CAPTCHA invisible, rate limiting, filtre IA de toxicité temps réel (modèle léger)
+Sprint 5
+Système d’audit pseudonymisé complet, signalements utilisateurs, file de modération admin
+Sprint 6
+Interface Administrateur (gestion utilisateurs, signalements, journal d’activité, RBAC)
+Sprint 7
+Durcissement sécurité (OWASP, chiffrement IP, audit de pénétration), détection de bots/spam
+
+Jalon Phase 2 : modération temps réel et back-office administrateur opérationnels.
+
+
+18.4 Phase 3 (Mois 5-6) – Lancement MVP
+Sprint
+Contenu principal
+Sprint 8
+QR Code, partage rapide multi-plateformes, recherche et filtres avancés dans la boîte de réception
+Sprint 9
+Abonnement Premium v1 (Stripe, thèmes personnalisés, statistiques avancées de base)
+Sprint 10
+Recette intensive, tests de charge (simulation de pic viral), corrections
+Sprint 11
+Préparation du déploiement, lancement du MVP en production
+
+Jalon Phase 3 : mise en production du MVP.
+
+
+18.5 Phase 4 (Mois 7-9) – Intelligence artificielle et innovations
+Sprint
+Contenu principal
+Sprint 12
+Classification automatique des messages, détection de doublons, suggestions de réponse IA
+Sprint 13
+Résumé IA hebdomadaire, analyse de sentiment (Premium)
+Sprint 14
+Réponses vidéo et vocales (Premium), génération de visuels exportés pour réseaux sociaux
+Sprint 15
+Widgets multi-plateformes, mode Question du jour, QR Code dynamique
+Sprint 16
+Modération communautaire (candidature, vote), calendrier des messages
+
+Jalon Phase 4 : toutes les fonctionnalités IA et innovantes majeures en production.
+
+
+18.6 Synthèse des jalons
+Jalon
+Livrable
+Fin Mois 2
+Parcours complet création de lien / envoi de message fonctionnel
+Fin Mois 4
+Modération IA temps réel et back-office administrateur opérationnels
+Fin Mois 6
+MVP en production
+Fin Mois 9
+Fonctionnalités IA et innovantes complètes (résumé, sentiment, réponses vidéo/audio, widgets)
+
+
+18.7 Composition d’équipe recommandée
+Rôle
+Effectif indicatif
+Responsabilité principale
+Product Owner
+1
+Priorisation du backlog, validation fonctionnelle
+Scrum Master
+1
+Animation des cérémonies Agile, suivi du planning
+UX/UI Designer
+1 à 2
+Maquettes, design system, wireframes
+Développeurs Frontend (Angular)
+2 à 3
+Interfaces Visiteur, Utilisateur, Admin
+Développeurs Backend (Spring Boot)
+3 à 4
+API, authentification, modération, facturation
+Ingénieur IA / Data Scientist
+1 à 2
+Pipeline de modération, résumé, sentiment
+Ingénieur DevOps
+1
+Infrastructure AWS, CI/CD, monitoring, scalabilité
+Expert Sécurité / RGPD
+1 (temps partiel)
+Audit, conformité, système d’audit et pseudonymisation
+QA / Testeur
+1 à 2
+Tests fonctionnels, automatisation, recette
+
+
+18.8 Risques critiques du planning
+
+
+Latence de la chaîne de modération IA (&lt; 2s) : à valider très tôt (Sprint 4) avec des tests de charge dédiés.
+
+
+Conformité RGPD du système d’audit pseudonymisé : à valider juridiquement avant le Sprint 5.
+
+
+Pics de trafic viraux imprévisibles : l’autoscaling doit être testé en charge dès le Sprint 10, avant tout lancement public.
+
+
+Protection des mineurs : cadrage juridique des restrictions par âge à finaliser avant le Sprint 1.
+
+
+
+19. Plan de tests
+
+
+19.1 Niveaux de test
+Niveau
+Objectif
+Outils
+Tests unitaires
+Logique métier isolée (calcul de score de risque, règles de rate limiting)
+JUnit/Mockito (backend), Jest (frontend)
+Tests d’intégration
+Interactions entre services et API tierces (Stripe, fournisseurs IA)
+Spring Boot Test, WireMock
+Tests E2E
+Parcours utilisateurs critiques (envoi de message, réception, signalement)
+Playwright ou Cypress
+Tests de charge
+Simulation de pics viraux, latence de la chaîne de modération
+k6 ou Gatling
+Tests de sécurité
+OWASP Top 10, contournement de la modération, accès non autorisé aux audit logs
+OWASP ZAP, pentest manuel
+
+
+19.2 Scénarios critiques à valider
+
+
+19.2.1 Modération IA
+
+
+Message clairement toxique : vérifier le blocage automatique en moins de 2 secondes.
+
+
+Message ambigu (limite entre humour et insulte) : vérifier le passage en analyse LLM complémentaire avec timeout respecté.
+
+
+Indisponibilité simulée du service IA principal : vérifier le repli sur le modèle léger ou la mise en file d’attente différée plutôt qu’un blocage total.
+
+
+19.2.2 Anonymat et audit
+
+
+Vérifier qu’aucune information d’audit (IP, user-agent) n’est jamais exposée côté destinataire du message, y compris via l’API brute.
+
+
+Vérifier qu’un compte administrateur sans la permission AUDIT_ACCESS ne peut pas consulter les journaux d’audit (retour 403).
+
+
+Vérifier que la procédure de dépseudonymisation exige bien la double validation (Super Admin + DPO) avant toute levée du hachage IP.
+
+
+19.2.3 Rate limiting et anti-abus
+
+
+Vérifier le blocage après dépassement du quota de messages par source technique vers un même destinataire.
+
+
+Vérifier le déclenchement du CAPTCHA visible en cas de score de confiance faible.
+
+
+Tenter un scraping massif de pages publiques : vérifier la limitation de débit globale par IP.
+
+
+19.2.4 Abonnement Premium
+
+
+Vérifier le déblocage immédiat des fonctionnalités Premium après paiement réussi (webhook Stripe).
+
+
+Vérifier le maintien de l’accès Premium jusqu’à la fin de période après résiliation.
+
+
+Vérifier la gestion d’un échec de paiement (notification, statut d’abonnement correctement dégradé).
+
+
+19.3 Critères de sortie (Definition of Done qualité)
+
+
+Couverture de tests unitaires = 70 % sur les modules critiques (modération, audit, facturation).
+
+
+Zéro défaut bloquant ou critique avant chaque mise en production.
+
+
+Tests de charge validant la tenue de la chaîne de modération à un volume simulant un pic viral (ex. : x50 le trafic nominal) sans dépasser 2 secondes de latence en p95.
+
+
+Audit de sécurité réalisé sans vulnérabilité critique non résolue avant le lancement.
+
+
+19.4 Environnement et données de test
+
+
+Fournisseurs IA en mode sandbox/mock en environnement de développement pour éviter les coûts et la dépendance externe.
+
+
+Jeux de messages de test couvrant un large spectre de toxicité (bénin, ambigu, clairement abusif) pour valider la calibration du modèle de modération.
+
+
+Comptes de test dédiés pour chaque rôle (Visiteur, Utilisateur, Utilisateur Premium, Modérateur communautaire, Administrateur, DPO).
+
+
+
+20. Documentation technique et livrables
+
+
+20.1 Documentation à produire
+
+
+Présent cahier des charges fonctionnel et technique.
+
+
+Spécification API au format OpenAPI/Swagger (Annexe B).
+
+
+Documentation d’architecture (schémas, choix techniques, runbooks d’exploitation).
+
+
+Guide de style et design system (composants UI, thèmes, page publique).
+
+
+Documentation du système d’audit et de la procédure de dépseudonymisation (à usage interne restreint, section 2.4).
+
+
+Documentation utilisateur (FAQ, centre d’aide) couvrant notamment les questions de confidentialité et d’anonymat.
+
+
+20.2 Déploiement
+
+
+Pipelines CI/CD automatisés (GitHub Actions) : build, tests, déploiement par environnement.
+
+
+Infrastructure as Code (Terraform) pour la reproductibilité des environnements AWS.
+
+
+Déploiement progressif (canary release) en production, avec plan de rollback documenté.
+
+
+Procédure de montée en charge d’urgence (scale-up manuel) en cas de pic viral dépassant les seuils d’autoscaling automatique.
+
+
+20.3 Maintenance
+
+
+Supervision continue avec astreinte, criticité élevée sur la chaîne de modération temps réel.
+
+
+Revue périodique (mensuelle) des faux positifs/négatifs de modération IA pour recalibrer les seuils.
+
+
+Veille continue sur les évolutions réglementaires (RGPD, protection des mineurs en ligne).
+
+
+Audit de sécurité périodique (au moins annuel) et à chaque évolution majeure du système d’audit.
+
+
+21. Annexes
+
+
+Annexe A – Détail des tables de base de données
+
+Le détail exhaustif des colonnes (types, contraintes, valeurs par défaut) de chaque table décrite en section 11 sera formalisé dans des scripts de migration Flyway/Liquibase versionnés dans le dépôt de code backend. Tables prioritaires (Sprint 0-1) : USERS, PROFILES, LINKS, MESSAGES, AUDIT_LOGS.
+
+
+Annexe B – Spécification OpenAPI
+
+L’ensemble des endpoints listés en section 12 sera documenté au format OpenAPI 3.x, généré automatiquement à partir du code backend (springdoc-openapi), avec une interface Swagger UI à accès restreint pour les endpoints d’administration sensibles (notamment ceux liés à AUDIT_LOGS).
+
+
+Annexe C – Glossaire
+Terme
+Définition
+Pseudonymisation
+Technique consistant à remplacer une donnée identifiante (ex. : IP) par un hachage non réversible sans clé secrète détenue séparément
+Dépseudonymisation
+Opération inverse permettant de retrouver la donnée originale à partir du hachage, réservée à des cas exceptéonnels et encadrés
+Empreinte d’appareil (fingerprint)
+Identifiant technique dérivé des caractéristiques du navigateur/appareil, utilisé pour la détection d’abus sans identifier directement une personne
+RBAC (Role-Based Access Control)
+Modèle de contrôle d’accès basé sur l’attribution de rôles et de permissions associées
+MFA (Multi-Factor Authentication)
+Authentification multi-facteurs, combinant mot de passe et un second facteur (ex. : code TOTP)
+MVP (Minimum Viable Product)
+Version minimale du produit intégrant les fonctionnalités essentielles pour un lancement public
+RGPD
+Règlement Général sur la Protection des Données, cadre légal européen de protection des données personnelles
+DPO (Data Protection Officer)
+Référent protection des données, chargé de veiller à la conformité RGPD, notamment dans la procédure de dépseudonymisation
+
+
+Annexe D – Points ouverts à valider en Sprint 0
+
+
+Cadre juridique précis de la procédure de dépseudonymisation exceptéonnelle, à valider avec un conseil juridique spécialisé.
+
+
+Âge minimum d’inscription selon les juridictions ciblées de lancement et modalités de consentement parental si applicable.
+
+
+Choix du ou des fournisseurs IA principaux pour la modération temps réel (arbitrage coût/latence/qualité).
+
+
+Périmètre exact et gouvernance du programme de modération communautaire (critères de recrutement, formation, révocation).
+
+
+Nom commercial définitif de la plateforme (« Whispr » utilisé à titre de nom de travail dans ce document).
+
+
+Annexe E – Références
+
+
+OWASP Top 10 – référentiel des risques de sécurité applicative les plus critiques.
+
+
+WCAG 2.1 – référentiel d’accessibilité numérique du W3C.
+
+
+Spécification OpenAPI 3.x – standard de documentation des API REST.
+
+
+Lignes directrices RGPD relatives à la pseudonymisation et à la minimisation des données (CNIL / CEPD).
+
+
+
