@@ -1,0 +1,79 @@
+<div class="profile-container animate-fade-in" style="max-width: 600px; margin: 2rem auto; text-align: center;">
+
+  <div *ngIf="error()" style="color: #ef4444; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: var(--radius-md); margin-bottom: 1rem;">
+    {{ error() }}
+  </div>
+
+  <div *ngIf="!profile() && !error()" style="color: var(--color-text-muted);">
+    Chargement du profil...
+  </div>
+
+  <ng-container *ngIf="profile() as p">
+    <!-- Header Profil -->
+    <div style="margin-bottom: 2rem;">
+      <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); border-radius: 50%; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold;">
+        {{ p.slug.charAt(0).toUpperCase() }}
+      </div>
+      <h1 style="margin-bottom: 0.5rem;">@{{ p.slug }}</h1>
+      <p style="color: var(--color-text-muted);">{{ p.profileBio || 'Envoyez-moi un message secret !' }}</p>
+    </div>
+
+    <!-- Zone de Message (Glassmorphism) -->
+    <div class="glass-panel" style="padding: 2rem; text-align: left;">
+      <h3 style="margin-bottom: 1rem; font-weight: 600; text-align: center;">
+        {{ p.profileDailyQuestion || 'Posez-moi une question anonyme...' }}
+      </h3>
+      
+      <div *ngIf="isSent()" class="animate-fade-in" style="text-align: center; padding: 2rem 0; color: #10b981;">
+        <svg style="width: 48px; height: 48px; margin: 0 auto 1rem auto;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <h2 style="margin-bottom: 0.5rem; color: white;">Envoyé avec succès !</h2>
+        <p style="color: var(--color-text-muted);">Votre message anonyme a été délivré.</p>
+        
+        <div *ngIf="slug() === 'demo'" style="margin-top: 2rem; padding: 1.5rem; background: rgba(var(--color-primary-rgb), 0.1); border-radius: var(--radius-md); border: 1px solid rgba(var(--color-primary-rgb), 0.2);">
+          <h4 style="color: white; margin-bottom: 0.5rem;">C'était un message de démo !</h4>
+          <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Voulez-vous voir à quoi ressemble la boîte de réception et comment votre message y apparaît ?</p>
+          <button class="btn btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem;" (click)="loginToDemo()" [disabled]="isLoggingIn()">
+            <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+            {{ isLoggingIn() ? 'Connexion en cours...' : 'Ouvrir l\'Inbox de Démo' }}
+          </button>
+        </div>
+
+        <!-- Boucle Virale pour les vrais profils -->
+        <div *ngIf="slug() !== 'demo'" style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15)); border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.15);">
+          <h4 style="color: white; margin-bottom: 0.5rem;">C'est à votre tour ! 🤫</h4>
+          <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Vous aussi, recevez des messages secrets et anonymes de vos amis en créant votre propre lien gratuit en 10 secondes !</p>
+          <a routerLink="/register" class="btn btn-primary" style="width: 100%; text-decoration: none; display: block; text-align: center;">
+            Créer mon lien gratuit maintenant
+          </a>
+        </div>
+
+        <button class="btn btn-glass" style="margin-top: 1.5rem; width: 100%;" (click)="isSent.set(false)">Envoyer un autre message</button>
+      </div>
+
+      <div *ngIf="!isSent()">
+        <textarea 
+          [ngModel]="messageContent()"
+          (ngModelChange)="messageContent.set($event)"
+          rows="5" 
+          maxlength="500"
+          placeholder="Écrivez votre message secret ici..."
+          style="width: 100%; padding: 1rem; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); color: white; font-family: var(--font-family-base); resize: vertical; margin-bottom: 0.5rem; outline: none; transition: border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--color-primary)'"
+          onblur="this.style.borderColor='var(--color-border)'"></textarea>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1.5rem;">
+          <span>🔒 100% Anonyme • Protégé par IA</span>
+          <span>{{ messageContent().length }}/500</span>
+        </div>
+
+        <button 
+          class="btn btn-primary" 
+          style="width: 100%; font-size: 1.1rem; padding: 1rem;" 
+          (click)="sendMessage()" 
+          [disabled]="isSending() || !messageContent().trim()">
+          {{ isSending() ? 'Envoi en cours...' : 'Envoyer' }}
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>
