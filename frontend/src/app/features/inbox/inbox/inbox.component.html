@@ -16,7 +16,8 @@
     {{ error() }}
   </div>
 
-  <div *ngIf="!isLoading()" class="glass-panel" style="margin-bottom: 2rem; padding: 1.5rem;">
+  <!-- Lien Secret -->
+  <div *ngIf="!isLoading()" class="glass-panel" style="margin-bottom: 1.5rem; padding: 1.5rem;">
     <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem;">Votre lien secret</h3>
     <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Partagez ce lien sur vos réseaux pour recevoir des messages anonymes.</p>
     
@@ -28,6 +29,73 @@
       <button class="btn btn-glass" (click)="shareLink()" style="padding: 0.5rem 1rem; border-color: rgba(255,255,255,0.1);" title="Partager">
         <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
       </button>
+    </div>
+  </div>
+
+  <!-- Personnalisation de Profil -->
+  <div *ngIf="!isLoading()" class="glass-panel" style="margin-bottom: 2rem; padding: 1.5rem; transition: all 0.3s;">
+    <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" (click)="showCustomization.set(!showCustomization())">
+      <div>
+        <h3 style="margin-bottom: 0.2rem; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+          ⚙️ Personnaliser ma page publique
+        </h3>
+        <p style="color: var(--color-text-muted); font-size: 0.85rem; margin: 0;">Changez votre question quotidienne, votre bio et votre thème visuel.</p>
+      </div>
+      <button class="btn btn-glass" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+        {{ showCustomization() ? 'Fermer ✕' : 'Ouvrir ▼' }}
+      </button>
+    </div>
+
+    <div *ngIf="showCustomization()" class="animate-fade-in" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: left;">
+      
+      <!-- Thème Visuel -->
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">🎨 Thème de couleurs</label>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.8rem;">
+          <button type="button" class="btn" [style.border]="profileThemeId() === 'neon' ? '2px solid #8b5cf6' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'neon' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('neon')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
+            🔮 Néon Violet
+          </button>
+          <button type="button" class="btn" [style.border]="profileThemeId() === 'sunset' ? '2px solid #f97316' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'sunset' ? 'rgba(249, 115, 22, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('sunset')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
+            🌅 Sunset Rose
+          </button>
+          <button type="button" class="btn" [style.border]="profileThemeId() === 'emerald' ? '2px solid #10b981' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'emerald' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('emerald')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
+            🌿 Émeraude
+          </button>
+          <button type="button" class="btn" [style.border]="profileThemeId() === 'dark' ? '2px solid #94a3b8' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'dark' ? 'rgba(148, 163, 184, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('dark')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
+            🕶️ Cyberpunk
+          </button>
+        </div>
+      </div>
+
+      <!-- Question Quotidienne -->
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">💬 Question affichée sur votre page</label>
+        <input type="text" [ngModel]="profileDailyQuestion()" (ngModelChange)="profileDailyQuestion.set($event)" placeholder="Posez-moi une question anonyme..." style="width: 100%; padding: 0.8rem 1rem; border-radius: var(--radius-md); background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); color: white; margin-bottom: 0.5rem;">
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+          <span style="font-size: 0.8rem; color: var(--color-text-muted); align-self: center; margin-right: 0.3rem;">Suggestions :</span>
+          <button *ngFor="let q of quickQuestions()" type="button" class="btn" (click)="selectQuickQuestion(q)" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 0.2rem 0.6rem; font-size: 0.75rem; border-radius: 999px; color: #cbd5e1;">
+            {{ q }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Bio -->
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">📝 Votre Bio courte</label>
+        <input type="text" [ngModel]="profileBio()" (ngModelChange)="profileBio.set($event)" placeholder="ex: Étudiant à Paris • Envoyez vos confidences !" style="width: 100%; padding: 0.8rem 1rem; border-radius: var(--radius-md); background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); color: white;">
+      </div>
+
+      <!-- Submit button & Success message -->
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <button class="btn btn-primary" (click)="saveProfileCustomization()" [disabled]="isSavingProfile()" style="padding: 0.8rem 1.5rem; font-weight: 600;">
+          {{ isSavingProfile() ? 'Enregistrement...' : '💾 Enregistrer la personnalisation' }}
+        </button>
+        <span *ngIf="profileSavedSuccess()" class="animate-fade-in" style="color: #10b981; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;">
+          ✓ Profil mis à jour !
+        </span>
+      </div>
+
     </div>
   </div>
 
@@ -46,14 +114,25 @@
       <button (click)="openDeleteModal(msg.id)" class="btn" style="position: absolute; top: 1rem; right: 1rem; background: transparent; padding: 0.5rem; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius-sm);" title="Supprimer ce message">
         <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
       </button>
+      
       <p style="font-size: 1.1rem; white-space: pre-wrap; margin-bottom: 1rem; padding-right: 2.5rem; line-height: 1.6;">{{ msg.content }}</p>
-      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--color-text-muted);">
-        <span style="display: flex; align-items: center; gap: 0.4rem;">
-          <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          {{ msg.createdAt | date:'short' }}
-        </span>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--color-text-muted); border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+          <span style="display: flex; align-items: center; gap: 0.4rem;">
+            <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            {{ msg.createdAt | date:'short' }}
+          </span>
+          <span *ngIf="msg.country" style="background: rgba(255,255,255,0.06); padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; color: #e2e8f0;">
+            📍 {{ msg.country }}
+          </span>
+          <span *ngIf="msg.deviceHint" style="background: rgba(255,255,255,0.06); padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; color: #e2e8f0;">
+            {{ msg.deviceHint }}
+          </span>
+        </div>
         <span *ngIf="msg.status === 'UNREAD'" class="badge-unread">Nouveau ⚡</span>
       </div>
+
     </div>
   </div>
 

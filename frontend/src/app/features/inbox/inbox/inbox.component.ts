@@ -1,16 +1,17 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { ApiService } from '../../../core/services/api.service';
+import { FormsModule } from '@angular/forms';
+import { ApiService, MessageDto } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-inbox',
   standalone: true,
-  imports: [CommonModule, DatePipe],
+  imports: [CommonModule, DatePipe, FormsModule],
   templateUrl: './inbox.component.html'
 })
 export class InboxComponent implements OnInit {
-  messages = signal<any[]>([]);
+  messages = signal<MessageDto[]>([]);
   isLoading = signal(true);
   error = signal('');
   pseudo = signal('');
@@ -18,12 +19,29 @@ export class InboxComponent implements OnInit {
   isDeleting = signal(false);
   isCopied = signal(false);
 
+  // Customization Signals
+  showCustomization = signal(false);
+  profileBio = signal('');
+  profileDailyQuestion = signal('');
+  profileThemeId = signal('neon');
+  isSavingProfile = signal(false);
+  profileSavedSuccess = signal(false);
+  
+  quickQuestions = signal<string[]>([
+    'Posez-moi une question anonyme et sincère... 🤫',
+    'Quel est votre avis honnête sur moi ? 💭',
+    'Avoue-moi un secret en toute discrétion... 🔒',
+    'Un défaut ou une qualité que vous me trouvez ? ✨',
+    'Quelle est votre première impression de moi ? 👀'
+  ]);
+
   constructor(private apiService: ApiService, private authService: AuthService) {
     this.pseudo.set(this.authService.currentUser() || '');
   }
 
   ngOnInit(): void {
     this.loadMessages();
+    this.loadProfileInfo();
   }
 
   loadMessages(): void {
@@ -37,6 +55,42 @@ export class InboxComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  loadProfileInfo(): void {
+    if (!this.pseudo()) return;
+    this.apiService.getLinkInfo(this.pseudo()).subscribe({
+      next: (data) => {
+        if (data.profileBio) this.profileBio.set(data.profileBio);
+        if (data.profileDailyQuestion) this.profileDailyQuestion.set(data.profileDailyQuestion);
+        if (data.profileThemeId) this.profileThemeId.set(data.profileThemeId);
+      },
+      error: (err) => console.error('Erreur chargement profil', err)
+    });
+  }
+
+  saveProfileCustomization(): void {
+    this.isSavingProfile.set(true);
+    this.profileSavedSuccess.set(false);
+    this.apiService.updateMyProfile({
+      bio: this.profileBio(),
+      dailyQuestion: this.profileDailyQuestion(),
+      themeId: this.profileThemeId()
+    }).subscribe({
+      next: () => {
+        this.isSavingProfile.set(false);
+        this.profileSavedSuccess.set(true);
+        setTimeout(() => this.profileSavedSuccess.set(false), 3500);
+      },
+      error: () => {
+        this.isSavingProfile.set(false);
+        alert('Erreur lors de la sauvegarde de la personnalisation.');
+      }
+    });
+  }
+
+  selectQuickQuestion(q: string): void {
+    this.profileDailyQuestion.set(q);
   }
 
   getProfileLink(): string {
@@ -63,7 +117,6 @@ export class InboxComponent implements OnInit {
         url: link
       }).catch(console.error);
     } else {
-      // Fallback to WhatsApp
       window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + link)}`, '_blank');
     }
   }

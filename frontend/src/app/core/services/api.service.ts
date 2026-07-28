@@ -17,6 +17,23 @@ export interface MessageSendRequest {
   type: string;
 }
 
+export interface MessageDto {
+  id: string;
+  content: string;
+  type: string;
+  status: string;
+  createdAt: string;
+  country?: string;
+  deviceHint?: string;
+}
+
+export interface ProfileUpdateRequest {
+  bio?: string;
+  dailyQuestion?: string;
+  themeId?: string;
+  isActive?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -34,12 +51,16 @@ export class ApiService {
     return this.http.post<void>(`${this.API_URL}/messages/send/${slug}`, request);
   }
 
-  getInbox(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URL}/messages/inbox`);
+  getInbox(): Observable<MessageDto[]> {
+    return this.http.get<MessageDto[]>(`${this.API_URL}/messages/inbox`);
   }
 
   deleteMessage(id: string): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/messages/${id}`);
+  }
+
+  updateMyProfile(request: ProfileUpdateRequest): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/profiles/my`, request);
   }
 
   getAdminStats(): Observable<any> {

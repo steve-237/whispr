@@ -1,4 +1,4 @@
-<div class="profile-container animate-fade-in" style="max-width: 600px; margin: 2rem auto; text-align: center;">
+<div class="profile-container animate-fade-in" [ngClass]="'theme-' + (profile()?.profileThemeId || 'neon')" style="max-width: 600px; margin: 2rem auto; text-align: center;">
 
   <div *ngIf="error()" style="color: #ef4444; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: var(--radius-md); margin-bottom: 1rem;">
     {{ error() }}

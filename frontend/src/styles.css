@@ -176,3 +176,21 @@ tr.row-hover {
 tr.row-hover:hover {
   background-color: rgba(255, 255, 255, 0.08) !important;
 }
+
+/* Custom Profile Themes */
+.theme-neon {
+  --color-primary: #8b5cf6;
+  --color-accent: #ec4899;
+}
+.theme-sunset {
+  --color-primary: #f97316;
+  --color-accent: #e11d48;
+}
+.theme-dark {
+  --color-primary: #64748b;
+  --color-accent: #334155;
+}
+.theme-emerald {
+  --color-primary: #10b981;
+  --color-accent: #06b6d4;
+}

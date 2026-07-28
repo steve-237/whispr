@@ -8,6 +8,8 @@ public record MessageDto(
         String content,
         String type,
         String status,
-        ZonedDateTime createdAt
+        ZonedDateTime createdAt,
+        String country,
+        String deviceHint
 ) {
 }
