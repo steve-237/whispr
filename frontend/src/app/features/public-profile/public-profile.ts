@@ -58,9 +58,15 @@ export class PublicProfileComponent implements OnInit {
         this.isSent.set(true);
         this.messageContent.set('');
       },
-      error: () => {
+      error: (err) => {
         this.isSending.set(false);
-        this.error.set("Erreur lors de l'envoi du message.");
+        if (err.status === 400 && err.error && typeof err.error === 'string') {
+          this.error.set(err.error);
+        } else if (err.status === 429) {
+          this.error.set("Vous envoyez trop de messages. Veuillez patienter.");
+        } else {
+          this.error.set("Erreur lors de l'envoi du message.");
+        }
       }
     });
   }

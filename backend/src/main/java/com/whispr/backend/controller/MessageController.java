@@ -5,6 +5,7 @@ import com.whispr.backend.domain.Message;
 import com.whispr.backend.dto.MessageDto;
 import com.whispr.backend.dto.MessageSendRequest;
 import com.whispr.backend.service.MessageService;
+import com.whispr.backend.service.ModerationService;
 import com.whispr.backend.service.UserService;
 import com.whispr.backend.repository.AuditLogRepository;
 import com.whispr.backend.repository.LinkRepository;
@@ -27,13 +28,19 @@ public class MessageController {
     private final UserService userService;
     private final LinkRepository linkRepository;
     private final AuditLogRepository auditLogRepository;
+    private final ModerationService moderationService;
 
     @PostMapping("/send/{slug}")
-    public ResponseEntity<Void> sendMessage(
+    public ResponseEntity<String> sendMessage(
             @PathVariable String slug,
             @RequestBody MessageSendRequest request,
             HttpServletRequest httpRequest) {
         
+        // Modération IA / par mots-clés
+        if (moderationService.isToxic(request.content())) {
+            return ResponseEntity.badRequest().body("Votre message enfreint nos règles de bienveillance et a été bloqué.");
+        }
+
         // Extraction de l'IP réelle avec support proxies (Cloudflare, Nginx, X-Forwarded-For)
         String ip = httpRequest.getHeader("CF-Connecting-IP");
         if (ip == null || ip.isBlank()) ip = httpRequest.getHeader("X-Forwarded-For");

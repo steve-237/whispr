@@ -3,6 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, MessageDto } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-inbox',
@@ -27,6 +28,10 @@ export class InboxComponent implements OnInit {
   isSavingProfile = signal(false);
   profileSavedSuccess = signal(false);
   
+  // Story Capture
+  messageToCapture = signal<MessageDto | null>(null);
+  isCapturing = signal(false);
+
   quickQuestions = signal<string[]>([
     'Posez-moi une question anonyme et sincère... 🤫',
     'Quel est votre avis honnête sur moi ? 💭',
@@ -151,5 +156,65 @@ export class InboxComponent implements OnInit {
         this.messageToDelete.set(null);
       }
     });
+  }
+
+  async captureStory(msg: MessageDto): Promise<void> {
+    this.messageToCapture.set(msg);
+    this.isCapturing.set(true);
+    
+    // Attendre que le DOM soit mis à jour
+    setTimeout(async () => {
+      try {
+        const element = document.getElementById('story-sticker-capture');
+        if (!element) {
+          throw new Error('Element introuvable');
+        }
+        
+        const canvas = await html2canvas(element, {
+          backgroundColor: null,
+          scale: 2
+        });
+        
+        canvas.toBlob(async (blob) => {
+          if (!blob) {
+            throw new Error('Blob généré vide');
+          }
+          
+          const file = new File([blob], 'whispr-story.png', { type: 'image/png' });
+          
+          // Essayer l'API Web Share (Supporté sur Mobile)
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                title: 'Nouveau message secret',
+                files: [file]
+              });
+            } catch (err) {
+              console.warn("Share annulé, fallback au téléchargement", err);
+              this.downloadImage(canvas.toDataURL('image/png'));
+            }
+          } else {
+            // Fallback (Desktop PC / Navigateurs non supportés)
+            this.downloadImage(canvas.toDataURL('image/png'));
+          }
+          
+          this.messageToCapture.set(null);
+          this.isCapturing.set(false);
+        }, 'image/png');
+        
+      } catch (err) {
+        console.error('Erreur de capture', err);
+        alert('Erreur lors de la génération de la Story.');
+        this.messageToCapture.set(null);
+        this.isCapturing.set(false);
+      }
+    }, 150); // Léger délai pour le rendu Angular
+  }
+
+  private downloadImage(dataUrl: string): void {
+    const link = document.createElement('a');
+    link.download = 'whispr-story.png';
+    link.href = dataUrl;
+    link.click();
   }
 }

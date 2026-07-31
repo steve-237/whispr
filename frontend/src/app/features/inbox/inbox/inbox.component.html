@@ -133,6 +133,13 @@
         <span *ngIf="msg.status === 'UNREAD'" class="badge-unread">Nouveau ⚡</span>
       </div>
 
+      <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
+        <button class="btn btn-primary" (click)="captureStory(msg)" [disabled]="isCapturing()" style="width: 100%; max-width: 300px; padding: 0.6rem; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); border: 1px solid rgba(255,255,255,0.2);">
+          <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          {{ isCapturing() && messageToCapture()?.id === msg.id ? 'Génération de la Story...' : '📸 Partager en Story' }}
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -151,6 +158,49 @@
         <button class="btn btn-primary" (click)="confirmDelete()" [disabled]="isDeleting()" style="flex: 1; background: #ef4444; color: white;">
           {{ isDeleting() ? 'Suppression...' : 'Supprimer' }}
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Story Capture Template -->
+  <div *ngIf="messageToCapture()" style="position: fixed; left: -9999px; top: -9999px;">
+    <div id="story-sticker-capture" [ngClass]="'theme-' + profileThemeId()" style="width: 1080px; height: 1920px; background: #0f172a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 4rem; font-family: 'Inter', sans-serif;">
+      
+      <!-- Background elements for beauty -->
+      <div style="position: absolute; width: 800px; height: 800px; background: var(--color-primary); filter: blur(250px); opacity: 0.35; top: 5%; left: 5%; border-radius: 50%;"></div>
+      <div style="position: absolute; width: 700px; height: 700px; background: var(--color-accent); filter: blur(250px); opacity: 0.35; bottom: 5%; right: 5%; border-radius: 50%;"></div>
+      
+      <!-- The main glass card -->
+      <div style="width: 100%; max-width: 900px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(40px); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 3rem; padding: 5rem 4rem; z-index: 10; text-align: center; box-shadow: 0 40px 80px rgba(0,0,0,0.5);">
+        
+        <!-- Header -->
+        <div style="display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-bottom: 3rem;">
+          <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            {{ pseudo().charAt(0).toUpperCase() }}
+          </div>
+          <h2 style="color: white; font-size: 2.5rem; margin: 0; font-weight: 700; letter-spacing: -1px;">@{{ pseudo() }}</h2>
+        </div>
+
+        <!-- Question -->
+        <h3 style="color: rgba(255, 255, 255, 0.85); font-size: 2.2rem; margin-bottom: 4rem; font-weight: 600;">
+          {{ profileDailyQuestion() || 'Posez-moi une question anonyme...' }}
+        </h3>
+
+        <!-- Message -->
+        <p style="color: white; font-size: 4rem; font-weight: bold; line-height: 1.35; margin-bottom: 5rem; word-wrap: break-word;">
+          "{{ messageToCapture()?.content }}"
+        </p>
+
+        <!-- Footer Logo -->
+        <div style="display: flex; justify-content: center; align-items: center; gap: 0.8rem; opacity: 0.7;">
+          <svg style="width: 40px; height: 40px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+          <span style="color: white; font-size: 1.8rem; font-weight: 700; letter-spacing: 3px;">WHISPR</span>
+        </div>
+      </div>
+      
+      <!-- Call to action -->
+      <div style="margin-top: 6rem; z-index: 10; background: white; padding: 1.8rem 4rem; border-radius: 999px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+        <span style="font-size: 2.2rem; font-weight: bold; color: #0f172a;">👆 Réponds-moi sur mon lien en bio !</span>
       </div>
     </div>
   </div>
