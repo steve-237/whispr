@@ -194,3 +194,8 @@ tr.row-hover:hover {
   --color-primary: #10b981;
   --color-accent: #06b6d4;
 }
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
+}

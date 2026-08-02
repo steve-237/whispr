@@ -3,10 +3,13 @@ package com.whispr.backend.service;
 import com.whispr.backend.domain.AuditLog;
 import com.whispr.backend.domain.Link;
 import com.whispr.backend.domain.Message;
+import com.whispr.backend.dto.MessageDto;
 import com.whispr.backend.repository.AuditLogRepository;
 import com.whispr.backend.repository.LinkRepository;
 import com.whispr.backend.repository.MessageRepository;
+import com.whispr.backend.util.DeviceUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +23,8 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final LinkRepository linkRepository;
     private final AuditLogRepository auditLogRepository;
+    private final AiSentimentService aiSentimentService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
     public Message sendMessage(String slug, String content, String hashedIp, String userAgent, String country) {
@@ -30,14 +35,20 @@ public class MessageService {
             throw new IllegalStateException("Link is currently inactive");
         }
 
+        // 1. Analyse IA du sentiment
+        String sentiment = aiSentimentService.analyzeSentiment(content);
+
+        // 2. Sauvegarde du Message
         Message message = Message.builder()
                 .link(link)
                 .content(content)
                 .type("text")
-                .status("delivered") // in future: pending AI moderation
+                .status("UNREAD")
+                .aiCategory(sentiment)
                 .build();
         message = messageRepository.save(message);
 
+        // 3. Sauvegarde de l'Audit (Sécurité)
         AuditLog auditLog = AuditLog.builder()
                 .message(message)
                 .hashedIp(hashedIp)
@@ -45,6 +56,24 @@ public class MessageService {
                 .country(country)
                 .build();
         auditLogRepository.save(auditLog);
+
+        // 4. Push WebSocket vers l'utilisateur (propriétaire du lien)
+        String userEmail = link.getUser().getEmail();
+        String deviceHint = DeviceUtil.parseDeviceHint(userAgent);
+        String finalCountry = country != null ? country : "Inconnu 🌐";
+        
+        MessageDto dto = new MessageDto(
+                message.getId(),
+                message.getContent(),
+                message.getType(),
+                message.getStatus(),
+                message.getCreatedAt(),
+                finalCountry,
+                deviceHint
+        );
+        
+        // On pousse le message sur le topic personnel de l'utilisateur
+        messagingTemplate.convertAndSend("/topic/user/" + userEmail + "/messages", dto);
 
         return message;
     }
@@ -59,24 +88,13 @@ public class MessageService {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new IllegalArgumentException("Message not found"));
 
-        // Vérifier que l'utilisateur qui demande la suppression est bien le propriétaire du lien
         if (!message.getLink().getUser().getEmail().equals(userEmail)) {
-            // Permettre aux admins de supprimer s'ils le souhaitent, ou juste bloquer
-            if (message.getLink().getUser().getRole() != com.whispr.backend.domain.Role.ADMIN 
-                    && !message.getLink().getUser().getEmail().equals(userEmail)) {
-                 // But wait, the admin check should be on the requesting user, not the link's user.
-                 // We will just do a simple check for now: only the owner can delete.
-            }
-            if (!message.getLink().getUser().getEmail().equals(userEmail)) {
-                 throw new IllegalStateException("You do not have permission to delete this message");
-            }
+             throw new IllegalStateException("You do not have permission to delete this message");
         }
 
-        // Supprimer l'audit log associé s'il existe
         auditLogRepository.findByMessageId(messageId)
                 .ifPresent(auditLogRepository::delete);
 
-        // Supprimer le message
         messageRepository.delete(message);
     }
 }

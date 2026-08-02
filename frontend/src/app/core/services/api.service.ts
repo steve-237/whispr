@@ -34,6 +34,14 @@ export interface ProfileUpdateRequest {
   isActive?: boolean;
 }
 
+export interface StatsDto {
+  totalMessages: number;
+  positiveCount: number;
+  neutralCount: number;
+  negativeCount: number;
+  aiSummary: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -61,6 +69,10 @@ export class ApiService {
 
   updateMyProfile(request: ProfileUpdateRequest): Observable<void> {
     return this.http.put<void>(`${this.API_URL}/profiles/my`, request);
+  }
+
+  getMyStats(): Observable<StatsDto> {
+    return this.http.get<StatsDto>(`${this.API_URL}/stats/my`);
   }
 
   getAdminStats(): Observable<any> {

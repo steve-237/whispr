@@ -1,9 +1,11 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService, MessageDto } from '../../../core/services/api.service';
+import { ApiService, MessageDto, StatsDto } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import html2canvas from 'html2canvas';
+import { Client } from '@stomp/stompjs';
+import Chart from 'chart.js/auto';
 
 @Component({
   selector: 'app-inbox',
@@ -11,7 +13,7 @@ import html2canvas from 'html2canvas';
   imports: [CommonModule, DatePipe, FormsModule],
   templateUrl: './inbox.component.html'
 })
-export class InboxComponent implements OnInit {
+export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   messages = signal<MessageDto[]>([]);
   isLoading = signal(true);
   error = signal('');
@@ -20,7 +22,7 @@ export class InboxComponent implements OnInit {
   isDeleting = signal(false);
   isCopied = signal(false);
 
-  // Customization Signals
+  // Customization
   showCustomization = signal(false);
   profileBio = signal('');
   profileDailyQuestion = signal('');
@@ -28,9 +30,17 @@ export class InboxComponent implements OnInit {
   isSavingProfile = signal(false);
   profileSavedSuccess = signal(false);
   
-  // Story Capture
+  // Dashboard IA Stats
+  showStats = signal(false);
+  stats = signal<StatsDto | null>(null);
+  chart: any = null;
+
+  // Story
   messageToCapture = signal<MessageDto | null>(null);
   isCapturing = signal(false);
+
+  // Highlighted Message ID (Real-time animation)
+  highlightedMessageId = signal<string | null>(null);
 
   quickQuestions = signal<string[]>([
     'Posez-moi une question anonyme et sincère... 🤫',
@@ -40,6 +50,8 @@ export class InboxComponent implements OnInit {
     'Quelle est votre première impression de moi ? 👀'
   ]);
 
+  private stompClient: Client | null = null;
+
   constructor(private apiService: ApiService, private authService: AuthService) {
     this.pseudo.set(this.authService.currentUser() || '');
   }
@@ -47,6 +59,84 @@ export class InboxComponent implements OnInit {
   ngOnInit(): void {
     this.loadMessages();
     this.loadProfileInfo();
+    this.loadStats();
+    this.initWebSocket();
+  }
+
+  ngAfterViewInit(): void {
+    // Chart is initialized in toggleStats when view becomes visible
+  }
+
+  ngOnDestroy(): void {
+    if (this.stompClient) {
+      this.stompClient.deactivate();
+    }
+    if (this.chart) {
+      this.chart.destroy();
+    }
+  }
+
+  initWebSocket(): void {
+    // Assuming backend runs on 8081
+    const email = this.authService.currentUser() || this.pseudo(); 
+    // Wait, the JWT token holds the email, but since I don't have an email in authService out of the box in frontend,
+    // let's just listen to `/topic/user/${email}/messages`.
+    // We can extract email from token if needed, or we just rely on pseudo if they are same.
+    // In our JWT, email is the subject. We can grab it from localStorage token.
+    const token = localStorage.getItem('token');
+    let emailFromToken = this.pseudo();
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        emailFromToken = payload.sub; // subject is email
+      } catch(e) {}
+    }
+
+    this.stompClient = new Client({
+      brokerURL: 'ws://localhost:8081/ws-whispr',
+      debug: function (str) {
+        console.log('[STOMP] ' + str);
+      },
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+    });
+
+    this.stompClient.onConnect = (frame) => {
+      console.log('Connecté au WebSocket', frame);
+      this.stompClient?.subscribe(`/topic/user/${emailFromToken}/messages`, (message) => {
+        if (message.body) {
+          const newMessage: MessageDto = JSON.parse(message.body);
+          
+          // Ajouter dynamiquement en haut de la liste
+          this.messages.update(msgs => [newMessage, ...msgs]);
+          
+          // Mettre en surbrillance pendant 3 secondes
+          this.highlightedMessageId.set(newMessage.id);
+          setTimeout(() => {
+            if (this.highlightedMessageId() === newMessage.id) {
+              this.highlightedMessageId.set(null);
+            }
+          }, 3000);
+          
+          // Jouer un son (optionnel, on utilise un bip natif court)
+          try {
+             const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-14.mp3');
+             audio.volume = 0.5;
+             audio.play().catch(e => console.log('Audio non lu automatiquement', e));
+          } catch(e) {}
+
+          // Rafraîchir les stats
+          this.loadStats();
+        }
+      });
+    };
+
+    this.stompClient.onStompError = (frame) => {
+      console.error('Erreur Broker STOMP: ' + frame.headers['message']);
+    };
+
+    this.stompClient.activate();
   }
 
   loadMessages(): void {
@@ -72,6 +162,73 @@ export class InboxComponent implements OnInit {
       },
       error: (err) => console.error('Erreur chargement profil', err)
     });
+  }
+
+  loadStats(): void {
+    this.apiService.getMyStats().subscribe({
+      next: (data) => {
+        this.stats.set(data);
+        if (this.showStats() && this.chart) {
+          this.updateChartData(data);
+        }
+      },
+      error: (err) => console.error('Erreur chargement stats', err)
+    });
+  }
+
+  toggleStats(): void {
+    this.showStats.set(!this.showStats());
+    
+    // Initialiser le graphique si on ouvre le panneau
+    if (this.showStats()) {
+      setTimeout(() => {
+        this.renderChart();
+      }, 100); // laisser le DOM s'afficher
+    }
+  }
+
+  renderChart(): void {
+    const canvas = document.getElementById('sentimentChart') as HTMLCanvasElement;
+    const statsData = this.stats();
+    if (!canvas || !statsData) return;
+
+    if (this.chart) {
+      this.chart.destroy();
+    }
+
+    this.chart = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Positif', 'Neutre', 'Négatif'],
+        datasets: [{
+          data: [statsData.positiveCount, statsData.neutralCount, statsData.negativeCount],
+          backgroundColor: [
+            '#10B981', // Emerald (Positif)
+            '#6B7280', // Gray (Neutre)
+            '#EF4444'  // Red (Négatif)
+          ],
+          hoverOffset: 4,
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#E5E7EB' }
+          }
+        },
+        cutout: '75%'
+      }
+    });
+  }
+
+  updateChartData(statsData: StatsDto): void {
+    if (!this.chart) return;
+    this.chart.data.datasets[0].data = [statsData.positiveCount, statsData.neutralCount, statsData.negativeCount];
+    this.chart.update();
   }
 
   saveProfileCustomization(): void {
@@ -106,21 +263,14 @@ export class InboxComponent implements OnInit {
     navigator.clipboard.writeText(this.getProfileLink()).then(() => {
       this.isCopied.set(true);
       setTimeout(() => this.isCopied.set(false), 2000);
-    }).catch(() => {
-      alert('Erreur lors de la copie du lien.');
-    });
+    }).catch(() => alert('Erreur lors de la copie du lien.'));
   }
 
   shareLink(): void {
     const link = this.getProfileLink();
     const text = 'Envoyez-moi un message anonyme et secret ! 🤫';
-    
     if (navigator.share) {
-      navigator.share({
-        title: 'Mon Lien Secret',
-        text: text,
-        url: link
-      }).catch(console.error);
+      navigator.share({ title: 'Mon Lien Secret', text: text, url: link }).catch(console.error);
     } else {
       window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + link)}`, '_blank');
     }
@@ -149,6 +299,7 @@ export class InboxComponent implements OnInit {
         this.messages.set(currentMessages.filter(m => m.id !== id));
         this.isDeleting.set(false);
         this.messageToDelete.set(null);
+        this.loadStats(); // update chart on delete
       },
       error: () => {
         alert('Erreur lors de la suppression du message.');
@@ -162,39 +313,24 @@ export class InboxComponent implements OnInit {
     this.messageToCapture.set(msg);
     this.isCapturing.set(true);
     
-    // Attendre que le DOM soit mis à jour
     setTimeout(async () => {
       try {
         const element = document.getElementById('story-sticker-capture');
-        if (!element) {
-          throw new Error('Element introuvable');
-        }
+        if (!element) throw new Error('Element introuvable');
         
-        const canvas = await html2canvas(element, {
-          backgroundColor: null,
-          scale: 2
-        });
+        const canvas = await html2canvas(element, { backgroundColor: null, scale: 2 });
         
         canvas.toBlob(async (blob) => {
-          if (!blob) {
-            throw new Error('Blob généré vide');
-          }
+          if (!blob) throw new Error('Blob généré vide');
           
           const file = new File([blob], 'whispr-story.png', { type: 'image/png' });
-          
-          // Essayer l'API Web Share (Supporté sur Mobile)
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
             try {
-              await navigator.share({
-                title: 'Nouveau message secret',
-                files: [file]
-              });
+              await navigator.share({ title: 'Nouveau message secret', files: [file] });
             } catch (err) {
-              console.warn("Share annulé, fallback au téléchargement", err);
               this.downloadImage(canvas.toDataURL('image/png'));
             }
           } else {
-            // Fallback (Desktop PC / Navigateurs non supportés)
             this.downloadImage(canvas.toDataURL('image/png'));
           }
           
@@ -208,7 +344,7 @@ export class InboxComponent implements OnInit {
         this.messageToCapture.set(null);
         this.isCapturing.set(false);
       }
-    }, 150); // Léger délai pour le rendu Angular
+    }, 150);
   }
 
   private downloadImage(dataUrl: string): void {
