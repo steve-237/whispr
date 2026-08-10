@@ -61,4 +61,9 @@ public class UserService {
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    @Transactional(readOnly = true)
+    public Optional<User> getUserByPseudo(String pseudo) {
+        return userRepository.findByPseudo(pseudo);
+    }
 }

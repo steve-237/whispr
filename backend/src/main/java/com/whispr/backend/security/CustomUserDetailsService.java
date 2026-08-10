@@ -17,9 +17,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        com.whispr.backend.domain.User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+        com.whispr.backend.domain.User user = userRepository.findByEmail(identifier)
+                .orElseGet(() -> userRepository.findByPseudo(identifier)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with: " + identifier)));
 
         return new User(
                 user.getEmail(),
