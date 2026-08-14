@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface LinkDto {
   id: string;
@@ -46,7 +47,7 @@ export interface StatsDto {
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly API_URL = 'http://localhost:8081/api';
+  private readonly API_URL = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 

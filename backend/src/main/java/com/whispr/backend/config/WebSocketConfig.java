@@ -10,6 +10,10 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    @Value("${cors.allowed-origins}")
+    private String allowedOrigins;
+
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // Active un broker simple en mémoire pour pousser les messages aux clients
@@ -22,7 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Point d'entrée WebSocket pour le client frontend
         registry.addEndpoint("/ws-whispr")
-                .setAllowedOriginPatterns("*") // Permettre toutes les origines pour le MVP
+                .setAllowedOrigins(allowedOrigins.split(","))
                 .withSockJS(); // Fallback si WebSocket n'est pas supporté (et utilisé par StompJs dans certains cas)
     }
 }

@@ -5,6 +5,7 @@ import { ApiService, MessageDto, StatsDto } from '../../../core/services/api.ser
 import { AuthService } from '../../../core/services/auth.service';
 import html2canvas from 'html2canvas';
 import { Client } from '@stomp/stompjs';
+import { environment } from '../../../../environments/environment';
 import Chart from 'chart.js/auto';
 
 @Component({
@@ -93,7 +94,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     this.stompClient = new Client({
-      brokerURL: 'ws://localhost:8081/ws-whispr',
+      brokerURL: environment.wsUrl.replace('http', 'ws'),
       debug: function (str) {
         console.log('[STOMP] ' + str);
       },

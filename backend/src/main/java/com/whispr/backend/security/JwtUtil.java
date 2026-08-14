@@ -13,8 +13,9 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // Using a hardcoded secret for MVP, should be in application.yml for production
-    private final String secret = "thisIsAVerySecretKeyForWhisprAppThatMustBeAtLeast32BytesLong";
+    @Value("${jwt.secret}")
+    private String secret;
+    
     private final long expiration = 86400000; // 1 day in ms
 
     private SecretKey getSigningKey() {

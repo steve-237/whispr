@@ -26,3 +26,8 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+jwt:
+  secret: "thisIsAVerySecretKeyForWhisprAppThatMustBeAtLeast32BytesLong"
+
+cors:
+  allowed-origins: "http://localhost:4200"

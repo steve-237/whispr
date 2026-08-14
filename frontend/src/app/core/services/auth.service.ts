@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
-
+import { environment } from '../../../environments/environment';
 export interface AuthResponse {
   token: string;
   pseudo: string;
@@ -13,7 +13,7 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8081/api/auth';
+  private apiUrl = `${environment.apiUrl}/auth`;
   
   public isAuthenticated = signal<boolean>(this.hasToken());
   public currentUser = signal<string | null>(this.getPseudo());

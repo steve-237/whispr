@@ -32,7 +32,7 @@ public class DemoInitializer implements CommandLineRunner {
                     .email("demo@whispr.com")
                     .pseudo("demo")
                     .passwordHash(passwordEncoder.encode("password123"))
-                    .role(Role.ADMIN)
+                    .role(Role.USER)
                     .build();
             userRepository.save(demoUser);
 
@@ -56,7 +56,7 @@ public class DemoInitializer implements CommandLineRunner {
             // S'assurer qu'il a le rôle ADMIN et le bon mot de passe, et le bon email
             User user = existingUser.get();
             user.setEmail("demo@whispr.com");
-            user.setRole(Role.ADMIN);
+            user.setRole(Role.USER);
             user.setPasswordHash(passwordEncoder.encode("password123"));
             userRepository.save(user);
         }
