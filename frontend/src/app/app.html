@@ -1,1 +1,14 @@
-<router-outlet></router-outlet>
+@if (!isBackendReady()) {
+  @if (isWakingUp()) {
+    <div class="wakeup-overlay">
+      <div class="wakeup-content">
+        <div class="spinner"></div>
+        <h2>🤫 Réveil du serveur...</h2>
+        <p>Notre serveur écologique fait la sieste pour préserver la planète.</p>
+        <p class="small-text">Cela peut prendre jusqu'à 45 secondes la première fois. Merci pour ta patience !</p>
+      </div>
+    </div>
+  }
+} @else {
+  <router-outlet></router-outlet>
+}

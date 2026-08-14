@@ -51,6 +51,11 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
+  checkHealth(): Observable<any> {
+    return this.http.get(`${this.API_URL}/health`);
+  }
+
+
   getLinkInfo(slug: string): Observable<LinkDto> {
     return this.http.get<LinkDto>(`${this.API_URL}/links/${slug}`);
   }
