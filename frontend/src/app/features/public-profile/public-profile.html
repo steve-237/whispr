@@ -30,11 +30,11 @@
         <p style="color: var(--color-text-muted);">{{ 'PUBLIC_PROFILE.SUCCESS_DESC' | translate }}</p>
         
         <div *ngIf="slug() === 'demo'" style="margin-top: 2rem; padding: 1.5rem; background: rgba(var(--color-primary-rgb), 0.1); border-radius: var(--radius-md); border: 1px solid rgba(var(--color-primary-rgb), 0.2);">
-          <h4 style="color: white; margin-bottom: 0.5rem;">C'était un message de démo !</h4>
-          <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Voulez-vous voir à quoi ressemble la boîte de réception et comment votre message y apparaît ?</p>
+          <h4 style="color: white; margin-bottom: 0.5rem;">{{ translate.currentLang() === 'fr' ? 'C\\'était un message de démo !' : 'That was a demo message!' }}</h4>
+          <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">{{ translate.currentLang() === 'fr' ? 'Voulez-vous voir à quoi ressemble la boîte de réception et comment votre message y apparaît ?' : 'Do you want to see what the inbox looks like and how your message appears there?' }}</p>
           <button class="btn btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem;" (click)="loginToDemo()" [disabled]="isLoggingIn()">
             <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-            {{ isLoggingIn() ? 'Connexion en cours...' : 'Ouvrir l\'Inbox de Démo' }}
+            {{ isLoggingIn() ? (translate.currentLang() === 'fr' ? 'Connexion en cours...' : 'Logging in...') : (translate.currentLang() === 'fr' ? 'Ouvrir l\\'Inbox de Démo' : 'Open Demo Inbox') }}
           </button>
         </div>
 
@@ -62,7 +62,7 @@
           onblur="this.style.borderColor='var(--color-border)'"></textarea>
         
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1.5rem;">
-          <span>🔒 100% Anonyme • Protégé par IA</span>
+          <span>{{ translate.currentLang() === 'fr' ? '🔒 100% Anonyme • Protégé par IA' : '🔒 100% Anonymous • AI Protected' }}</span>
           <span>{{ messageContent().length }}/500</span>
         </div>
 

@@ -2,7 +2,7 @@
   
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
     <div>
-      <h1 style="margin-bottom: 0;">Boîte de Réception</h1>
+      <h1 style="margin-bottom: 0;">{{ 'INBOX.TITLE' | translate }}</h1>
       <p style="color: var(--color-text-muted);">{{ 'INBOX.WELCOME' | translate }}@{{ pseudo() }}</p>
     </div>
     <button class="btn btn-glass" (click)="logout()">{{ 'INBOX.LOGOUT' | translate }}</button>
@@ -108,28 +108,28 @@
         <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">{{ 'INBOX.CUSTOM_THEME' | translate }}</label>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem;">
           <button type="button" class="btn" [style.border]="profileThemeId() === 'neon' ? '2px solid #8b5cf6' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'neon' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('neon')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
-            🔮 Néon Violet
+            {{ translate.currentLang() === 'fr' ? '🔮 Néon Violet' : '🔮 Purple Neon' }}
           </button>
           <button type="button" class="btn" [style.border]="profileThemeId() === 'sunset' ? '2px solid #f97316' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'sunset' ? 'rgba(249, 115, 22, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('sunset')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
-            🌅 Sunset Rose
+            {{ translate.currentLang() === 'fr' ? '🌅 Sunset Rose' : '🌅 Pink Sunset' }}
           </button>
           <button type="button" class="btn" [style.border]="profileThemeId() === 'emerald' ? '2px solid #10b981' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'emerald' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('emerald')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
-            🌿 Émeraude
+            {{ translate.currentLang() === 'fr' ? '🌿 Émeraude' : '🌿 Emerald' }}
           </button>
           <button type="button" class="btn" [style.border]="profileThemeId() === 'dark' ? '2px solid #94a3b8' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'dark' ? 'rgba(148, 163, 184, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('dark')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
-            🕶️ Cyberpunk
+            {{ translate.currentLang() === 'fr' ? '🕶️ Cyberpunk' : '🕶️ Cyberpunk' }}
           </button>
         </div>
       </div>
 
       <div style="margin-bottom: 1.5rem;">
         <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">{{ 'INBOX.CUSTOM_QUESTION' | translate }}</label>
-        <input type="text" [ngModel]="profileDailyQuestion()" (ngModelChange)="profileDailyQuestion.set($event)" placeholder="Posez-moi une question anonyme..." style="width: 100%; padding: 0.8rem 1rem; border-radius: var(--radius-md); background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); color: white; margin-bottom: 0.5rem;">
+        <input type="text" [ngModel]="profileDailyQuestion()" (ngModelChange)="profileDailyQuestion.set($event)" [placeholder]="translate.currentLang() === 'fr' ? 'Posez-moi une question anonyme...' : 'Ask me an anonymous question...'" style="width: 100%; padding: 0.8rem 1rem; border-radius: var(--radius-md); background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); color: white; margin-bottom: 0.5rem;">
       </div>
 
       <div style="margin-bottom: 1.5rem;">
         <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">{{ 'INBOX.CUSTOM_BIO' | translate }}</label>
-        <input type="text" [ngModel]="profileBio()" (ngModelChange)="profileBio.set($event)" placeholder="ex: Étudiant à Paris • Envoyez vos confidences !" style="width: 100%; padding: 0.8rem 1rem; border-radius: var(--radius-md); background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); color: white;">
+        <input type="text" [ngModel]="profileBio()" (ngModelChange)="profileBio.set($event)" [placeholder]="translate.currentLang() === 'fr' ? 'ex: Étudiant à Paris • Envoyez vos confidences !' : 'e.g., Student in NY • Send me secrets!'" style="width: 100%; padding: 0.8rem 1rem; border-radius: var(--radius-md); background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); color: white;">
       </div>
 
       <div style="display: flex; align-items: center; gap: 1rem;">
@@ -216,7 +216,7 @@
       <!-- Main card -->
       <div style="width: 100%; max-width: 900px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(40px); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 3rem; padding: 4rem 3.5rem; z-index: 10; text-align: center; box-shadow: 0 40px 80px rgba(0,0,0,0.5);">
         <h2 style="color: white; font-size: 2.5rem; margin-bottom: 2rem;">@{{ pseudo() }}</h2>
-        <h3 style="color: rgba(255, 255, 255, 0.85); font-size: 2rem; margin-bottom: 3rem;">{{ profileDailyQuestion() || 'Posez-moi une question...' }}</h3>
+        <h3 style="color: rgba(255, 255, 255, 0.85); font-size: 2rem; margin-bottom: 3rem;">{{ profileDailyQuestion() || (translate.currentLang() === 'fr' ? 'Posez-moi une question...' : 'Ask me a question...') }}</h3>
         <p style="color: white; font-size: 3.5rem; font-weight: bold; line-height: 1.35; margin-bottom: 3rem; word-wrap: break-word;">"{{ messageToCapture()?.content }}"</p>
       </div>
 

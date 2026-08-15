@@ -1,6 +1,7 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { SwUpdate } from '@angular/service-worker';
 import { ApiService } from './core/services/api.service';
 import { TranslateService, TranslatePipe, translate } from '@ngx-translate/core';
 
@@ -38,6 +39,17 @@ export class App implements OnInit {
 
   ngOnInit() {
     this.checkBackendStatus();
+    
+    // Auto-reload pour PWA
+    const swUpdate = inject(SwUpdate);
+    if (swUpdate.isEnabled) {
+      swUpdate.versionUpdates.subscribe((evt) => {
+        if (evt.type === 'VERSION_READY') {
+          // Force le rechargement du navigateur pour utiliser la nouvelle version
+          window.location.reload();
+        }
+      });
+    }
   }
 
   checkBackendStatus() {

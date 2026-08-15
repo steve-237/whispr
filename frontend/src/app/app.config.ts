@@ -1,8 +1,8 @@
 import { ApplicationConfig, provideZonelessChangeDetection, isDevMode } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideTranslateService } from '@ngx-translate/core';
-import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+import { TranslateLoader, provideTranslateService } from '@ngx-translate/core';
+import { TranslateHttpLoader, provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
@@ -13,7 +13,12 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
-    provideTranslateService(),
+    provideTranslateService({
+      loader: {
+        provide: TranslateLoader,
+        useClass: TranslateHttpLoader
+      }
+    }),
     provideTranslateHttpLoader({ prefix: '/assets/i18n/', suffix: '.json', enforceLoading: true }),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
