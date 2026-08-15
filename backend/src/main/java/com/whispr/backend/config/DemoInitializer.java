@@ -60,5 +60,38 @@ public class DemoInitializer implements CommandLineRunner {
             user.setPasswordHash(passwordEncoder.encode("password123"));
             userRepository.save(user);
         }
+
+        // Créer le compte Admin s'il n'existe pas
+        Optional<User> existingAdmin = userRepository.findByPseudo("admin");
+        if (existingAdmin.isEmpty()) {
+            User adminUser = User.builder()
+                    .email("admin@whispr.com")
+                    .pseudo("admin")
+                    .passwordHash(passwordEncoder.encode("Admin@2026!"))
+                    .role(Role.ADMIN)
+                    .build();
+            userRepository.save(adminUser);
+
+            Profile adminProfile = Profile.builder()
+                    .user(adminUser)
+                    .bio("Administrateur Whispr")
+                    .themeId("dark")
+                    .build();
+            profileRepository.save(adminProfile);
+
+            Link adminLink = Link.builder()
+                    .user(adminUser)
+                    .slug("admin")
+                    .isActive(true)
+                    .build();
+            linkRepository.save(adminLink);
+
+            System.out.println("Compte admin@whispr.com créé avec le rôle ADMIN");
+        } else {
+            User admin = existingAdmin.get();
+            admin.setRole(Role.ADMIN);
+            admin.setPasswordHash(passwordEncoder.encode("Admin@2026!"));
+            userRepository.save(admin);
+        }
     }
 }
