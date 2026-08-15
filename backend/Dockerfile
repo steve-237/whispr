@@ -5,6 +5,7 @@ COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 COPY src src
+RUN sed -i 's/\r$//' mvnw
 RUN chmod +x ./mvnw
 # Construction du jar
 RUN ./mvnw clean package -DskipTests

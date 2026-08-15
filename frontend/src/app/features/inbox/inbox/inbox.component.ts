@@ -45,6 +45,8 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   // Highlighted Message ID (Real-time animation)
   highlightedMessageId = signal<string | null>(null);
 
+  public translate = inject(TranslateService);
+
   quickQuestions = signal<string[]>([
     'Posez-moi une question anonyme et sincère... 🤫',
     'Quel est votre avis honnête sur moi ? 💭',

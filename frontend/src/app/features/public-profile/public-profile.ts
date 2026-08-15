@@ -1,10 +1,10 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, LinkDto } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-public-profile',
@@ -18,6 +18,8 @@ export class PublicProfileComponent implements OnInit {
   isSending = signal(false);
   isSent = signal(false);
   error = signal('');
+  
+  public translate = inject(TranslateService);
   slug = signal('');
   isLoggingIn = signal(false);
 
