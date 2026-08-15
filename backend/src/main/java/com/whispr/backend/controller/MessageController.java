@@ -71,7 +71,7 @@ public class MessageController {
             country = demoLocations[idx];
         }
 
-        messageService.sendMessage(slug, request.content(), hashedIp, userAgent, country);
+        messageService.sendMessage(slug.toLowerCase(), request.content(), hashedIp, userAgent, country);
         
         return ResponseEntity.ok().build();
     }

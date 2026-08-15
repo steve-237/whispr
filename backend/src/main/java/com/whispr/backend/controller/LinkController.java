@@ -19,7 +19,7 @@ public class LinkController {
 
     @GetMapping("/{slug}")
     public ResponseEntity<LinkDto> getLinkInfo(@PathVariable String slug) {
-        return linkService.getLinkBySlug(slug)
+        return linkService.getLinkBySlug(slug.toLowerCase())
                 .map(link -> {
                     Profile profile = profileRepository.findByUserId(link.getUser().getId())
                             .orElseThrow(() -> new RuntimeException("Profile not found"));
