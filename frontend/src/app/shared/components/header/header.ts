@@ -13,10 +13,10 @@ import { TranslateService, TranslatePipe } from '@ngx-translate/core';
       <a routerLink="/" class="logo" style="text-decoration: none; font-family: var(--font-family-heading); font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
         Whispr.
       </a>
-      <button (click)="switchLang()" class="btn btn-glass" style="padding: 0.25rem 0.5rem; font-size: 1.2rem; background: transparent; border: none; cursor: pointer;">
-        {{ translate.currentLang() === 'fr' ? '🇫🇷' : '🇬🇧' }}
-      </button>
       <nav style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <button (click)="switchLang()" class="btn btn-glass" style="padding: 0.25rem 0.5rem; font-size: 1.2rem; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+          {{ translate.currentLang() === 'fr' ? '🇫🇷' : '🇬🇧' }}
+        </button>
         <ng-container *ngIf="!authService.isAuthenticated()">
           <a routerLink="/demo" class="btn btn-glass" style="text-decoration: none;">{{ 'HEADER.DEMO' | translate }}</a>
           <a routerLink="/login" class="btn btn-glass" style="text-decoration: none;">{{ 'HEADER.LOGIN' | translate }}</a>
