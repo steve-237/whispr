@@ -28,7 +28,7 @@ public class StatsController {
     @GetMapping("/my")
     public ResponseEntity<StatsDto> getMyStats(Authentication authentication) {
         String email = authentication.getName();
-        User user = userService.getUserByEmail(email)
+        User user = userService.getUserByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Link link = linkRepository.findByUserId(user.getId())

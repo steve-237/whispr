@@ -58,12 +58,12 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public Optional<User> getUserByEmailIgnoreCase(String email) {
+        return userRepository.findByEmailIgnoreCase(email);
     }
 
     @Transactional(readOnly = true)
-    public Optional<User> getUserByPseudo(String pseudo) {
-        return userRepository.findByPseudo(pseudo);
+    public Optional<User> getUserByPseudoIgnoreCase(String pseudo) {
+        return userRepository.findByPseudoIgnoreCase(pseudo);
     }
 }

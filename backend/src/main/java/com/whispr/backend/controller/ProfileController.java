@@ -29,7 +29,7 @@ public class ProfileController {
             Authentication authentication) {
 
         String email = authentication.getName();
-        User user = userService.getUserByEmail(email)
+        User user = userService.getUserByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Profile profile = profileRepository.findByUserId(user.getId())

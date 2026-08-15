@@ -34,8 +34,8 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
         
-        User user = userService.getUserByEmail(request.getEmail())
-                .orElseGet(() -> userService.getUserByPseudo(request.getEmail())
+        User user = userService.getUserByEmailIgnoreCase(request.getEmail())
+                .orElseGet(() -> userService.getUserByPseudoIgnoreCase(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found")));
 
                 

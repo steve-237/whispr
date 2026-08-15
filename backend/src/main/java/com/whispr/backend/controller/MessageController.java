@@ -79,7 +79,7 @@ public class MessageController {
     @GetMapping("/inbox")
     public ResponseEntity<List<MessageDto>> getInbox(org.springframework.security.core.Authentication authentication) {
         String email = authentication.getName();
-        com.whispr.backend.domain.User user = userService.getUserByEmail(email)
+        com.whispr.backend.domain.User user = userService.getUserByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
                 
         com.whispr.backend.domain.Link link = linkRepository.findByUserId(user.getId())
