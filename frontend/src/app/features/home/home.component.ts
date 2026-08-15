@@ -6,22 +6,22 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [RouterLink],
   template: `
-    <div class="container animate-fade-in" style="text-align: center; margin-top: 5rem; max-width: 800px;">
+    <div class="container animate-fade-in" style="text-align: center; margin-top: 2rem; max-width: 800px; padding-bottom: 3rem;">
       
       <div style="display: inline-block; padding: 0.5rem 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); border-radius: 20px; font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 2rem;">
         🚀 Lancement de la version Beta de Whispr
       </div>
 
-      <h1 style="font-size: 4rem; line-height: 1.1; margin-bottom: 1.5rem; background: linear-gradient(135deg, #ffffff, #a3a3a3); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+      <h1 style="font-size: clamp(1.75rem, 8vw, 4rem); line-height: 1.1; margin-bottom: 1.5rem; background: linear-gradient(135deg, #ffffff, #a3a3a3); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
         Recevez des messages <br/> <span style="background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">totalement anonymes</span>
       </h1>
       
-      <p style="font-size: 1.25rem; color: var(--color-text-muted); margin-bottom: 3rem; line-height: 1.6; max-width: 600px; margin-left: auto; margin-right: auto;">
+      <p style="font-size: clamp(0.95rem, 3vw, 1.25rem); color: var(--color-text-muted); margin-bottom: 2rem; line-height: 1.6; max-width: 600px; margin-left: auto; margin-right: auto; padding: 0 0.5rem;">
         Whispr est la plateforme ultime pour découvrir ce que vos amis pensent vraiment de vous. 
         Partagez votre lien unique sur vos réseaux sociaux et lisez leurs réponses secrètes dans votre boîte de réception privée.
       </p>
 
-      <div style="display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 4rem;">
+      <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 3rem; flex-wrap: wrap; padding: 0 1rem;">
         <a routerLink="/register" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem; text-decoration: none;">
           Créer mon lien gratuit
         </a>
@@ -31,7 +31,7 @@ import { RouterLink } from '@angular/router';
         </a>
       </div>
 
-      <h2 style="font-size: 2.5rem; margin: 5rem 0 2rem 0;">Comment ça marche ?</h2>
+      <h2 style="font-size: clamp(1.5rem, 5vw, 2.5rem); margin: 3rem 0 2rem 0;">Comment ça marche ?</h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; text-align: left; margin-bottom: 4rem;">
         <div class="glass-panel" style="padding: 2rem; position: relative;">
           <div style="position: absolute; top: -15px; left: -15px; width: 40px; height: 40px; background: var(--color-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">1</div>
@@ -50,7 +50,7 @@ import { RouterLink } from '@angular/router';
         </div>
       </div>
 
-      <h2 style="font-size: 2.5rem; margin: 5rem 0 2rem 0;">Foire Aux Questions</h2>
+      <h2 style="font-size: clamp(1.5rem, 5vw, 2.5rem); margin: 3rem 0 2rem 0;">Foire Aux Questions</h2>
       <div style="text-align: left; max-width: 700px; margin: 0 auto 5rem auto; display: flex; flex-direction: column; gap: 1rem;">
         <div class="glass-panel" style="padding: 1.5rem;">
           <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;">L'application est-elle vraiment anonyme ?</h4>

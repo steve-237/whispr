@@ -8,11 +8,11 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [RouterLink, CommonModule],
   template: `
-    <header class="glass-panel" style="margin: 1rem auto; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; max-width: 1200px;">
+    <header class="glass-panel" style="margin: 0.5rem; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; max-width: 1200px; margin-left: auto; margin-right: auto;">
       <a routerLink="/" class="logo" style="text-decoration: none; font-family: var(--font-family-heading); font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
         Whispr.
       </a>
-      <nav style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+      <nav style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
         <ng-container *ngIf="!authService.isAuthenticated()">
           <a routerLink="/demo" class="btn btn-glass" style="text-decoration: none;">Voir la Démo</a>
           <a routerLink="/login" class="btn btn-glass" style="text-decoration: none;">Connexion</a>

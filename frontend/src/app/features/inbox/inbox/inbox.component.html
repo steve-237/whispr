@@ -1,6 +1,6 @@
 <div class="container animate-fade-in" style="max-width: 800px; margin: 3rem auto;">
   
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
     <div>
       <h1 style="margin-bottom: 0;">Boîte de Réception</h1>
       <p style="color: var(--color-text-muted);">Bienvenue, @{{ pseudo() }}</p>
@@ -21,8 +21,8 @@
     <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem;">Votre lien secret</h3>
     <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Partagez ce lien sur vos réseaux pour recevoir des messages anonymes.</p>
     
-    <div style="display: flex; gap: 0.5rem; align-items: center; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: var(--radius-md);">
-      <input type="text" [value]="getProfileLink()" readonly style="flex: 1; background: transparent; border: none; color: var(--color-text); font-family: monospace; padding: 0.5rem; outline: none;">
+    <div style="display: flex; gap: 0.5rem; align-items: center; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: var(--radius-md); flex-wrap: wrap;">
+      <input type="text" [value]="getProfileLink()" readonly style="flex: 1; min-width: 0; background: transparent; border: none; color: var(--color-text); font-family: monospace; padding: 0.5rem; outline: none; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis;">
       <button class="btn btn-primary" [ngClass]="{'btn-success': isCopied()}" (click)="copyLink()" style="padding: 0.5rem 1rem; min-width: 100px; transition: all 0.3s;" title="Copier le lien">
         {{ isCopied() ? '✓ Copié !' : 'Copier' }}
       </button>
@@ -93,7 +93,7 @@
     <div *ngIf="showCustomization()" class="animate-fade-in" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: left;">
       <div style="margin-bottom: 1.5rem;">
         <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">🎨 Thème de couleurs</label>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.8rem;">
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem;">
           <button type="button" class="btn" [style.border]="profileThemeId() === 'neon' ? '2px solid #8b5cf6' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'neon' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('neon')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
             🔮 Néon Violet
           </button>
@@ -153,7 +153,7 @@
       
       <p style="font-size: 1.1rem; white-space: pre-wrap; margin-bottom: 1rem; padding-right: 2.5rem; line-height: 1.6;">{{ msg.content }}</p>
       
-      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--color-text-muted); border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; font-size: 0.8rem; color: var(--color-text-muted); border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
         <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
           <span style="display: flex; align-items: center; gap: 0.4rem;">
             <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>

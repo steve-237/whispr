@@ -1,4 +1,4 @@
-<div class="profile-container animate-fade-in" [ngClass]="'theme-' + (profile()?.profileThemeId || 'neon')" style="max-width: 600px; margin: 2rem auto; text-align: center;">
+<div class="profile-container animate-fade-in" [ngClass]="'theme-' + (profile()?.profileThemeId || 'neon')" style="max-width: 600px; margin: 1rem auto; text-align: center; padding: 0 1rem;">
 
   <div *ngIf="error()" style="color: #ef4444; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: var(--radius-md); margin-bottom: 1rem;">
     {{ error() }}
@@ -11,7 +11,7 @@
   <ng-container *ngIf="profile() as p">
     <!-- Header Profil -->
     <div style="margin-bottom: 2rem;">
-      <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); border-radius: 50%; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold;">
+      <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); border-radius: 50%; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold;">
         {{ p.slug.charAt(0).toUpperCase() }}
       </div>
       <h1 style="margin-bottom: 0.5rem;">@{{ p.slug }}</h1>
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Zone de Message (Glassmorphism) -->
-    <div class="glass-panel" style="padding: 2rem; text-align: left;">
+    <div class="glass-panel" style="padding: 1.25rem; text-align: left;">
       <h3 style="margin-bottom: 1rem; font-weight: 600; text-align: center;">
         {{ p.profileDailyQuestion || 'Posez-moi une question anonyme...' }}
       </h3>
@@ -54,10 +54,10 @@
         <textarea 
           [ngModel]="messageContent()"
           (ngModelChange)="messageContent.set($event)"
-          rows="5" 
+          rows="4" 
           maxlength="500"
           placeholder="Écrivez votre message secret ici..."
-          style="width: 100%; padding: 1rem; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); color: white; font-family: var(--font-family-base); resize: vertical; margin-bottom: 0.5rem; outline: none; transition: border-color 0.2s;"
+          style="width: 100%; padding: 0.875rem; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); color: white; font-family: var(--font-family-base); font-size: 16px; resize: vertical; margin-bottom: 0.5rem; outline: none; transition: border-color 0.2s;"
           onfocus="this.style.borderColor='var(--color-primary)'"
           onblur="this.style.borderColor='var(--color-border)'"></textarea>
         
