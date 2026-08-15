@@ -1,25 +1,25 @@
 <div class="container animate-fade-in" style="max-width: 400px; margin: 2rem auto; padding: 0 1rem;">
   <div class="glass-panel" style="padding: 2rem;">
-    <h2 style="text-align: center; margin-bottom: 2rem;">Connexion</h2>
+    <h2 style="text-align: center; margin-bottom: 2rem;">{{ 'LOGIN.TITLE' | translate }}</h2>
     
     <div *ngIf="error()" style="color: #ef4444; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: var(--radius-md); margin-bottom: 1.5rem; text-align: center;">
-      {{ error() }}
+      {{ error() | translate }}
     </div>
 
     <form (submit)="onSubmit($event)" action="javascript:void(0);">
       <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; margin-bottom: 0.5rem; color: var(--color-text-muted);">Pseudo ou Email</label>
+        <label style="display: block; margin-bottom: 0.5rem; color: var(--color-text-muted);">{{ 'LOGIN.IDENTIFIER_LABEL' | translate }}</label>
         <input 
           type="text" 
           [(ngModel)]="email" 
           name="email"
           required
           style="width: 100%; padding: 0.875rem; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); color: white; outline: none; transition: border-color 0.3s;"
-          placeholder="Ton pseudo ou nom@exemple.com">
+          placeholder="{{ 'LOGIN.IDENTIFIER_PLACEHOLDER' | translate }}">
       </div>
 
       <div style="margin-bottom: 2rem;">
-        <label style="display: block; margin-bottom: 0.5rem; color: var(--color-text-muted);">Mot de passe</label>
+        <label style="display: block; margin-bottom: 0.5rem; color: var(--color-text-muted);">{{ 'LOGIN.PASSWORD_LABEL' | translate }}</label>
         <input 
           type="password" 
           [(ngModel)]="password" 
@@ -34,11 +34,11 @@
         class="btn btn-primary" 
         style="width: 100%; font-size: 1.1rem; margin-bottom: 1.5rem;"
         [disabled]="isLoading() || !email || !password">
-        {{ isLoading() ? 'Connexion...' : 'Se connecter' }}
+        {{ isLoading() ? ('LOGIN.BTN_LOADING' | translate) : ('LOGIN.BTN_SUBMIT' | translate) }}
       </button>
 
       <p style="text-align: center; color: var(--color-text-muted); font-size: 0.9rem;">
-        Pas encore de compte ? <a routerLink="/register" style="font-weight: 600;">S'inscrire</a>
+        {{ 'LOGIN.NO_ACCOUNT' | translate }} <a routerLink="/register" style="font-weight: 600;">{{ 'LOGIN.REGISTER_LINK' | translate }}</a>
       </p>
     </form>
   </div>

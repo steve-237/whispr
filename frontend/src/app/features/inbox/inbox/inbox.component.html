@@ -3,13 +3,13 @@
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
     <div>
       <h1 style="margin-bottom: 0;">Boîte de Réception</h1>
-      <p style="color: var(--color-text-muted);">Bienvenue, @{{ pseudo() }}</p>
+      <p style="color: var(--color-text-muted);">{{ 'INBOX.WELCOME' | translate }}@{{ pseudo() }}</p>
     </div>
-    <button class="btn btn-glass" (click)="logout()">Déconnexion</button>
+    <button class="btn btn-glass" (click)="logout()">{{ 'INBOX.LOGOUT' | translate }}</button>
   </div>
 
   <div *ngIf="isLoading()" style="text-align: center; padding: 3rem; color: var(--color-text-muted);">
-    Chargement de vos messages secrets...
+    {{ 'INBOX.LOADING' | translate }}
   </div>
 
   <div *ngIf="error()" style="color: #ef4444; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: var(--radius-md); margin-bottom: 1.5rem;">
@@ -18,29 +18,29 @@
 
   <!-- Lien Secret -->
   <div *ngIf="!isLoading()" class="glass-panel" style="margin-bottom: 1.5rem; padding: 1.5rem;">
-    <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem;">🔗 Votre lien secret</h3>
-    <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Partagez ce lien sur vos réseaux pour recevoir des messages anonymes.</p>
+    <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem;">{{ 'INBOX.SECRET_LINK_TITLE' | translate }}</h3>
+    <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">{{ 'INBOX.SECRET_LINK_DESC' | translate }}</p>
     
     <!-- Lien affiché en grand, lisible -->
     <div (click)="copyLink()" style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); transition: border-color 0.3s; word-break: break-all;" [style.border-color]="isCopied() ? '#10b981' : 'rgba(255,255,255,0.1)'">
       <p style="color: var(--color-primary); font-family: monospace; font-size: 0.95rem; line-height: 1.5; margin: 0;">{{ getProfileLink() }}</p>
-      <p style="color: var(--color-text-muted); font-size: 0.75rem; margin-top: 0.5rem; margin-bottom: 0;">👆 Appuyez pour copier</p>
+      <p style="color: var(--color-text-muted); font-size: 0.75rem; margin-top: 0.5rem; margin-bottom: 0;">{{ 'INBOX.TAP_TO_COPY' | translate }}</p>
     </div>
 
     <!-- Feedback de copie -->
     <div *ngIf="isCopied()" class="animate-fade-in" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-md); padding: 0.75rem; text-align: center; margin-bottom: 1rem;">
-      <p style="color: #10b981; font-weight: 600; margin: 0; font-size: 0.95rem;">✅ Lien copié dans le presse-papier !</p>
+      <p style="color: #10b981; font-weight: 600; margin: 0; font-size: 0.95rem;">{{ 'INBOX.LINK_COPIED' | translate }}</p>
     </div>
 
     <!-- Boutons d'action empilés -->
     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
       <button class="btn btn-primary" (click)="copyLink()" style="width: 100%; padding: 0.875rem; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
         <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
-        {{ isCopied() ? '✓ Copié !' : 'Copier le lien' }}
+        {{ isCopied() ? ('INBOX.BTN_COPIED' | translate) : ('INBOX.BTN_COPY' | translate) }}
       </button>
       <button class="btn btn-glass" (click)="shareLink()" style="width: 100%; padding: 0.875rem; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
         <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-        Partager sur les réseaux
+        {{ 'INBOX.BTN_SHARE' | translate }}
       </button>
     </div>
   </div>
@@ -50,12 +50,12 @@
     <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" (click)="toggleStats()">
       <div>
         <h3 style="margin-bottom: 0.2rem; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
-          📊 Dashboard IA & Statistiques
+          {{ 'INBOX.STATS_TITLE' | translate }}
         </h3>
-        <p style="color: var(--color-text-muted); font-size: 0.85rem; margin: 0;">Découvrez comment votre communauté interagit avec vous.</p>
+        <p style="color: var(--color-text-muted); font-size: 0.85rem; margin: 0;">{{ 'INBOX.STATS_DESC' | translate }}</p>
       </div>
       <button class="btn btn-glass" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-        {{ showStats() ? 'Fermer ✕' : 'Ouvrir ▼' }}
+        {{ showStats() ? ('INBOX.BTN_CLOSE' | translate) : ('INBOX.BTN_OPEN' | translate) }}
       </button>
     </div>
 
@@ -64,19 +64,19 @@
         
         <!-- Text Summary -->
         <div style="flex: 1; min-width: 250px;">
-          <h4 style="margin-bottom: 1rem; color: #cbd5e1;">Résumé de la semaine 🤖</h4>
+          <h4 style="margin-bottom: 1rem; color: #cbd5e1;">{{ 'INBOX.STATS_WEEK_SUMMARY' | translate }}</h4>
           <p style="font-size: 1.1rem; line-height: 1.5; font-style: italic; color: white;">
             "{{ stats()?.aiSummary }}"
           </p>
           <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
             <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); padding: 0.5rem 1rem; border-radius: var(--radius-sm); color: #10b981;">
-              <strong>{{ stats()?.positiveCount }}</strong> Positifs
+              <strong>{{ stats()?.positiveCount }}</strong> {{ 'INBOX.STATS_POSITIVE' | translate }}
             </div>
             <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); padding: 0.5rem 1rem; border-radius: var(--radius-sm); color: #ef4444;">
-              <strong>{{ stats()?.negativeCount }}</strong> Négatifs
+              <strong>{{ stats()?.negativeCount }}</strong> {{ 'INBOX.STATS_NEGATIVE' | translate }}
             </div>
             <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: var(--radius-sm); color: #e2e8f0;">
-              Total: <strong>{{ stats()?.totalMessages }}</strong>
+              {{ 'INBOX.STATS_TOTAL' | translate }} <strong>{{ stats()?.totalMessages }}</strong>
             </div>
           </div>
         </div>
@@ -94,18 +94,18 @@
     <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" (click)="showCustomization.set(!showCustomization())">
       <div>
         <h3 style="margin-bottom: 0.2rem; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
-          ⚙️ Personnaliser ma page publique
+          {{ 'INBOX.CUSTOM_TITLE' | translate }}
         </h3>
-        <p style="color: var(--color-text-muted); font-size: 0.85rem; margin: 0;">Changez votre question, votre bio et votre thème.</p>
+        <p style="color: var(--color-text-muted); font-size: 0.85rem; margin: 0;">{{ 'INBOX.CUSTOM_DESC' | translate }}</p>
       </div>
       <button class="btn btn-glass" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-        {{ showCustomization() ? 'Fermer ✕' : 'Ouvrir ▼' }}
+        {{ showCustomization() ? ('INBOX.BTN_CLOSE' | translate) : ('INBOX.BTN_OPEN' | translate) }}
       </button>
     </div>
 
     <div *ngIf="showCustomization()" class="animate-fade-in" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: left;">
       <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">🎨 Thème de couleurs</label>
+        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">{{ 'INBOX.CUSTOM_THEME' | translate }}</label>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem;">
           <button type="button" class="btn" [style.border]="profileThemeId() === 'neon' ? '2px solid #8b5cf6' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'neon' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('neon')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
             🔮 Néon Violet
@@ -123,21 +123,21 @@
       </div>
 
       <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">💬 Question affichée sur votre page</label>
+        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">{{ 'INBOX.CUSTOM_QUESTION' | translate }}</label>
         <input type="text" [ngModel]="profileDailyQuestion()" (ngModelChange)="profileDailyQuestion.set($event)" placeholder="Posez-moi une question anonyme..." style="width: 100%; padding: 0.8rem 1rem; border-radius: var(--radius-md); background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); color: white; margin-bottom: 0.5rem;">
       </div>
 
       <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">📝 Votre Bio courte</label>
+        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">{{ 'INBOX.CUSTOM_BIO' | translate }}</label>
         <input type="text" [ngModel]="profileBio()" (ngModelChange)="profileBio.set($event)" placeholder="ex: Étudiant à Paris • Envoyez vos confidences !" style="width: 100%; padding: 0.8rem 1rem; border-radius: var(--radius-md); background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); color: white;">
       </div>
 
       <div style="display: flex; align-items: center; gap: 1rem;">
         <button class="btn btn-primary" (click)="saveProfileCustomization()" [disabled]="isSavingProfile()" style="padding: 0.8rem 1.5rem; font-weight: 600;">
-          {{ isSavingProfile() ? 'Enregistrement...' : '💾 Enregistrer' }}
+          {{ isSavingProfile() ? ('INBOX.BTN_SAVING' | translate) : ('INBOX.BTN_SAVE' | translate) }}
         </button>
         <span *ngIf="profileSavedSuccess()" class="animate-fade-in" style="color: #10b981; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;">
-          ✓ Mis à jour !
+          {{ 'INBOX.SAVED_SUCCESS' | translate }}
         </span>
       </div>
     </div>
@@ -147,9 +147,9 @@
     <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); color: var(--color-primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
       <svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
     </div>
-    <h3 style="margin-bottom: 0.5rem;">Votre boîte de réception est calme...</h3>
+    <h3 style="margin-bottom: 0.5rem;">{{ 'INBOX.EMPTY_TITLE' | translate }}</h3>
     <p style="color: var(--color-text-muted); max-width: 450px; margin: 0 auto 1.5rem auto;">
-      Personne n'a encore envoyé de message ! Copiez votre lien secret ci-dessus et partagez-le !
+      {{ 'INBOX.EMPTY_DESC' | translate }}
     </p>
   </div>
 
@@ -181,15 +181,15 @@
         </div>
         
         <div>
-          <span *ngIf="highlightedMessageId() === msg.id" style="color: #10b981; font-weight: bold; margin-right: 10px; animation: pulse 1.5s infinite;">NOUVEAU MESSAGE !</span>
-          <span *ngIf="msg.status === 'UNREAD' && highlightedMessageId() !== msg.id" class="badge-unread">Non lu</span>
+          <span *ngIf="highlightedMessageId() === msg.id" style="color: #10b981; font-weight: bold; margin-right: 10px; animation: pulse 1.5s infinite;">{{ 'INBOX.MSG_NEW' | translate }}</span>
+          <span *ngIf="msg.status === 'UNREAD' && highlightedMessageId() !== msg.id" class="badge-unread">{{ 'INBOX.MSG_UNREAD' | translate }}</span>
         </div>
       </div>
 
       <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
         <button class="btn btn-primary" (click)="captureStory(msg)" [disabled]="isCapturing()" style="width: 100%; max-width: 300px; padding: 0.6rem; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); border: 1px solid rgba(255,255,255,0.2);">
           <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-          {{ isCapturing() && messageToCapture()?.id === msg.id ? 'Génération...' : '📸 Partager en Story' }}
+          {{ isCapturing() && messageToCapture()?.id === msg.id ? ('INBOX.BTN_CAPTURE_LOADING' | translate) : ('INBOX.BTN_CAPTURE' | translate) }}
         </button>
       </div>
     </div>
@@ -198,10 +198,10 @@
   <!-- Delete Modal -->
   <div *ngIf="messageToDelete()" class="modal-backdrop animate-fade-in" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000;" (click)="cancelDelete()">
     <div class="glass-panel" style="max-width: 400px; width: 90%; padding: 2rem; text-align: center;" (click)="$event.stopPropagation()">
-      <h3 style="margin-bottom: 0.5rem;">Supprimer le message ?</h3>
+      <h3 style="margin-bottom: 0.5rem;">{{ 'INBOX.DELETE_MODAL_TITLE' | translate }}</h3>
       <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
-        <button class="btn btn-glass" (click)="cancelDelete()" [disabled]="isDeleting()" style="flex: 1;">Annuler</button>
-        <button class="btn btn-primary" (click)="confirmDelete()" [disabled]="isDeleting()" style="flex: 1; background: #ef4444; color: white;">Supprimer</button>
+        <button class="btn btn-glass" (click)="cancelDelete()" [disabled]="isDeleting()" style="flex: 1;">{{ 'INBOX.DELETE_BTN_CANCEL' | translate }}</button>
+        <button class="btn btn-primary" (click)="confirmDelete()" [disabled]="isDeleting()" style="flex: 1; background: #ef4444; color: white;">{{ 'INBOX.DELETE_BTN_CONFIRM' | translate }}</button>
       </div>
     </div>
   </div>
@@ -222,7 +222,7 @@
 
       <!-- CTA Footer with link -->
       <div style="z-index: 10; margin-top: 3rem; text-align: center;">
-        <p style="color: rgba(255, 255, 255, 0.6); font-size: 1.8rem; margin-bottom: 1.5rem;">👆 Envoie-moi aussi un message anonyme !</p>
+        <p style="color: rgba(255, 255, 255, 0.6); font-size: 1.8rem; margin-bottom: 1.5rem;">{{ 'INBOX.STORY_CTA' | translate }}</p>
         <div style="display: inline-block; background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(236, 72, 153, 0.4)); border: 2px solid rgba(255, 255, 255, 0.25); border-radius: 2rem; padding: 1.2rem 3rem;">
           <p style="color: white; font-size: 2rem; font-weight: 700; letter-spacing: 0.5px;">🔗 {{ getProfileLink() }}</p>
         </div>

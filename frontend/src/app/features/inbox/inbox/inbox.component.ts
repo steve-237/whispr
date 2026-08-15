@@ -8,10 +8,12 @@ import { Client } from '@stomp/stompjs';
 import { environment } from '../../../../environments/environment';
 import Chart from 'chart.js/auto';
 
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-inbox',
   standalone: true,
-  imports: [CommonModule, DatePipe, FormsModule],
+  imports: [CommonModule, DatePipe, FormsModule, TranslatePipe],
   templateUrl: './inbox.component.html'
 })
 export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -53,7 +55,11 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private stompClient: Client | null = null;
 
-  constructor(private apiService: ApiService, private authService: AuthService) {
+  constructor(
+    private apiService: ApiService, 
+    private authService: AuthService,
+    private translate: TranslateService
+  ) {
     this.pseudo.set(this.authService.currentUser() || '');
   }
 
@@ -329,8 +335,8 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
             try {
               await navigator.share({
-                title: 'Envoie-moi un message anonyme ! 🤫',
-                text: 'Envoie-moi un message anonyme et secret ! 👉 ' + this.getProfileLink(),
+                title: this.translate.instant('INBOX.SHARE_TITLE'),
+                text: this.translate.instant('INBOX.SHARE_TEXT') + this.getProfileLink(),
                 files: [file]
               });
             } catch (err) {

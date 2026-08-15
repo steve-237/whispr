@@ -1,25 +1,25 @@
 <div class="container animate-fade-in" style="max-width: 400px; margin: 2rem auto; padding: 0 1rem;">
   <div class="glass-panel" style="padding: 2rem;">
-    <h2 style="text-align: center; margin-bottom: 2rem;">Créer un compte</h2>
+    <h2 style="text-align: center; margin-bottom: 2rem;">{{ 'REGISTER.TITLE' | translate }}</h2>
     
     <div *ngIf="error()" style="color: #ef4444; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: var(--radius-md); margin-bottom: 1.5rem; text-align: center;">
-      {{ error() }}
+      {{ error() | translate }}
     </div>
 
     <form (submit)="onSubmit($event)" action="javascript:void(0);">
       <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; margin-bottom: 0.5rem; color: var(--color-text-muted);">Email</label>
+        <label style="display: block; margin-bottom: 0.5rem; color: var(--color-text-muted);">{{ 'REGISTER.EMAIL_LABEL' | translate }}</label>
         <input 
           type="email" 
           [(ngModel)]="email" 
           name="email"
           required
           style="width: 100%; padding: 0.875rem; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); color: white; outline: none; transition: border-color 0.3s;"
-          placeholder="nom@exemple.com">
+          placeholder="{{ 'REGISTER.EMAIL_PLACEHOLDER' | translate }}">
       </div>
 
       <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; margin-bottom: 0.5rem; color: var(--color-text-muted);">Pseudo (lien public)</label>
+        <label style="display: block; margin-bottom: 0.5rem; color: var(--color-text-muted);">{{ 'REGISTER.PSEUDO_LABEL' | translate }}</label>
         <div style="display: flex; align-items: center;">
           <span style="padding: 0.875rem; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--color-border); border-right: none; border-radius: var(--radius-md) 0 0 var(--radius-md); color: var(--color-text-muted);">whispr.me/</span>
           <input 
@@ -28,12 +28,12 @@
             name="pseudo"
             required
             style="width: 100%; padding: 0.875rem; border-radius: 0 var(--radius-md) var(--radius-md) 0; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); color: white; outline: none; transition: border-color 0.3s;"
-            placeholder="mon-pseudo">
+            placeholder="{{ 'REGISTER.PSEUDO_PLACEHOLDER' | translate }}">
         </div>
       </div>
 
       <div style="margin-bottom: 2rem;">
-        <label style="display: block; margin-bottom: 0.5rem; color: var(--color-text-muted);">Mot de passe</label>
+        <label style="display: block; margin-bottom: 0.5rem; color: var(--color-text-muted);">{{ 'REGISTER.PASSWORD_LABEL' | translate }}</label>
         <input 
           type="password" 
           [(ngModel)]="password" 
@@ -48,11 +48,11 @@
         class="btn btn-primary" 
         style="width: 100%; font-size: 1.1rem; margin-bottom: 1.5rem;"
         [disabled]="isLoading() || !email || !password || !pseudo">
-        {{ isLoading() ? 'Création...' : 'S\'inscrire' }}
+        {{ isLoading() ? ('REGISTER.BTN_LOADING' | translate) : ('REGISTER.BTN_SUBMIT' | translate) }}
       </button>
 
       <p style="text-align: center; color: var(--color-text-muted); font-size: 0.9rem;">
-        Déjà un compte ? <a routerLink="/login" style="font-weight: 600;">Se connecter</a>
+        {{ 'REGISTER.HAS_ACCOUNT' | translate }} <a routerLink="/login" style="font-weight: 600;">{{ 'REGISTER.LOGIN_LINK' | translate }}</a>
       </p>
     </form>
   </div>

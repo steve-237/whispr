@@ -2,12 +2,13 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe],
   templateUrl: './register.component.html'
 })
 export class RegisterComponent {
@@ -22,7 +23,7 @@ export class RegisterComponent {
   onSubmit(event?: Event): void {
     if (event) event.preventDefault();
     if (!this.email || !this.pseudo || !this.password) {
-      this.error.set('Veuillez remplir tous les champs.');
+      this.error.set('REGISTER.ERROR_EMPTY');
       return;
     }
     this.isLoading.set(true);
@@ -35,7 +36,7 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.error.set(err.error?.message || 'Erreur lors de l\'inscription');
+        this.error.set('REGISTER.ERROR_GENERIC');
       }
     });
   }

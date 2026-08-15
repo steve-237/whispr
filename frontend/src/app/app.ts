@@ -2,11 +2,12 @@ import { Component, signal, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ApiService } from './core/services/api.service';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule],
+  imports: [RouterOutlet, CommonModule, TranslatePipe],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -15,7 +16,20 @@ export class App implements OnInit {
   public isBackendReady = signal<boolean>(false);
   public isWakingUp = signal<boolean>(false);
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService, private translate: TranslateService) {
+    // Configuration de la langue par défaut
+    this.translate.addLangs(['fr', 'en']);
+    
+    // Détecter la langue du navigateur
+    const browserLang = navigator.language || navigator.languages?.[0] || 'fr';
+    const langToUse = browserLang.toLowerCase().includes('en') ? 'en' : 'fr';
+    
+    // Si la langue est sauvegardée dans le localStorage, on l'utilise, sinon on prend celle du navigateur
+    const savedLang = localStorage.getItem('whispr_lang');
+    const finalLang = savedLang || langToUse;
+    this.translate.setFallbackLang(finalLang);
+    this.translate.use(finalLang);
+  }
 
   ngOnInit() {
     this.checkBackendStatus();
