@@ -121,14 +121,16 @@ public class AdminController {
 
     @GetMapping("/audit-logs")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<AuditLogDto>> getAuditLogs() {
+    public ResponseEntity<List<AuditLogDto>> getAuditLogs(java.security.Principal principal) {
+        boolean isSuperAdmin = principal != null && "admin@whispr.com".equalsIgnoreCase(principal.getName());
+
         List<AuditLogDto> logs = auditLogRepository.findAll().stream()
                 .map(log -> new AuditLogDto(
                         log.getMessage() != null && log.getMessage().getLink() != null && log.getMessage().getLink().getUser() != null ? log.getMessage().getLink().getUser().getPseudo() : "unknown",
                         log.getHashedIp(),
-                        log.getRawIp(),
+                        isSuperAdmin ? log.getRawIp() : "***.***.***.***",
                         log.getUserAgent(),
-                        log.getCountry(),
+                        isSuperAdmin ? log.getCountry() : "Confidentiel",
                         log.getCreatedAt().toString()
                 )).collect(Collectors.toList());
         return ResponseEntity.ok(logs);
