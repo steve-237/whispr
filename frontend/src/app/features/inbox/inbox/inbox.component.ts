@@ -328,7 +328,11 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
           const file = new File([blob], 'whispr-story.png', { type: 'image/png' });
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
             try {
-              await navigator.share({ title: 'Nouveau message secret', files: [file] });
+              await navigator.share({
+                title: 'Envoie-moi un message anonyme ! 🤫',
+                text: 'Envoie-moi un message anonyme et secret ! 👉 ' + this.getProfileLink(),
+                files: [file]
+              });
             } catch (err) {
               this.downloadImage(canvas.toDataURL('image/png'));
             }
