@@ -16,6 +16,7 @@ export class App implements OnInit {
   protected readonly title = signal('frontend');
   public isBackendReady = signal<boolean>(false);
   public isWakingUp = signal<boolean>(false);
+  private swUpdate = inject(SwUpdate);
 
   // Signaux de traduction
   wakeUpText = translate('APP.WAKE_UP');
@@ -41,9 +42,8 @@ export class App implements OnInit {
     this.checkBackendStatus();
     
     // Auto-reload pour PWA
-    const swUpdate = inject(SwUpdate);
-    if (swUpdate.isEnabled) {
-      swUpdate.versionUpdates.subscribe((evt) => {
+    if (this.swUpdate.isEnabled) {
+      this.swUpdate.versionUpdates.subscribe((evt) => {
         if (evt.type === 'VERSION_READY') {
           // Force le rechargement du navigateur pour utiliser la nouvelle version
           window.location.reload();
