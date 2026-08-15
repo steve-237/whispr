@@ -1,5 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8081/api',
-  wsUrl: 'http://localhost:8081/ws-whispr'
+  apiUrl: 'http://localhost:8080/api',
+  wsUrl: 'ws://localhost:8080/ws-whispr',
+  frontendUrl: 'http://localhost:4200'
 };

@@ -257,7 +257,8 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getProfileLink(): string {
-    return `${window.location.origin}/${this.pseudo()}`;
+    const base = environment.frontendUrl || window.location.origin;
+    return `${base}/${this.pseudo()}`;
   }
 
   copyLink(): void {
