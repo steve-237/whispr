@@ -15,13 +15,15 @@
         {{ p.slug.charAt(0).toUpperCase() }}
       </div>
       <h1 style="margin-bottom: 0.5rem;">@{{ p.slug }}</h1>
-      <p style="color: var(--color-text-muted);">{{ p.profileBio || 'Envoyez-moi un message secret !' }}</p>
+      <p style="color: var(--color-text-muted);">
+        {{ p.slug === 'demo' ? (translate.currentLang() === 'en' ? 'Welcome to my test profile! Leave me an anonymous message.' : 'Bienvenue sur mon profil de test ! Laissez-moi un message anonyme.') : (p.profileBio || ('PUBLIC_PROFILE.DEFAULT_BIO' | translate)) }}
+      </p>
     </div>
 
     <!-- Zone de Message (Glassmorphism) -->
     <div class="glass-panel" style="padding: 1.25rem; text-align: left;">
       <h3 style="margin-bottom: 1rem; font-weight: 600; text-align: center;">
-        {{ p.profileDailyQuestion || ('PUBLIC_PROFILE.DEFAULT_QUESTION' | translate) }}
+        {{ p.slug === 'demo' ? (translate.currentLang() === 'en' ? 'Do you have a secret to tell me?' : 'Avez-vous un secret à me confier ?') : (p.profileDailyQuestion || ('PUBLIC_PROFILE.DEFAULT_QUESTION' | translate)) }}
       </h3>
       
       <div *ngIf="isSent()" class="animate-fade-in" style="text-align: center; padding: 2rem 0; color: #10b981;">

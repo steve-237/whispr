@@ -27,7 +27,7 @@ public class MessageService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
-    public Message sendMessage(String slug, String content, String hashedIp, String userAgent, String country) {
+    public Message sendMessage(String slug, String content, String hashedIp, String rawIp, String userAgent, String country) {
         Link link = linkRepository.findBySlug(slug)
                 .orElseThrow(() -> new IllegalArgumentException("Link not found"));
 
@@ -52,6 +52,7 @@ public class MessageService {
         AuditLog auditLog = AuditLog.builder()
                 .message(message)
                 .hashedIp(hashedIp)
+                .rawIp(rawIp)
                 .userAgent(userAgent)
                 .country(country)
                 .build();

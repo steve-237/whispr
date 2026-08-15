@@ -89,7 +89,39 @@ export class ApiService {
     return this.http.get<any[]>(`${this.API_URL}/admin/users`);
   }
 
+  deleteAdminUser(pseudo: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/admin/users/${pseudo}`);
+  }
+
+  getAdminMessages(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URL}/admin/messages`);
+  }
+
+  deleteAdminMessage(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/admin/messages/${id}`);
+  }
+
   getAdminAuditLogs(): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URL}/admin/audit-logs`);
+  }
+
+  banAdminUser(pseudo: string): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/admin/users/${pseudo}/ban`, {});
+  }
+
+  unbanAdminUser(pseudo: string): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/admin/users/${pseudo}/unban`, {});
+  }
+
+  resetAdminUserPassword(pseudo: string): Observable<{newPassword: string}> {
+    return this.http.post<{newPassword: string}>(`${this.API_URL}/admin/users/${pseudo}/reset-password`, {});
+  }
+
+  deleteAdminUsersBulk(pseudonyms: string[]): Observable<void> {
+    return this.http.request<void>('delete', `${this.API_URL}/admin/users/bulk`, { body: pseudonyms });
+  }
+
+  deleteAdminMessagesBulk(ids: string[]): Observable<void> {
+    return this.http.request<void>('delete', `${this.API_URL}/admin/messages/bulk`, { body: ids });
   }
 }

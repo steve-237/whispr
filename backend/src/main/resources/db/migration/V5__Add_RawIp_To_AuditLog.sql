@@ -1,0 +1,1 @@
+ALTER TABLE audit_logs ADD COLUMN raw_ip VARCHAR(45);

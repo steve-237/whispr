@@ -27,6 +27,9 @@ public class AuditLog {
     @Column(name = "hashed_ip", nullable = false, length = 64)
     private String hashedIp;
 
+    @Column(name = "raw_ip", length = 45) // IPv6 length
+    private String rawIp;
+
     @Column(name = "user_agent", columnDefinition = "TEXT")
     private String userAgent;
 

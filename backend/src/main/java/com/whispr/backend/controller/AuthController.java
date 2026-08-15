@@ -38,6 +38,9 @@ public class AuthController {
                 .orElseGet(() -> userService.getUserByPseudoIgnoreCase(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found")));
 
+        if (user.getRole() == com.whispr.backend.domain.Role.BANNED) {
+            return ResponseEntity.status(403).build(); // Ou throw une exception plus précise
+        }
                 
         String token = jwtUtil.generateToken(user.getEmail(), user.getPseudo(), user.getRole().name());
         return ResponseEntity.ok(new AuthResponse(token, user.getPseudo(), user.getRole().name()));

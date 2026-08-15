@@ -31,6 +31,26 @@ import { TranslatePipe } from '@ngx-translate/core';
         </a>
       </div>
 
+      <!-- Features Section -->
+      <h2 style="font-size: clamp(1.5rem, 5vw, 2.5rem); margin: 3rem 0 2rem 0;">{{ 'HOME.FEATURES_TITLE' | translate }}</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; text-align: center; margin-bottom: 4rem;">
+        <div class="glass-panel card-hover" style="padding: 2rem;">
+          <div style="font-size: 2.5rem; margin-bottom: 1rem;">🛡️</div>
+          <h3 style="font-size: 1.15rem; margin-bottom: 0.8rem;">{{ 'HOME.FEATURE1_TITLE' | translate }}</h3>
+          <p style="color: var(--color-text-muted); font-size: 0.95rem; line-height: 1.5;">{{ 'HOME.FEATURE1_DESC' | translate }}</p>
+        </div>
+        <div class="glass-panel card-hover" style="padding: 2rem;">
+          <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎨</div>
+          <h3 style="font-size: 1.15rem; margin-bottom: 0.8rem;">{{ 'HOME.FEATURE2_TITLE' | translate }}</h3>
+          <p style="color: var(--color-text-muted); font-size: 0.95rem; line-height: 1.5;">{{ 'HOME.FEATURE2_DESC' | translate }}</p>
+        </div>
+        <div class="glass-panel card-hover" style="padding: 2rem;">
+          <div style="font-size: 2.5rem; margin-bottom: 1rem;">📸</div>
+          <h3 style="font-size: 1.15rem; margin-bottom: 0.8rem;">{{ 'HOME.FEATURE3_TITLE' | translate }}</h3>
+          <p style="color: var(--color-text-muted); font-size: 0.95rem; line-height: 1.5;">{{ 'HOME.FEATURE3_DESC' | translate }}</p>
+        </div>
+      </div>
+
       <h2 style="font-size: clamp(1.5rem, 5vw, 2.5rem); margin: 3rem 0 2rem 0;">{{ 'HOME.HOW_IT_WORKS' | translate }}</h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; text-align: left; margin-bottom: 4rem;">
         <div class="glass-panel" style="padding: 2rem; position: relative;">
@@ -60,6 +80,58 @@ import { TranslatePipe } from '@ngx-translate/core';
           <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;">{{ 'HOME.FAQ2_Q' | translate }}</h4>
           <p style="color: var(--color-text-muted);">{{ 'HOME.FAQ2_A' | translate }}</p>
         </div>
+      </div>
+
+      <!-- Stats Section -->
+      <div style="display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap; margin: 5rem 0; padding: 2rem; background: rgba(0,0,0,0.2); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+        <div style="text-align: center;">
+          <div style="font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ 'HOME.STATS_USERS' | translate }}</div>
+          <div style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">{{ 'HOME.STATS_USERS_DESC' | translate }}</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ 'HOME.STATS_MSGS' | translate }}</div>
+          <div style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">{{ 'HOME.STATS_MSGS_DESC' | translate }}</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ 'HOME.STATS_SAFE' | translate }}</div>
+          <div style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">{{ 'HOME.STATS_SAFE_DESC' | translate }}</div>
+        </div>
+      </div>
+
+      <!-- AI Protection Highlight -->
+      <div class="glass-panel" style="margin: 5rem 0; padding: 3rem 2rem; text-align: center; border-color: rgba(var(--color-primary-rgb), 0.3); background: linear-gradient(180deg, rgba(var(--color-primary-rgb), 0.1) 0%, rgba(0,0,0,0) 100%);">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🤖🛡️</div>
+        <h2 style="font-size: 2rem; margin-bottom: 1.5rem;">{{ 'HOME.AI_SAFE_TITLE' | translate }}</h2>
+        <p style="color: var(--color-text-muted); line-height: 1.6; max-width: 600px; margin: 0 auto;">{{ 'HOME.AI_SAFE_DESC' | translate }}</p>
+      </div>
+
+      <!-- Testimonials -->
+      <h2 style="font-size: clamp(1.5rem, 5vw, 2.5rem); margin: 5rem 0 2rem 0;">{{ 'HOME.TESTIMONIALS_TITLE' | translate }}</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; text-align: left; margin-bottom: 5rem;">
+        <div class="glass-panel" style="padding: 1.5rem; position: relative;">
+          <div style="color: var(--color-primary); font-size: 2rem; position: absolute; top: 1rem; right: 1.5rem; opacity: 0.3;">"</div>
+          <p style="font-style: italic; color: var(--color-text-muted); margin-bottom: 1.5rem; line-height: 1.5;">{{ 'HOME.TESTIMONIAL1_TEXT' | translate }}</p>
+          <div style="font-weight: 600; font-size: 0.9rem;">{{ 'HOME.TESTIMONIAL1_AUTHOR' | translate }}</div>
+        </div>
+        <div class="glass-panel" style="padding: 1.5rem; position: relative;">
+          <div style="color: var(--color-primary); font-size: 2rem; position: absolute; top: 1rem; right: 1.5rem; opacity: 0.3;">"</div>
+          <p style="font-style: italic; color: var(--color-text-muted); margin-bottom: 1.5rem; line-height: 1.5;">{{ 'HOME.TESTIMONIAL2_TEXT' | translate }}</p>
+          <div style="font-weight: 600; font-size: 0.9rem;">{{ 'HOME.TESTIMONIAL2_AUTHOR' | translate }}</div>
+        </div>
+        <div class="glass-panel" style="padding: 1.5rem; position: relative;">
+          <div style="color: var(--color-primary); font-size: 2rem; position: absolute; top: 1rem; right: 1.5rem; opacity: 0.3;">"</div>
+          <p style="font-style: italic; color: var(--color-text-muted); margin-bottom: 1.5rem; line-height: 1.5;">{{ 'HOME.TESTIMONIAL3_TEXT' | translate }}</p>
+          <div style="font-weight: 600; font-size: 0.9rem;">{{ 'HOME.TESTIMONIAL3_AUTHOR' | translate }}</div>
+        </div>
+      </div>
+
+      <!-- Bottom CTA -->
+      <div style="margin: 6rem 0 3rem 0; padding-top: 4rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <h2 style="font-size: 2rem; margin-bottom: 1rem;">{{ 'HOME.BOTTOM_CTA_TITLE' | translate }}</h2>
+        <p style="color: var(--color-text-muted); margin-bottom: 2rem;">{{ 'HOME.BOTTOM_CTA_DESC' | translate }}</p>
+        <a routerLink="/register" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem; text-decoration: none;">
+          {{ 'HOME.BTN_CREATE' | translate }}
+        </a>
       </div>
 
     </div>
