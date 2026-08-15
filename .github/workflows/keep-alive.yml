@@ -11,4 +11,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Health Endpoint
-        run: curl -s "https://whispr-backend.onrender.com/api/health" | grep "UP" || echo "Backend ping failed, but that's okay if it's still waking up."
+        run: curl -s "https://whispr-z6zx.onrender.com/api/health" | grep "UP" || echo "Backend ping failed, but that's okay if it's still waking up."
