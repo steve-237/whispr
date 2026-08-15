@@ -2,7 +2,7 @@ import { Component, signal, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ApiService } from './core/services/api.service';
-import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe, translate } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-root',
@@ -15,6 +15,11 @@ export class App implements OnInit {
   protected readonly title = signal('frontend');
   public isBackendReady = signal<boolean>(false);
   public isWakingUp = signal<boolean>(false);
+
+  // Signaux de traduction
+  wakeUpText = translate('APP.WAKE_UP');
+  wakeUpMsg1 = translate('APP.WAKE_UP_MSG1');
+  wakeUpMsg2 = translate('APP.WAKE_UP_MSG2');
 
   constructor(private apiService: ApiService, private translate: TranslateService) {
     // Configuration de la langue par défaut
