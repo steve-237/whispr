@@ -19,7 +19,8 @@ export class RegisterComponent {
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  onSubmit(): void {
+  onSubmit(event?: Event): void {
+    if (event) event.preventDefault();
     if (!this.email || !this.pseudo || !this.password) {
       this.error.set('Veuillez remplir tous les champs.');
       return;

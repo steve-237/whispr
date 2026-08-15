@@ -6,7 +6,7 @@
       {{ error() }}
     </div>
 
-    <form (ngSubmit)="onSubmit()">
+    <form (submit)="onSubmit($event)" action="javascript:void(0);">
       <div style="margin-bottom: 1.5rem;">
         <label style="display: block; margin-bottom: 0.5rem; color: var(--color-text-muted);">Pseudo ou Email</label>
         <input 

@@ -18,7 +18,8 @@ export class LoginComponent {
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  onSubmit(): void {
+  onSubmit(event?: Event): void {
+    if (event) event.preventDefault();
     if (!this.email || !this.password) return;
     
     this.isLoading.set(true);
