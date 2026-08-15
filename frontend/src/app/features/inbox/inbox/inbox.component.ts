@@ -42,10 +42,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   messageToCapture = signal<MessageDto | null>(null);
   isCapturing = signal(false);
 
-  // Highlighted Message ID (Real-time animation)
   highlightedMessageId = signal<string | null>(null);
-
-  public translate = inject(TranslateService);
 
   quickQuestions = signal<string[]>([
     'Posez-moi une question anonyme et sincère... 🤫',
@@ -60,7 +57,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(
     private apiService: ApiService, 
     private authService: AuthService,
-    private translate: TranslateService
+    public translate: TranslateService
   ) {
     this.pseudo.set(this.authService.currentUser() || '');
   }
