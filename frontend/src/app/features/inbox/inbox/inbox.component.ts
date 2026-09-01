@@ -278,9 +278,10 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
 
   shareLink(): void {
     const link = this.getProfileLink();
-    const text = 'Envoyez-moi un message anonyme et secret ! 🤫';
+    const title = this.translate.instant('INBOX.SHARE_TITLE');
+    const text = this.translate.instant('INBOX.SHARE_TEXT');
     if (navigator.share) {
-      navigator.share({ title: 'Mon Lien Secret', text: text, url: link }).catch(console.error);
+      navigator.share({ title: title, text: text, url: link }).catch(console.error);
     } else {
       window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + link)}`, '_blank');
     }
