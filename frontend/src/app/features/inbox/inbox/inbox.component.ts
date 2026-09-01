@@ -44,6 +44,9 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
 
   highlightedMessageId = signal<string | null>(null);
 
+  // Réponses pour les Stories
+  replyTexts = signal<{ [key: string]: string }>({});
+
   quickQuestions = signal<string[]>([
     'Posez-moi une question anonyme et sincère... 🤫',
     'Quel est votre avis honnête sur moi ? 💭',
@@ -314,6 +317,15 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
         this.messageToDelete.set(null);
       }
     });
+  }
+
+  updateReplyText(msgId: string, text: string): void {
+    const current = this.replyTexts();
+    this.replyTexts.set({ ...current, [msgId]: text });
+  }
+
+  getReplyText(msgId: string): string {
+    return this.replyTexts()[msgId] || '';
   }
 
   async captureStory(msg: MessageDto): Promise<void> {

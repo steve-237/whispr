@@ -186,7 +186,17 @@
         </div>
       </div>
 
-      <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
+      <!-- Zone de réponse -->
+      <div style="margin-top: 1.5rem;">
+        <textarea 
+          [ngModel]="getReplyText(msg.id)"
+          (ngModelChange)="updateReplyText(msg.id, $event)"
+          [placeholder]="translate.currentLang() === 'fr' ? 'Écrire une réponse (optionnel)...' : 'Write a reply (optional)...'"
+          rows="2"
+          style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); color: white; resize: vertical; margin-bottom: 1rem; font-family: inherit; font-size: 0.95rem;"></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: center;">
         <button class="btn btn-primary" (click)="captureStory(msg)" [disabled]="isCapturing()" style="width: 100%; max-width: 300px; padding: 0.6rem; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); border: 1px solid rgba(255,255,255,0.2);">
           <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
           {{ isCapturing() && messageToCapture()?.id === msg.id ? ('INBOX.BTN_CAPTURE_LOADING' | translate) : ('INBOX.BTN_CAPTURE' | translate) }}
@@ -213,11 +223,17 @@
       <div style="position: absolute; top: 10%; left: -5%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 70%); border-radius: 50%;"></div>
       <div style="position: absolute; bottom: 15%; right: -5%; width: 350px; height: 350px; background: radial-gradient(circle, rgba(236, 72, 153, 0.3), transparent 70%); border-radius: 50%;"></div>
 
-      <!-- Main card -->
+      <!-- Main card (Question) -->
       <div style="width: 100%; max-width: 900px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(40px); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 3rem; padding: 4rem 3.5rem; z-index: 10; text-align: center; box-shadow: 0 40px 80px rgba(0,0,0,0.5);">
         <h2 style="color: white; font-size: 2.5rem; margin-bottom: 2rem;">@{{ pseudo() }}</h2>
         <h3 style="color: rgba(255, 255, 255, 0.85); font-size: 2rem; margin-bottom: 3rem;">{{ profileDailyQuestion() || (translate.currentLang() === 'fr' ? 'Posez-moi une question...' : 'Ask me a question...') }}</h3>
-        <p style="color: white; font-size: 3.5rem; font-weight: bold; line-height: 1.35; margin-bottom: 3rem; word-wrap: break-word;">"{{ messageToCapture()?.content }}"</p>
+        <p style="color: white; font-size: 3.5rem; font-weight: bold; line-height: 1.35; margin-bottom: 0; word-wrap: break-word;">"{{ messageToCapture()?.content }}"</p>
+      </div>
+
+      <!-- Reply card (if exists) -->
+      <div *ngIf="messageToCapture() && getReplyText(messageToCapture()!.id)" style="width: 100%; max-width: 850px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(20px); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 2rem; padding: 3rem; z-index: 10; text-align: left; box-shadow: 0 20px 40px rgba(0,0,0,0.5); margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+        <span style="color: rgba(255,255,255,0.5); font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">{{ translate.currentLang() === 'fr' ? 'Ma réponse' : 'My reply' }}</span>
+        <p style="color: #e2e8f0; font-size: 2.8rem; font-weight: 500; line-height: 1.4; margin: 0; white-space: pre-wrap;">{{ getReplyText(messageToCapture()!.id) }}</p>
       </div>
 
       <!-- CTA Footer with link -->
