@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService, LinkDto } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { ToastService } from '../../shared/components/toast/toast.service';
 import confetti from 'canvas-confetti';
 
 @Component({
@@ -21,6 +22,7 @@ export class PublicProfileComponent implements OnInit {
   error = signal('');
   
   public translate = inject(TranslateService);
+  private toastService = inject(ToastService);
   slug = signal('');
   isLoggingIn = signal(false);
 
@@ -61,6 +63,7 @@ export class PublicProfileComponent implements OnInit {
         this.isSending.set(false);
         this.isSent.set(true);
         this.messageContent.set('');
+        this.error.set('');
         
         // Explosion de confettis ! 🎉
         confetti({
@@ -72,13 +75,14 @@ export class PublicProfileComponent implements OnInit {
       },
       error: (err) => {
         this.isSending.set(false);
+        let errorMsg = "Erreur lors de l'envoi du message.";
         if (err.status === 400 && err.error && typeof err.error === 'string') {
-          this.error.set(err.error);
+          errorMsg = err.error;
         } else if (err.status === 429) {
-          this.error.set("Vous envoyez trop de messages. Veuillez patienter.");
-        } else {
-          this.error.set("Erreur lors de l'envoi du message.");
+          errorMsg = "Trop de messages envoyés. Veuillez patienter.";
         }
+        this.error.set(errorMsg);
+        this.toastService.error(errorMsg);
       }
     });
   }

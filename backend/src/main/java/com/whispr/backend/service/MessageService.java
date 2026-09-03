@@ -13,6 +13,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,6 +36,14 @@ public class MessageService {
 
         if (!link.getIsActive()) {
             throw new IllegalStateException("Link is currently inactive");
+        }
+
+        // Anti-Spam (Rate Limiting)
+        if (rawIp != null) {
+            int recentMessages = auditLogRepository.countByRawIpAndCreatedAtAfter(rawIp, LocalDateTime.now().minusHours(1));
+            if (recentMessages >= 5) {
+                throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Vous envoyez trop de messages. Veuillez patienter.");
+            }
         }
 
         // 1. Analyse IA du sentiment
@@ -99,3 +110,4 @@ public class MessageService {
         messageRepository.delete(message);
     }
 }
+
