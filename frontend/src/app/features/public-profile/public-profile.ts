@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService, LinkDto } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import confetti from 'canvas-confetti';
 
 @Component({
   selector: 'app-public-profile',
@@ -60,6 +61,14 @@ export class PublicProfileComponent implements OnInit {
         this.isSending.set(false);
         this.isSent.set(true);
         this.messageContent.set('');
+        
+        // Explosion de confettis ! 🎉
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6']
+        });
       },
       error: (err) => {
         this.isSending.set(false);

@@ -9,6 +9,8 @@ import { environment } from '../../../../environments/environment';
 import Chart from 'chart.js/auto';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { ToastService } from '../../../shared/components/toast/toast.service';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-inbox',
@@ -43,6 +45,11 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   isCapturing = signal(false);
 
   highlightedMessageId = signal<string | null>(null);
+  revealedHints = signal<{ [key: string]: boolean }>({});
+
+  revealHint(msgId: string): void {
+    this.revealedHints.update(h => ({ ...h, [msgId]: true }));
+  }
 
   // Réponses pour les Stories
   replyTexts = signal<{ [key: string]: string }>({});
@@ -60,7 +67,9 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(
     private apiService: ApiService, 
     private authService: AuthService,
-    public translate: TranslateService
+    public translate: TranslateService,
+    private toastService: ToastService,
+    private titleService: Title
   ) {
     this.pseudo.set(this.authService.currentUser() || '');
   }
@@ -148,10 +157,20 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     this.stompClient.activate();
   }
 
+  updateTitleBadge(): void {
+    const unreadCount = this.messages().filter(m => m.status === 'UNREAD').length;
+    if (unreadCount > 0) {
+      this.titleService.setTitle($() Whispr - Anonymous Messages);
+    } else {
+      this.titleService.setTitle('Whispr - Anonymous Messages');
+    }
+  }
+
   loadMessages(): void {
     this.apiService.getInbox().subscribe({
       next: (data) => {
         this.messages.set(data);
+        this.updateTitleBadge();
         this.isLoading.set(false);
       },
       error: () => {
@@ -255,7 +274,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
       },
       error: () => {
         this.isSavingProfile.set(false);
-        alert('Erreur lors de la sauvegarde de la personnalisation.');
+        this.toastService.error('Erreur lors de la sauvegarde de la personnalisation.');
       }
     });
   }
@@ -273,7 +292,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     navigator.clipboard.writeText(this.getProfileLink()).then(() => {
       this.isCopied.set(true);
       setTimeout(() => this.isCopied.set(false), 2000);
-    }).catch(() => alert('Erreur lors de la copie du lien.'));
+    }).catch(() => this.toastService.error('Erreur lors de la copie du lien.'));
   }
 
   shareLink(): void {
@@ -313,7 +332,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
         this.loadStats(); // update chart on delete
       },
       error: () => {
-        alert('Erreur lors de la suppression du message.');
+        this.toastService.error('Erreur lors de la suppression du message.');
         this.isDeleting.set(false);
         this.messageToDelete.set(null);
       }
@@ -378,3 +397,4 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     link.click();
   }
 }
+

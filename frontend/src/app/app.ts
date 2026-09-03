@@ -4,11 +4,12 @@ import { CommonModule } from '@angular/common';
 import { SwUpdate } from '@angular/service-worker';
 import { ApiService } from './core/services/api.service';
 import { TranslateService, TranslatePipe, translate } from '@ngx-translate/core';
+import { ToastComponent } from './shared/components/toast/toast.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, TranslatePipe],
+  imports: [RouterOutlet, CommonModule, TranslatePipe, ToastComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

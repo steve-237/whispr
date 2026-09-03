@@ -175,9 +175,14 @@
           <span *ngIf="msg.country" style="background: rgba(255,255,255,0.06); padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; color: #e2e8f0;">
             üìç {{ msg.country }}
           </span>
-          <span *ngIf="msg.deviceHint" style="background: rgba(255,255,255,0.06); padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; color: #e2e8f0;">
-            {{ msg.deviceHint }}
-          </span>
+          <ng-container *ngIf="msg.deviceHint">
+            <button *ngIf="!revealedHints()[msg.id]" (click)="revealHint(msg.id)" class="btn" style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); color: #c4b5fd; padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; cursor: pointer;">
+              ?????? {{ translate.currentLang() === 'fr' ? 'DÈvoiler un indice' : 'Reveal a hint' }}
+            </button>
+            <span *ngIf="revealedHints()[msg.id]" class="animate-fade-in" style="background: rgba(255,255,255,0.06); padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.8rem; color: #e2e8f0;">
+              {{ msg.deviceHint }}
+            </span>
+          </ng-container>
         </div>
         
         <div>
@@ -252,3 +257,4 @@
   </div>
 
 </div>
+

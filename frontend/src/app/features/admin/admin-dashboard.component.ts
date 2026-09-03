@@ -2,6 +2,7 @@ import { Component, OnInit, signal, computed, ViewChild, ElementRef } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
+import { ToastService } from '../../shared/components/toast/toast.service';
 import Chart from 'chart.js/auto';
 
 @Component({
@@ -268,7 +269,7 @@ export class AdminDashboardComponent implements OnInit {
     return this.messages().filter(m => m.targetUser.toLowerCase().includes(term));
   });
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService, private toastService: ToastService) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -319,7 +320,7 @@ export class AdminDashboardComponent implements OnInit {
     if (confirm(`Voulez-vous suspendre temporairement le compte de @${pseudo} ? (Il ne pourra plus se connecter)`)) {
       this.apiService.banAdminUser(pseudo).subscribe({
         next: () => this.loadData(),
-        error: () => alert('Erreur lors du bannissement.')
+        error: () => this.toastService.error('Erreur lors du bannissement.')
       });
     }
   }
@@ -352,7 +353,7 @@ export class AdminDashboardComponent implements OnInit {
           alert('Utilisateur supprimé avec succès.');
           this.loadData();
         },
-        error: () => alert("Erreur lors de la suppression de l'utilisateur.")
+        error: () => this.toastService.error('Erreur de suppression.')
       });
     }
   }
@@ -361,7 +362,7 @@ export class AdminDashboardComponent implements OnInit {
     if (confirm('Êtes-vous sûr de vouloir supprimer définitivement ce message ?')) {
       this.apiService.deleteAdminMessage(id).subscribe({
         next: () => this.loadData(),
-        error: () => alert('Erreur lors de la suppression du message.')
+        error: () => this.toastService.error('Erreur de suppression.')
       });
     }
   }
@@ -392,7 +393,7 @@ export class AdminDashboardComponent implements OnInit {
           alert('Utilisateurs supprimés.');
           this.loadData();
         },
-        error: () => alert('Erreur lors de la suppression par lot.')
+        error: () => this.toastService.error('Erreur lors de la suppression.')
       });
     }
   }
@@ -422,7 +423,7 @@ export class AdminDashboardComponent implements OnInit {
           alert('Messages supprimés.');
           this.loadData();
         },
-        error: () => alert('Erreur lors de la suppression par lot.')
+        error: () => this.toastService.error('Erreur lors de la suppression.')
       });
     }
   }
@@ -502,3 +503,4 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 }
+
