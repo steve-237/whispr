@@ -160,7 +160,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   updateTitleBadge(): void {
     const unreadCount = this.messages().filter(m => m.status === 'UNREAD').length;
     if (unreadCount > 0) {
-      this.titleService.setTitle($() Whispr - Anonymous Messages);
+      this.titleService.setTitle(`(${unreadCount}) Whispr - Anonymous Messages`);
     } else {
       this.titleService.setTitle('Whispr - Anonymous Messages');
     }
