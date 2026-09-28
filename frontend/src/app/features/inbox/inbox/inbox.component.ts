@@ -9,16 +9,18 @@ import { environment } from '../../../../environments/environment';
 import Chart from 'chart.js/auto';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { OnboardingComponent } from '../onboarding/onboarding.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-inbox',
   standalone: true,
-  imports: [CommonModule, DatePipe, FormsModule, TranslatePipe],
+  imports: [CommonModule, DatePipe, FormsModule, TranslatePipe, OnboardingComponent],
   templateUrl: './inbox.component.html'
 })
 export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
+  showOnboarding = signal(false);
   messages = signal<MessageDto[]>([]);
   isLoading = signal(true);
   error = signal('');
@@ -75,6 +77,9 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
+    if (!localStorage.getItem('whispr_onboarding_v1')) {
+      this.showOnboarding.set(true);
+    }
     this.loadMessages();
     this.loadProfileInfo();
     this.loadStats();
@@ -164,6 +169,11 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     } else {
       this.titleService.setTitle('Whispr - Anonymous Messages');
     }
+  }
+
+  closeOnboarding(): void {
+    localStorage.setItem('whispr_onboarding_v1', 'done');
+    this.showOnboarding.set(false);
   }
 
   loadMessages(): void {
@@ -397,4 +407,6 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     link.click();
   }
 }
+
+
 

@@ -1,0 +1,63 @@
+<!-- Overlay plein écran flouté -->
+<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem;">
+  
+  <!-- Boîte de dialogue Onboarding (Glassmorphism) -->
+  <div class="glass-panel animate-fade-in" style="width: 100%; max-width: 450px; padding: 2.5rem 2rem; text-align: center; border-radius: 1.5rem; position: relative;">
+    
+    <!-- Bouton Fermer (Skip) -->
+    <button (click)="complete()" style="position: absolute; top: 1rem; right: 1rem; background: transparent; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.2rem; padding: 0.5rem; transition: color 0.2s;">
+      ✕
+    </button>
+
+    <!-- Étape 1 -->
+    <div *ngIf="currentStep() === 1" class="animate-fade-in">
+      <div style="font-size: 4rem; margin-bottom: 1rem; text-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);">🔗</div>
+      <h2 style="margin-bottom: 1rem; font-size: 1.5rem; background: linear-gradient(135deg, #fff, #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        {{ translate.currentLang() === 'fr' ? 'Ton lien est prêt !' : 'Your link is ready!' }}
+      </h2>
+      <p style="color: var(--color-text-muted); font-size: 1.05rem; margin-bottom: 2rem; line-height: 1.5;">
+        {{ translate.currentLang() === 'fr' ? 'Voici ton espace secret. Clique sur ton lien en haut pour le copier instantanément.' : 'This is your secret inbox. Tap your link at the top to copy it instantly.' }}
+      </p>
+    </div>
+
+    <!-- Étape 2 -->
+    <div *ngIf="currentStep() === 2" class="animate-fade-in">
+      <div style="font-size: 4rem; margin-bottom: 1rem; text-shadow: 0 4px 20px rgba(236, 72, 153, 0.4);">📸</div>
+      <h2 style="margin-bottom: 1rem; font-size: 1.5rem; background: linear-gradient(135deg, #fff, #f9a8d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        {{ translate.currentLang() === 'fr' ? 'Partage-le partout' : 'Share it everywhere' }}
+      </h2>
+      <p style="color: var(--color-text-muted); font-size: 1.05rem; margin-bottom: 2rem; line-height: 1.5;">
+        {{ translate.currentLang() === 'fr' ? 'Ajoute ton lien dans ta bio Instagram, TikTok, ou partage-le dans tes stories Snapchat et WhatsApp !' : 'Add your link to your Instagram or TikTok bio, or share it on Snapchat and WhatsApp stories!' }}
+      </p>
+    </div>
+
+    <!-- Étape 3 -->
+    <div *ngIf="currentStep() === 3" class="animate-fade-in">
+      <div style="font-size: 4rem; margin-bottom: 1rem; text-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);">🤫</div>
+      <h2 style="margin-bottom: 1rem; font-size: 1.5rem; background: linear-gradient(135deg, #fff, #a7f3d0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        {{ translate.currentLang() === 'fr' ? 'Prépare-toi aux surprises' : 'Get ready for surprises' }}
+      </h2>
+      <p style="color: var(--color-text-muted); font-size: 1.05rem; margin-bottom: 2rem; line-height: 1.5;">
+        {{ translate.currentLang() === 'fr' ? 'Les messages secrets apparaîtront ici, en tout anonymat. Tu pourras même y répondre en image !' : 'Secret messages will appear right here, completely anonymously. You can even reply to them as images!' }}
+      </p>
+    </div>
+
+    <!-- Indicateurs d'étape (Dots) -->
+    <div style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 2rem;">
+      <div [style.background]="currentStep() === 1 ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)'" style="width: 8px; height: 8px; border-radius: 50%; transition: background 0.3s;"></div>
+      <div [style.background]="currentStep() === 2 ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)'" style="width: 8px; height: 8px; border-radius: 50%; transition: background 0.3s;"></div>
+      <div [style.background]="currentStep() === 3 ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)'" style="width: 8px; height: 8px; border-radius: 50%; transition: background 0.3s;"></div>
+    </div>
+
+    <!-- Bouton d'action -->
+    <button (click)="nextStep()" class="btn btn-primary" style="width: 100%; padding: 0.9rem; font-size: 1.1rem; border-radius: 1rem;">
+      <ng-container *ngIf="currentStep() < 3">
+        {{ translate.currentLang() === 'fr' ? 'Suivant' : 'Next' }} ➔
+      </ng-container>
+      <ng-container *ngIf="currentStep() === 3">
+        {{ translate.currentLang() === 'fr' ? 'C est parti ! 🚀' : 'Let s go! 🚀' }}
+      </ng-container>
+    </button>
+
+  </div>
+</div>
