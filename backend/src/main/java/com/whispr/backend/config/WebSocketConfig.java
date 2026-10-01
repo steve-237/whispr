@@ -26,8 +26,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Point d'entrée WebSocket pour le client frontend
-        registry.addEndpoint("/ws-whispr")
-                .setAllowedOrigins(allowedOrigins.split(","))
-                .withSockJS(); // Fallback si WebSocket n'est pas supporté (et utilisé par StompJs dans certains cas)
+        registry.addEndpoint("/ws-whispr").setAllowedOrigins(allowedOrigins.split(","));
+        registry.addEndpoint("/ws-whispr").setAllowedOrigins(allowedOrigins.split(",")).withSockJS(); // Fallback si WebSocket n'est pas supporté (et utilisé par StompJs dans certains cas)
     }
 }
+
