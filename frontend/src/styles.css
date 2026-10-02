@@ -200,6 +200,85 @@ tr.row-hover:hover {
   100% { opacity: 1; transform: scale(1); }
 }
 
+/* ===================== LANDING PAGE ANIMATIONS ===================== */
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.bg-grid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: 
+    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  z-index: -1;
+  pointer-events: none;
+}
+.bg-grid::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at center, transparent 0%, var(--color-bg-base) 80%);
+}
+
+.glow-card {
+  position: relative;
+  transition: all var(--transition-normal);
+}
+.glow-card::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: -2px; right: -2px; bottom: -2px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  z-index: -1;
+  border-radius: calc(var(--radius-lg) + 2px);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  filter: blur(10px);
+}
+.glow-card:hover::before {
+  opacity: 0.5;
+}
+.glow-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+  display: flex;
+  width: 100%;
+  padding: 1.5rem 0;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.marquee-content {
+  display: flex;
+  animation: scroll 20s linear infinite;
+}
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 2rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+}
+
 /* ===================== MOBILE RESPONSIVE ===================== */
 
 /* Prevent horizontal overflow globally */
