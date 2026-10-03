@@ -10,6 +10,7 @@ public record MessageDto(
         String status,
         ZonedDateTime createdAt,
         String country,
-        String deviceHint
+        String deviceHint,
+        boolean isRead
 ) {
 }

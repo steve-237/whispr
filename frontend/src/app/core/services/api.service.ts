@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -26,6 +26,7 @@ export interface MessageDto {
   createdAt: string;
   country?: string;
   deviceHint?: string;
+  isRead?: boolean;
 }
 
 export interface ProfileUpdateRequest {
@@ -124,4 +125,12 @@ export class ApiService {
   deleteAdminMessagesBulk(ids: string[]): Observable<void> {
     return this.http.request<void>('delete', `${this.API_URL}/admin/messages/bulk`, { body: ids });
   }
+
+  markAsRead(messageId: string): Observable<void> {
+    return this.http.put<void>(`/messages//read`, {});
+  }
 }
+
+
+
+

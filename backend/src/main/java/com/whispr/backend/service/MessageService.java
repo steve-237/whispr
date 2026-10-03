@@ -59,7 +59,7 @@ public class MessageService {
                 .build();
         message = messageRepository.save(message);
 
-        // 3. Sauvegarde de l'Audit (Sécurité)
+        // 3. Sauvegarde de l'Audit (SÃ©curitÃ©)
         AuditLog auditLog = AuditLog.builder()
                 .message(message)
                 .hashedIp(hashedIp)
@@ -69,10 +69,10 @@ public class MessageService {
                 .build();
         auditLogRepository.save(auditLog);
 
-        // 4. Push WebSocket vers l'utilisateur (propriétaire du lien)
+        // 4. Push WebSocket vers l'utilisateur (propriÃ©taire du lien)
         String userEmail = link.getUser().getEmail();
         String deviceHint = DeviceUtil.parseDeviceHint(userAgent);
-        String finalCountry = country != null ? country : "Inconnu 🌐";
+        String finalCountry = country != null ? country : "Inconnu ðŸŒ";
         
         MessageDto dto = new MessageDto(
                 message.getId(),
@@ -81,7 +81,8 @@ public class MessageService {
                 message.getStatus(),
                 message.getCreatedAt(),
                 finalCountry,
-                deviceHint
+                deviceHint,
+                message.isRead()
         );
         
         // On pousse le message sur le topic personnel de l'utilisateur
@@ -110,4 +111,6 @@ public class MessageService {
         messageRepository.delete(message);
     }
 }
+
+
 

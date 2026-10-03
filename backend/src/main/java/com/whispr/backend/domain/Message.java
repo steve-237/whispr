@@ -38,6 +38,10 @@ public class Message {
     @Column(name = "ai_category", length = 50)
     private String aiCategory;
 
+    @Column(name = "is_read", nullable = false)
+    @Builder.Default
+    private boolean isRead = false;
+
     @Column(name = "toxicity_score", precision = 5, scale = 4)
     private BigDecimal toxicityScore;
 
@@ -52,3 +56,4 @@ public class Message {
     @OneToOne(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
     private AuditLog auditLog;
 }
+

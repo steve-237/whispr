@@ -36,12 +36,12 @@ public class MessageController {
             @RequestBody MessageSendRequest request,
             HttpServletRequest httpRequest) {
         
-        // Modération IA / par mots-clés
+        // ModÃ©ration IA / par mots-clÃ©s
         if (moderationService.isToxic(request.content())) {
-            return ResponseEntity.badRequest().body("Votre message enfreint nos règles de bienveillance et a été bloqué.");
+            return ResponseEntity.badRequest().body("Votre message enfreint nos rÃ¨gles de bienveillance et a Ã©tÃ© bloquÃ©.");
         }
 
-        // Extraction de l'IP réelle avec support proxies (Cloudflare, Nginx, X-Forwarded-For)
+        // Extraction de l'IP rÃ©elle avec support proxies (Cloudflare, Nginx, X-Forwarded-For)
         String ip = httpRequest.getHeader("CF-Connecting-IP");
         if (ip == null || ip.isBlank()) ip = httpRequest.getHeader("X-Forwarded-For");
         if (ip == null || ip.isBlank()) ip = httpRequest.getRemoteAddr();
@@ -49,23 +49,23 @@ public class MessageController {
         String hashedIp = Integer.toHexString(ip != null ? ip.hashCode() : 0);
         String userAgent = httpRequest.getHeader("User-Agent");
         
-        // Extraction de la géolocalisation ou simulation réaliste en environnement local/démo
+        // Extraction de la gÃ©olocalisation ou simulation rÃ©aliste en environnement local/dÃ©mo
         String country = httpRequest.getHeader("CF-IPCountry");
         if (country == null || country.isBlank() || "XX".equals(country)) {
             country = httpRequest.getHeader("X-Country");
         }
         if (country == null || country.isBlank() || "127.0.0.1".equals(ip) || "0:0:0:0:0:0:0:1".equals(ip) || (ip != null && (ip.startsWith("192.168.") || ip.startsWith("10.")))) {
             String[] demoLocations = {
-                "Paris, France 🇫🇷",
-                "Lyon, France 🇫🇷",
-                "Marseille, France 🇫🇷",
-                "Bordeaux, France 🇫🇷",
-                "Montréal, Canada 🇨🇦",
-                "Genève, Suisse 🇨🇭",
-                "Bruxelles, Belgique 🇧🇪",
-                "Casablanca, Maroc 🇲🇦",
-                "Dakar, Sénégal 🇸🇳",
-                "Abidjan, Côte d'Ivoire 🇨🇮"
+                "Paris, France ðŸ‡«ðŸ‡·",
+                "Lyon, France ðŸ‡«ðŸ‡·",
+                "Marseille, France ðŸ‡«ðŸ‡·",
+                "Bordeaux, France ðŸ‡«ðŸ‡·",
+                "MontrÃ©al, Canada ðŸ‡¨ðŸ‡¦",
+                "GenÃ¨ve, Suisse ðŸ‡¨ðŸ‡­",
+                "Bruxelles, Belgique ðŸ‡§ðŸ‡ª",
+                "Casablanca, Maroc ðŸ‡²ðŸ‡¦",
+                "Dakar, SÃ©nÃ©gal ðŸ‡¸ðŸ‡³",
+                "Abidjan, CÃ´te d'Ivoire ðŸ‡¨ðŸ‡®"
             };
             int idx = Math.abs((userAgent != null ? userAgent.hashCode() : (int) System.currentTimeMillis()) % demoLocations.length);
             country = demoLocations[idx];
@@ -88,8 +88,8 @@ public class MessageController {
         List<MessageDto> messages = messageService.getMessagesForLink(link.getId()).stream()
                 .map(msg -> {
                     AuditLog auditLog = auditLogRepository.findByMessageId(msg.getId()).orElse(null);
-                    String country = auditLog != null && auditLog.getCountry() != null ? auditLog.getCountry() : "Inconnu 🌐";
-                    String deviceHint = auditLog != null ? DeviceUtil.parseDeviceHint(auditLog.getUserAgent()) : "🌐 Navigateur Web";
+                    String country = auditLog != null && auditLog.getCountry() != null ? auditLog.getCountry() : "Inconnu ðŸŒ";
+                    String deviceHint = auditLog != null ? DeviceUtil.parseDeviceHint(auditLog.getUserAgent()) : "ðŸŒ Navigateur Web";
                     return new MessageDto(
                             msg.getId(),
                             msg.getContent(),
@@ -97,7 +97,8 @@ public class MessageController {
                             msg.getStatus(),
                             msg.getCreatedAt(),
                             country,
-                            deviceHint
+                            deviceHint,
+                            msg.isRead()
                     );
                 }).collect(Collectors.toList());
         
@@ -113,3 +114,5 @@ public class MessageController {
         return ResponseEntity.ok().build();
     }
 }
+
+
