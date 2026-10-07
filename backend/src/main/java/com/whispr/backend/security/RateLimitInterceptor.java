@@ -14,8 +14,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @Component
 public class RateLimitInterceptor implements HandlerInterceptor {
 
-    // Limite: 5 requêtes
-    private static final int MAX_REQUESTS = 5;
+    // Limite: 50 requêtes
+    private static final int MAX_REQUESTS = 50;
     // Fenêtre: 1 heure en millisecondes
     private static final long TIME_WINDOW = 3600 * 1000L;
 
@@ -25,6 +25,11 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         
+        // Autoriser le preflight CORS
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
+
         // Extraction de l'IP
         String ip = request.getHeader("CF-Connecting-IP");
         if (ip == null || ip.isBlank()) ip = request.getHeader("X-Forwarded-For");

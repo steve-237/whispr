@@ -41,7 +41,7 @@ public class MessageService {
         // Anti-Spam (Rate Limiting)
         if (rawIp != null) {
             int recentMessages = auditLogRepository.countByRawIpAndCreatedAtAfter(rawIp, ZonedDateTime.now().minusHours(1));
-            if (recentMessages >= 5) {
+            if (recentMessages >= 50) {
                 throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Vous envoyez trop de messages. Veuillez patienter.");
             }
         }

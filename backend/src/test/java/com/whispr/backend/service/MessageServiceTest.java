@@ -70,7 +70,7 @@ class MessageServiceTest {
     void sendMessage_ShouldSaveMessageAndAudit_WhenValid() {
         // Arrange
         when(linkRepository.findBySlug("tester-slug")).thenReturn(Optional.of(mockLink));
-        when(auditLogRepository.countByRawIpAndCreatedAtAfter(eq("127.0.0.1"), any(LocalDateTime.class))).thenReturn(2);
+        when(auditLogRepository.countByRawIpAndCreatedAtAfter(eq("127.0.0.1"), any(java.time.ZonedDateTime.class))).thenReturn(2);
         when(aiSentimentService.analyzeSentiment(anyString())).thenReturn("POSITIVE");
         
         Message savedMessage = Message.builder()
@@ -98,7 +98,7 @@ class MessageServiceTest {
         // Arrange
         when(linkRepository.findBySlug("tester-slug")).thenReturn(Optional.of(mockLink));
         // Return 5 to trigger rate limit (>= 5)
-        when(auditLogRepository.countByRawIpAndCreatedAtAfter(eq("127.0.0.1"), any(LocalDateTime.class))).thenReturn(5);
+        when(auditLogRepository.countByRawIpAndCreatedAtAfter(eq("127.0.0.1"), any(java.time.ZonedDateTime.class))).thenReturn(5);
 
         // Act & Assert
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> 
