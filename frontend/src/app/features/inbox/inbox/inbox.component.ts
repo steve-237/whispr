@@ -107,7 +107,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     // let's just listen to `/topic/user/${email}/messages`.
     // We can extract email from token if needed, or we just rely on pseudo if they are same.
     // In our JWT, email is the subject. We can grab it from localStorage token.
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('whispr_token');
     let emailFromToken = this.pseudo();
     if (token) {
       try {
@@ -292,6 +292,11 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
 
   selectQuickQuestion(q: string): void {
     this.profileDailyQuestion.set(q);
+  }
+
+  selectQuickQuestionTranslation(q: string): void {
+    const translated = this.translate.instant(q);
+    this.profileDailyQuestion.set(translated);
   }
 
   getProfileLink(): string {
