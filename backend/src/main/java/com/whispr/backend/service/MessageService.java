@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,7 +40,7 @@ public class MessageService {
 
         // Anti-Spam (Rate Limiting)
         if (rawIp != null) {
-            int recentMessages = auditLogRepository.countByRawIpAndCreatedAtAfter(rawIp, LocalDateTime.now().minusHours(1));
+            int recentMessages = auditLogRepository.countByRawIpAndCreatedAtAfter(rawIp, ZonedDateTime.now().minusHours(1));
             if (recentMessages >= 5) {
                 throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Vous envoyez trop de messages. Veuillez patienter.");
             }
@@ -82,7 +82,8 @@ public class MessageService {
                 message.getCreatedAt(),
                 finalCountry,
                 deviceHint,
-                message.isRead()
+                message.isRead(),
+                message.getAiCategory()
         );
         
         // On pousse le message sur le topic personnel de l'utilisateur

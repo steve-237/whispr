@@ -191,6 +191,17 @@
             <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             {{ msg.createdAt | date:'short' }}
           </span>
+          <span *ngIf="msg.aiCategory" [ngStyle]="{
+            'color': msg.aiCategory === 'POSITIVE' ? '#10b981' : (msg.aiCategory === 'NEGATIVE' ? '#ef4444' : '#94a3b8'),
+            'background': msg.aiCategory === 'POSITIVE' ? 'rgba(16, 185, 129, 0.15)' : (msg.aiCategory === 'NEGATIVE' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(148, 163, 184, 0.15)')
+          }" style="padding: 0.25rem 0.6rem; border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 0.3rem; letter-spacing: 0.5px;">
+            {{ msg.aiCategory === 'POSITIVE' ? '😊 Positif' : (msg.aiCategory === 'NEGATIVE' ? '😠 Négatif' : '😐 Neutre') }}
+          </span>
+
+          <span *ngIf="msg.country" style="display: flex; align-items: center; gap: 0.3rem; background: rgba(0,0,0,0.2); padding: 0.25rem 0.6rem; border-radius: 10px;">
+            📍 {{ msg.country }}
+          </span>
+
           <ng-container *ngIf="msg.deviceHint">
             <button *ngIf="!revealedHints()[msg.id]" (click)="revealHint(msg.id); $event.stopPropagation()" style="background: rgba(139, 92, 246, 0.12); border: 1px solid rgba(139, 92, 246, 0.25); color: #c4b5fd; padding: 0.25rem 0.6rem; border-radius: 10px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;">
               {{ 'INBOX.REVEAL_HINT' | translate }}

@@ -11,6 +11,7 @@ public record MessageDto(
         ZonedDateTime createdAt,
         String country,
         String deviceHint,
-        boolean isRead
+        boolean isRead,
+        String aiCategory
 ) {
 }

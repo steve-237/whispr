@@ -6,10 +6,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
     Optional<AuditLog> findByMessageId(UUID messageId);
-    int countByRawIpAndCreatedAtAfter(String rawIp, LocalDateTime date);
+    int countByRawIpAndCreatedAtAfter(String rawIp, ZonedDateTime date);
 }

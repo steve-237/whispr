@@ -27,6 +27,7 @@ export interface MessageDto {
   country?: string;
   deviceHint?: string;
   isRead?: boolean;
+  aiCategory?: string;
 }
 
 export interface ProfileUpdateRequest {

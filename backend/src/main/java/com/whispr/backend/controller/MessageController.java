@@ -98,7 +98,8 @@ public class MessageController {
                             msg.getCreatedAt(),
                             country,
                             deviceHint,
-                            msg.isRead()
+                            msg.isRead(),
+                            msg.getAiCategory()
                     );
                 }).collect(Collectors.toList());
         
