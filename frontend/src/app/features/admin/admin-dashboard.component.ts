@@ -17,7 +17,7 @@ import Chart from 'chart.js/auto';
           Panneau d'Administration
         </h1>
         <button class="btn btn-glass" (click)="loadData()" [disabled]="isLoading()" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
-          ðŸ”„ {{ isLoading() ? 'Chargement...' : 'RafraÃ®chir' }}
+          🔄 {{ isLoading() ? 'Chargement...' : 'Rafraîchir' }}
         </button>
       </div>
 
@@ -35,7 +35,7 @@ import Chart from 'chart.js/auto';
       </div>
 
       <div *ngIf="isLoading()" style="text-align: center; color: var(--color-text-muted); padding: 3rem;">
-        Chargement des donnÃ©es administrateur...
+        Chargement des données administrateur...
       </div>
 
       <ng-container *ngIf="!isLoading()">
@@ -59,7 +59,7 @@ import Chart from 'chart.js/auto';
               <div style="font-size: 3rem; font-weight: bold; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                 {{ stats().totalMessages || 0 }}
               </div>
-              <div style="color: var(--color-text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Messages EnvoyÃ©s</div>
+              <div style="color: var(--color-text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Messages Envoyés</div>
             </div>
           </div>
 
@@ -69,19 +69,19 @@ import Chart from 'chart.js/auto';
               <canvas #usersChart></canvas>
             </div>
             <div class="glass-panel" style="padding: 1.5rem;">
-              <h3 style="margin-top: 0; color: var(--color-text-muted);">SantÃ© de la Plateforme</h3>
+              <h3 style="margin-top: 0; color: var(--color-text-muted);">Santé de la Plateforme</h3>
               <canvas #messagesChart></canvas>
             </div>
           </div>
 
           <div class="glass-panel" style="padding: 2rem;">
-            <h2 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Journaux d'Audit (SÃ©curitÃ© avancÃ©e)</h2>
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Journaux d'Audit (Sécurité avancée)</h2>
             <div style="overflow-x: auto;">
               <table style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead>
                   <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
                     <th style="padding: 1rem; color: var(--color-text-muted);">Cible</th>
-                    <th style="padding: 1rem; color: var(--color-text-muted);">Identifiant RÃ©seau (IP)</th>
+                    <th style="padding: 1rem; color: var(--color-text-muted);">Identifiant Réseau (IP)</th>
                     <th style="padding: 1rem; color: var(--color-text-muted);">Localisation & Appareil</th>
                     <th style="padding: 1rem; color: var(--color-text-muted);">Date</th>
                   </tr>
@@ -110,7 +110,7 @@ import Chart from 'chart.js/auto';
               </table>
             </div>
             <div *ngIf="auditLogs().length === 0" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
-              Aucun journal d'audit trouvÃ©.
+              Aucun journal d'audit trouvé.
             </div>
           </div>
         </div>
@@ -121,7 +121,7 @@ import Chart from 'chart.js/auto';
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
               <h2 style="margin: 0; font-size: 1.25rem;">Gestion des Utilisateurs</h2>
               <button *ngIf="selectedUsers().length > 0" (click)="deleteSelectedUsers()" class="btn" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">
-                ðŸ—‘ï¸ Supprimer la sÃ©lection ({{ selectedUsers().length }})
+                ðŸ—‘ï¸ Supprimer la sélection ({{ selectedUsers().length }})
               </button>
             </div>
             <div style="overflow-x: auto;">
@@ -133,7 +133,7 @@ import Chart from 'chart.js/auto';
                     </th>
                     <th style="padding: 1rem; color: var(--color-text-muted);">Pseudo</th>
                     <th style="padding: 1rem; color: var(--color-text-muted);">Email</th>
-                    <th style="padding: 1rem; color: var(--color-text-muted);">RÃ´le</th>
+                    <th style="padding: 1rem; color: var(--color-text-muted);">Rôle</th>
                     <th style="padding: 1rem; color: var(--color-text-muted);">Inscription</th>
                     <th style="padding: 1rem; color: var(--color-text-muted); text-align: right;">Actions</th>
                   </tr>
@@ -157,16 +157,16 @@ import Chart from 'chart.js/auto';
                       <button (click)="viewUserMessages(user.pseudo)" class="btn" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #3b82f6; padding: 0.4rem 0.8rem; font-size: 0.85rem;" title="Filtrer les messages">
                         ðŸ” Messages
                       </button>
-                      <button *ngIf="user.role !== 'ADMIN'" (click)="resetPassword(user.pseudo)" class="btn" style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); color: #8b5cf6; padding: 0.4rem 0.8rem; font-size: 0.85rem;" title="GÃ©nÃ©rer un nouveau mot de passe">
-                        ðŸ”‘ Reset
+                      <button *ngIf="user.role !== 'ADMIN'" (click)="resetPassword(user.pseudo)" class="btn" style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); color: #8b5cf6; padding: 0.4rem 0.8rem; font-size: 0.85rem;" title="Générer un nouveau mot de passe">
+                        🔑 Reset
                       </button>
                       <button *ngIf="user.role !== 'ADMIN' && user.role !== 'BANNED'" (click)="banUser(user.pseudo)" class="btn" style="background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #f59e0b; padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                         ðŸš« Bannir
                       </button>
                       <button *ngIf="user.role === 'BANNED'" (click)="unbanUser(user.pseudo)" class="btn" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-                        âœ… DÃ©bannir
+                        ✅ Débannir
                       </button>
-                      <button *ngIf="user.role !== 'ADMIN'" (click)="deleteUser(user.pseudo)" class="btn" style="background: transparent; border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; padding: 0.4rem 0.8rem; font-size: 0.85rem;" title="Supprimer dÃ©finitivement le compte">
+                      <button *ngIf="user.role !== 'ADMIN'" (click)="deleteUser(user.pseudo)" class="btn" style="background: transparent; border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; padding: 0.4rem 0.8rem; font-size: 0.85rem;" title="Supprimer définitivement le compte">
                         ðŸ—‘ï¸
                       </button>
                     </td>
@@ -175,7 +175,7 @@ import Chart from 'chart.js/auto';
               </table>
             </div>
             <div *ngIf="users().length === 0" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
-              Aucun utilisateur trouvÃ©.
+              Aucun utilisateur trouvé.
             </div>
           </div>
         </div>
@@ -184,10 +184,10 @@ import Chart from 'chart.js/auto';
         <div [hidden]="activeTab() !== 'messages'" class="animate-fade-in">
           <div class="glass-panel" style="padding: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-              <h2 style="margin: 0; font-size: 1.25rem;">ModÃ©ration des Messages</h2>
+              <h2 style="margin: 0; font-size: 1.25rem;">Modération des Messages</h2>
               <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                 <button *ngIf="selectedMessages().length > 0" (click)="deleteSelectedMessages()" class="btn" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">
-                  ðŸ—‘ï¸ Supprimer la sÃ©lection ({{ selectedMessages().length }})
+                  ðŸ—‘ï¸ Supprimer la sélection ({{ selectedMessages().length }})
                 </button>
                 <input type="text" [(ngModel)]="searchPseudo" placeholder="ðŸ” Filtrer par pseudo cible..." style="padding: 0.5rem 1rem; border-radius: var(--radius-md); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none; min-width: 250px;">
               </div>
@@ -235,7 +235,7 @@ import Chart from 'chart.js/auto';
               </table>
             </div>
             <div *ngIf="filteredMessages().length === 0" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
-              Aucun message trouvÃ© pour ce filtre.
+              Aucun message trouvé pour ce filtre.
             </div>
           </div>
         </div>
@@ -337,31 +337,31 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   unbanUser(pseudo: string): void {
-    if (confirm(`Voulez-vous restaurer l'accÃ¨s de @${pseudo} ?`)) {
+    if (confirm(`Voulez-vous restaurer l'accès de @${pseudo} ?`)) {
       this.apiService.unbanAdminUser(pseudo).subscribe({
         next: () => this.loadData(),
-        error: () => alert('Erreur lors du dÃ©bannissement.')
+        error: () => alert('Erreur lors du débannissement.')
       });
     }
   }
 
   resetPassword(pseudo: string): void {
-    if (confirm(`Voulez-vous gÃ©nÃ©rer un NOUVEAU mot de passe pour @${pseudo} ?`)) {
+    if (confirm(`Voulez-vous générer un NOUVEAU mot de passe pour @${pseudo} ?`)) {
       this.apiService.resetAdminUserPassword(pseudo).subscribe({
         next: (res) => {
-          alert(`Nouveau mot de passe gÃ©nÃ©rÃ© pour @${pseudo} :\n\n${res.newPassword}\n\nVeuillez le transmettre Ã  l'utilisateur.`);
+          alert(`Nouveau mot de passe généré pour @${pseudo} :\n\n${res.newPassword}\n\nVeuillez le transmettre à l'utilisateur.`);
           this.loadData();
         },
-        error: () => alert('Erreur lors de la rÃ©initialisation du mot de passe.')
+        error: () => alert('Erreur lors de la réinitialisation du mot de passe.')
       });
     }
   }
 
   deleteUser(pseudo: string): void {
-    if (confirm(`ATTENTION: ÃŠtes-vous sÃ»r de vouloir SUPPRIMER DÃ‰FINITIVEMENT @${pseudo} ainsi que toutes ses donnÃ©es ?`)) {
+    if (confirm(`ATTENTION: Êtes-vous sûr de vouloir SUPPRIMER DÉFINITIVEMENT @${pseudo} ainsi que toutes ses données ?`)) {
       this.apiService.deleteAdminUser(pseudo).subscribe({
         next: () => {
-          alert('Utilisateur supprimÃ© avec succÃ¨s.');
+          alert('Utilisateur supprimé avec succès.');
           this.loadData();
         },
         error: () => this.toastService.error('Erreur de suppression.')
@@ -370,7 +370,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   deleteMessage(id: string): void {
-    if (confirm('ÃŠtes-vous sÃ»r de vouloir supprimer dÃ©finitivement ce message ?')) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer définitivement ce message ?')) {
       this.apiService.deleteAdminMessage(id).subscribe({
         next: () => this.loadData(),
         error: () => this.toastService.error('Erreur de suppression.')
@@ -398,10 +398,10 @@ export class AdminDashboardComponent implements OnInit {
 
   deleteSelectedUsers() {
     const toDelete = this.selectedUsers();
-    if (confirm(`ÃŠtes-vous sÃ»r de vouloir supprimer dÃ©finitivement ${toDelete.length} utilisateur(s) ?`)) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement ${toDelete.length} utilisateur(s) ?`)) {
       this.apiService.deleteAdminUsersBulk(toDelete).subscribe({
         next: () => {
-          alert('Utilisateurs supprimÃ©s.');
+          alert('Utilisateurs supprimés.');
           this.loadData();
         },
         error: () => this.toastService.error('Erreur lors de la suppression.')
@@ -428,10 +428,10 @@ export class AdminDashboardComponent implements OnInit {
 
   deleteSelectedMessages() {
     const toDelete = this.selectedMessages();
-    if (confirm(`ÃŠtes-vous sÃ»r de vouloir supprimer dÃ©finitivement ${toDelete.length} message(s) ?`)) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement ${toDelete.length} message(s) ?`)) {
       this.apiService.deleteAdminMessagesBulk(toDelete).subscribe({
         next: () => {
-          alert('Messages supprimÃ©s.');
+          alert('Messages supprimés.');
           this.loadData();
         },
         error: () => this.toastService.error('Erreur lors de la suppression.')

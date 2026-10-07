@@ -54,15 +54,15 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     this.revealedHints.update(h => ({ ...h, [msgId]: true }));
   }
 
-  // RÃ©ponses pour les Stories
+  // Réponses pour les Stories
   replyTexts = signal<{ [key: string]: string }>({});
 
   quickQuestions = signal<string[]>([
-    'Posez-moi une question anonyme et sincÃ¨re... ðŸ¤«',
-    'Quel est votre avis honnÃªte sur moi ? ðŸ’­',
-    'Avoue-moi un secret en toute discrÃ©tion... ðŸ”’',
-    'Un dÃ©faut ou une qualitÃ© que vous me trouvez ? âœ¨',
-    'Quelle est votre premiÃ¨re impression de moi ? ðŸ‘€'
+    'Posez-moi une question anonyme et sincère... 🤫',
+    'Quel est votre avis honnête sur moi ? 💭',
+    'Avoue-moi un secret en toute discrétion... 🔒',
+    'Un défaut ou une qualité que vous me trouvez ? ✨',
+    'Quelle est votre première impression de moi ? 👀'
   ]);
 
   private stompClient: Client | null = null;
@@ -127,7 +127,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     this.stompClient.onConnect = (frame) => {
-      console.log('ConnectÃ© au WebSocket', frame);
+      console.log('Connecté au WebSocket', frame);
       this.stompClient?.subscribe(`/topic/user/${emailFromToken}/messages`, (message) => {
         if (message.body) {
           const newMessage: MessageDto = JSON.parse(message.body);
@@ -150,7 +150,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
              audio.play().catch(e => console.log('Audio non lu automatiquement', e));
           } catch(e) {}
 
-          // RafraÃ®chir les stats
+          // Rafraîchir les stats
           this.loadStats();
         }
       });
@@ -238,13 +238,13 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     this.chart = new Chart(canvas, {
       type: 'doughnut',
       data: {
-        labels: ['Positif', 'Neutre', 'NÃ©gatif'],
+        labels: ['Positif', 'Neutre', 'Négatif'],
         datasets: [{
           data: [statsData.positiveCount, statsData.neutralCount, statsData.negativeCount],
           backgroundColor: [
             '#10B981', // Emerald (Positif)
             '#6B7280', // Gray (Neutre)
-            '#EF4444'  // Red (NÃ©gatif)
+            '#EF4444'  // Red (Négatif)
           ],
           hoverOffset: 4,
           borderWidth: 0
@@ -371,7 +371,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
         const canvas = await html2canvas(element, { backgroundColor: null, scale: 2 });
         
         canvas.toBlob(async (blob) => {
-          if (!blob) throw new Error('Blob gÃ©nÃ©rÃ© vide');
+          if (!blob) throw new Error('Blob généré vide');
           
           const file = new File([blob], 'whispr-story.png', { type: 'image/png' });
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -394,7 +394,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
         
       } catch (err) {
         console.error('Erreur de capture', err);
-        alert('Erreur lors de la gÃ©nÃ©ration de la Story.');
+        alert('Erreur lors de la génération de la Story.');
         this.messageToCapture.set(null);
         this.isCapturing.set(false);
       }

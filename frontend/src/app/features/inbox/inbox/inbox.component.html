@@ -27,7 +27,7 @@
     <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem;">{{ 'INBOX.SECRET_LINK_TITLE' | translate }}</h3>
     <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 1rem;">{{ 'INBOX.SECRET_LINK_DESC' | translate }}</p>
     
-    <!-- Lien affichÃ© en grand, lisible -->
+    <!-- Lien affiché en grand, lisible -->
     <div (click)="copyLink()" style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); transition: border-color 0.3s; word-break: break-all;" [style.border-color]="isCopied() ? '#10b981' : 'rgba(255,255,255,0.1)'">
       <p style="color: var(--color-primary); font-family: monospace; font-size: 0.95rem; line-height: 1.5; margin: 0;">{{ getProfileLink() }}</p>
       <p style="color: var(--color-text-muted); font-size: 0.75rem; margin-top: 0.5rem; margin-bottom: 0;">{{ 'INBOX.TAP_TO_COPY' | translate }}</p>
@@ -38,7 +38,7 @@
       <p style="color: #10b981; font-weight: 600; margin: 0; font-size: 0.95rem;">{{ 'INBOX.LINK_COPIED' | translate }}</p>
     </div>
 
-    <!-- Boutons d'action empilÃ©s -->
+    <!-- Boutons d'action empilés -->
     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
       <button class="btn btn-primary" (click)="copyLink()" style="width: 100%; padding: 0.875rem; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
         <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
@@ -116,13 +116,13 @@
         <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">{{ 'INBOX.CUSTOM_THEME' | translate }}</label>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem;">
           <button type="button" class="btn" [style.border]="profileThemeId() === 'neon' ? '2px solid #8b5cf6' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'neon' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('neon')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
-            {{ translate.currentLang() === 'fr' ? 'ðŸ”® NÃ©on Violet' : 'ðŸ”® Purple Neon' }}
+            {{ translate.currentLang() === 'fr' ? '🔮 Néon Violet' : '🔮 Purple Neon' }}
           </button>
           <button type="button" class="btn" [style.border]="profileThemeId() === 'sunset' ? '2px solid #f97316' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'sunset' ? 'rgba(249, 115, 22, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('sunset')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
             {{ translate.currentLang() === 'fr' ? 'ðŸŒ… Sunset Rose' : 'ðŸŒ… Pink Sunset' }}
           </button>
           <button type="button" class="btn" [style.border]="profileThemeId() === 'emerald' ? '2px solid #10b981' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'emerald' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('emerald')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
-            {{ translate.currentLang() === 'fr' ? 'ðŸŒ¿ Ã‰meraude' : 'ðŸŒ¿ Emerald' }}
+            {{ translate.currentLang() === 'fr' ? '🌿 Émeraude' : '🌿 Emerald' }}
           </button>
           <button type="button" class="btn" [style.border]="profileThemeId() === 'dark' ? '2px solid #94a3b8' : '1px solid rgba(255,255,255,0.1)'" [style.background]="profileThemeId() === 'dark' ? 'rgba(148, 163, 184, 0.2)' : 'rgba(255,255,255,0.05)'" (click)="profileThemeId.set('dark')" style="padding: 0.8rem; border-radius: var(--radius-md); text-align: center; color: white;">
             {{ translate.currentLang() === 'fr' ? 'ðŸ•¶ï¸ Cyberpunk' : 'ðŸ•¶ï¸ Cyberpunk' }}
@@ -137,7 +137,7 @@
 
       <div style="margin-bottom: 1.5rem;">
         <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">{{ 'INBOX.CUSTOM_BIO' | translate }}</label>
-        <input type="text" [ngModel]="profileBio()" (ngModelChange)="profileBio.set($event)" [placeholder]="translate.currentLang() === 'fr' ? 'ex: Ã‰tudiant Ã  Paris â€¢ Envoyez vos confidences !' : 'e.g., Student in NY â€¢ Send me secrets!'" style="width: 100%; padding: 0.8rem 1rem; border-radius: var(--radius-md); background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); color: white;">
+        <input type="text" [ngModel]="profileBio()" (ngModelChange)="profileBio.set($event)" [placeholder]="translate.currentLang() === 'fr' ? 'ex: Étudiant à Paris • Envoyez vos confidences !' : 'e.g., Student in NY • Send me secrets!'" style="width: 100%; padding: 0.8rem 1rem; border-radius: var(--radius-md); background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); color: white;">
       </div>
 
       <div style="display: flex; align-items: center; gap: 1rem;">
@@ -199,7 +199,7 @@
         </div>
       </div>
 
-      <!-- Zone de rÃ©ponse -->
+      <!-- Zone de réponse -->
       <div style="margin-top: 1.5rem;">
         <textarea 
           [ngModel]="getReplyText(msg.id)"
