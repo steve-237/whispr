@@ -9,30 +9,31 @@ import { TranslateService, TranslatePipe } from '@ngx-translate/core';
   standalone: true,
   imports: [RouterLink, CommonModule, TranslatePipe],
   template: `
-    <header class="glass-panel" style="margin: 0.5rem; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; max-width: 1200px; margin-left: auto; margin-right: auto;">
-      <a routerLink="/" class="logo" style="text-decoration: none; font-family: var(--font-family-heading); font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-        Whispr.
-      </a>
-      <nav style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-        <button (click)="switchLang()" class="btn btn-glass" style="padding: 0.25rem 0.5rem; font-size: 1.2rem; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-          {{ translate.currentLang() === 'fr' ? '🇫🇷' : '🇬🇧' }}
-        </button>
-        <ng-container *ngIf="!authService.isAuthenticated()">
-          <a routerLink="/demo" class="btn btn-glass" style="text-decoration: none;">{{ 'HEADER.DEMO' | translate }}</a>
-          <a routerLink="/login" class="btn btn-glass" style="text-decoration: none;">{{ 'HEADER.LOGIN' | translate }}</a>
-        </ng-container>
+    <div style="padding: 0 1rem; position: sticky; top: 1rem; z-index: 50;">
+      <header style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); padding: 0.8rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-radius: 100px; max-width: 1000px; margin: 0 auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+        <a routerLink="/" style="text-decoration: none; font-family: var(--font-family-heading); font-size: 1.4rem; font-weight: 800; background: linear-gradient(135deg, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px;">
+          Whispr<span style="color: var(--color-primary); -webkit-text-fill-color: var(--color-primary);">.</span>
+        </a>
+        <nav style="display: flex; gap: 0.8rem; align-items: center;">
+          <button (click)="switchLang()" style="padding: 0.4rem; font-size: 1.2rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+            {{ translate.currentLang() === 'fr' ? '🇫🇷' : '🇬🇧' }}
+          </button>
+          
+          <ng-container *ngIf="!authService.isAuthenticated()">
+            <a routerLink="/login" style="text-decoration: none; color: white; font-size: 0.9rem; font-weight: 600; padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); border-radius: 20px; transition: background 0.2s;">{{ 'HEADER.LOGIN' | translate }}</a>
+          </ng-container>
 
-        <ng-container *ngIf="authService.isAuthenticated()">
-          <a *ngIf="authService.isAdmin()" routerLink="/admin" class="btn btn-glass" style="text-decoration: none; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
-            <span style="display: flex; align-items: center; gap: 0.5rem;">
-              <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-              {{ 'HEADER.ADMIN' | translate }}
-            </span>
-          </a>
-          <a *ngIf="!isInboxRoute()" routerLink="/inbox" class="btn btn-primary" style="text-decoration: none;">{{ 'HEADER.WORKSPACE' | translate }}</a>
-        </ng-container>
-      </nav>
-    </header>
+          <ng-container *ngIf="authService.isAuthenticated()">
+            <a *ngIf="authService.isAdmin()" routerLink="/admin" style="text-decoration: none; color: #ef4444; font-size: 0.9rem; font-weight: 600; padding: 0.5rem 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 20px;">
+              Admin
+            </a>
+            <a *ngIf="!isInboxRoute()" routerLink="/inbox" style="text-decoration: none; color: white; font-size: 0.9rem; font-weight: 600; padding: 0.5rem 1rem; background: var(--color-primary); border-radius: 20px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">
+              {{ 'HEADER.WORKSPACE' | translate }}
+            </a>
+          </ng-container>
+        </nav>
+      </header>
+    </div>
   `
 })
 export class HeaderComponent {
