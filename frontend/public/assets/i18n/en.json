@@ -136,7 +136,12 @@
     "THEME_NEON": "🔮 Neon",
     "THEME_SUNSET": "🌅 Sunset",
     "THEME_EMERALD": "🌿 Emerald",
-    "THEME_DARK": "🕶️ Dark"
+    "THEME_DARK": "🕶️ Dark",
+    "Q1": "Ask me an anonymous and sincere question... 🤫",
+    "Q2": "What is your honest opinion about me? 👀",
+    "Q3": "Confess a secret to me discreetly... 🤫",
+    "Q4": "A flaw or a quality you find in me? 🤔",
+    "Q5": "What was your first impression of me? 🧐"
   },
   "PUBLIC_PROFILE": {
     "DEFAULT_BIO": "Send me a secret message!",

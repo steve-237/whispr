@@ -58,11 +58,11 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   replyTexts = signal<{ [key: string]: string }>({});
 
   quickQuestions = signal<string[]>([
-    'Posez-moi une question anonyme et sincère... 🤫',
-    'Quel est votre avis honnête sur moi ? 💭',
-    'Avoue-moi un secret en toute discrétion... 🔒',
-    'Un défaut ou une qualité que vous me trouvez ? ✨',
-    'Quelle est votre première impression de moi ? 👀'
+    'INBOX.Q1',
+    'INBOX.Q2',
+    'INBOX.Q3',
+    'INBOX.Q4',
+    'INBOX.Q5'
   ]);
 
   private stompClient: Client | null = null;

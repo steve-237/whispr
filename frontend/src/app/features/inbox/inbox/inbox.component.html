@@ -58,8 +58,8 @@
       <div>
         <label style="display: block; font-weight: 600; margin-bottom: 0.6rem; font-size: 0.8rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 1px;">{{ 'INBOX.CUSTOM_QUESTION' | translate }}</label>
         <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem;">
-          <button *ngFor="let q of quickQuestions()" (click)="profileDailyQuestion.set(q)" style="font-size: 0.75rem; padding: 0.35rem 0.7rem; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--color-text-muted); cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">
-            {{ q.length > 28 ? q.substring(0, 28) + '...' : q }}
+          <button *ngFor="let q of quickQuestions()" (click)="profileDailyQuestion.set((q | translate))" style="font-size: 0.75rem; padding: 0.35rem 0.7rem; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--color-text-muted); cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">
+            {{ (q | translate).length > 28 ? (q | translate).substring(0, 28) + '...' : (q | translate) }}
           </button>
         </div>
         <input type="text" [ngModel]="profileDailyQuestion()" (ngModelChange)="profileDailyQuestion.set($event)" [placeholder]="'INBOX.CUSTOM_QUESTION_PLACEHOLDER' | translate" style="width: 100%; padding: 0.85rem 1rem; border-radius: 14px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); color: white; outline: none; font-size: 0.95rem; box-sizing: border-box;">
