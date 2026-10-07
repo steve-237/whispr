@@ -111,6 +111,20 @@ public class MessageService {
 
         messageRepository.delete(message);
     }
+
+    @Transactional
+    public void markAsRead(UUID messageId, String userEmail) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new IllegalArgumentException("Message not found"));
+
+        if (!message.getLink().getUser().getEmail().equals(userEmail)) {
+             throw new IllegalStateException("You do not have permission to update this message");
+        }
+
+        message.setRead(true);
+        message.setStatus("READ");
+        messageRepository.save(message);
+    }
 }
 
 

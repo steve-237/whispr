@@ -128,7 +128,7 @@ export class ApiService {
   }
 
   markAsRead(messageId: string): Observable<void> {
-    return this.http.put<void>(`/messages/${messageId}/read`, {});
+    return this.http.put<void>(`${this.API_URL}/messages/${messageId}/read`, {});
   }
 }
 

@@ -114,6 +114,15 @@ public class MessageController {
         messageService.deleteMessage(id, email);
         return ResponseEntity.ok().build();
     }
+
+    @PutMapping("/{id}/read")
+    public ResponseEntity<Void> markAsRead(
+            @PathVariable UUID id,
+            org.springframework.security.core.Authentication authentication) {
+        String email = authentication.getName();
+        messageService.markAsRead(id, email);
+        return ResponseEntity.ok().build();
+    }
 }
 
 
