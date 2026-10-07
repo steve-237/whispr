@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -127,7 +127,7 @@ export class ApiService {
   }
 
   markAsRead(messageId: string): Observable<void> {
-    return this.http.put<void>(`/messages//read`, {});
+    return this.http.put<void>(`/messages/${messageId}/read`, {});
   }
 }
 

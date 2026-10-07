@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, signal, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, signal, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, MessageDto, StatsDto } from '../../../core/services/api.service';
@@ -347,6 +347,25 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
         this.isDeleting.set(false);
         this.messageToDelete.set(null);
       }
+    });
+  }
+
+  markAsRead(msg: MessageDto): void {
+    if (msg.isRead) return;
+    
+    // Optimistic UI
+    const currentMsgs = this.messages();
+    const index = currentMsgs.findIndex(m => m.id === msg.id);
+    if (index !== -1) {
+      const updatedMsgs = [...currentMsgs];
+      updatedMsgs[index] = { ...msg, isRead: true };
+      this.messages.set(updatedMsgs);
+      this.updateTitleBadge();
+    }
+
+    this.apiService.markAsRead(msg.id).subscribe({
+      next: () => {},
+      error: (err) => console.error('Erreur markAsRead', err)
     });
   }
 

@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
@@ -29,7 +29,7 @@ import { TranslateService, TranslatePipe } from '@ngx-translate/core';
               {{ 'HEADER.ADMIN' | translate }}
             </span>
           </a>
-          <a routerLink="/inbox" class="btn btn-primary" style="text-decoration: none;">{{ 'HEADER.WORKSPACE' | translate }}</a>
+          <a *ngIf="!isInboxRoute()" routerLink="/inbox" class="btn btn-primary" style="text-decoration: none;">{{ 'HEADER.WORKSPACE' | translate }}</a>
         </ng-container>
       </nav>
     </header>
@@ -38,11 +38,16 @@ import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 export class HeaderComponent {
   authService = inject(AuthService);
   translate = inject(TranslateService);
+  router = inject(Router);
 
   switchLang() {
     const currentLang = this.translate.currentLang() || this.translate.fallbackLang() || 'fr';
     const newLang = currentLang === 'fr' ? 'en' : 'fr';
     this.translate.use(newLang);
     localStorage.setItem('whispr_lang', newLang);
+  }
+
+  isInboxRoute(): boolean {
+    return this.router.url === '/inbox';
   }
 }
