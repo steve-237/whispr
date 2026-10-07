@@ -15,8 +15,8 @@ import { TranslateService, TranslatePipe } from '@ngx-translate/core';
           Whispr<span style="color: var(--color-primary); -webkit-text-fill-color: var(--color-primary);">.</span>
         </a>
         <nav style="display: flex; gap: 0.8rem; align-items: center;">
-          <button (click)="switchLang()" style="padding: 0.4rem; font-size: 1.2rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-            {{ translate.currentLang() === 'fr' ? '🇫🇷' : '🇬🇧' }}
+          <button (click)="switchLang()" style="padding: 0.4rem 0.8rem; font-size: 0.95rem; font-weight: 600; color: white; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); cursor: pointer; border-radius: 20px; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.2);" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+            {{ translate.currentLang() === 'fr' ? 'FR 🇫🇷' : 'EN 🇬🇧' }}
           </button>
           
           <ng-container *ngIf="!authService.isAuthenticated()">

@@ -72,7 +72,7 @@
       </div>
       
       <!-- Sauvegarder -->
-      <button (click)="saveProfileCustomization()" [disabled]="isSavingProfile()" [style.background]="profileSavedSuccess() ? '#10b981' : ''" style="width: 100%; padding: 1rem; font-weight: 700; border-radius: 14px; font-size: 1rem; background: var(--color-primary); color: white; border: none; cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);">
+      <button (click)="saveProfileCustomization()" [disabled]="isSavingProfile()" [style.background]="profileSavedSuccess() ? '#10b981' : 'var(--color-primary)'" style="width: 100%; padding: 1.1rem; font-weight: 800; border-radius: 14px; font-size: 1.05rem; color: white; border: none; cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4); text-transform: uppercase; letter-spacing: 0.5px; opacity: {{ isSavingProfile() ? '0.7' : '1' }};">
         {{ isSavingProfile() ? ('INBOX.BTN_SAVING' | translate) : (profileSavedSuccess() ? ('INBOX.BTN_SAVED' | translate) : ('INBOX.BTN_SAVE' | translate)) }}
       </button>
     </div>
