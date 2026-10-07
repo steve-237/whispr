@@ -97,8 +97,8 @@ class MessageServiceTest {
     void sendMessage_ShouldThrowTooManyRequests_WhenSpamLimitReached() {
         // Arrange
         when(linkRepository.findBySlug("tester-slug")).thenReturn(Optional.of(mockLink));
-        // Return 5 to trigger rate limit (>= 5)
-        when(auditLogRepository.countByRawIpAndCreatedAtAfter(eq("127.0.0.1"), any(java.time.ZonedDateTime.class))).thenReturn(5);
+        // Return 50 to trigger rate limit (>= 50)
+        when(auditLogRepository.countByRawIpAndCreatedAtAfter(eq("127.0.0.1"), any(java.time.ZonedDateTime.class))).thenReturn(50);
 
         // Act & Assert
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> 
