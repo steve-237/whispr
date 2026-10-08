@@ -11,7 +11,7 @@ public record MessageDto(
         ZonedDateTime createdAt,
         String country,
         String deviceHint,
-        boolean isRead,
+        @com.fasterxml.jackson.annotation.JsonProperty("isRead") boolean isRead,
         String aiCategory
 ) {
 }
