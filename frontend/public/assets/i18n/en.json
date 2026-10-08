@@ -141,7 +141,10 @@
     "Q2": "What is your honest opinion about me? 👀",
     "Q3": "Confess a secret to me discreetly... 🤫",
     "Q4": "A flaw or a quality you find in me? 🤔",
-    "Q5": "What was your first impression of me? 🧐"
+    "Q5": "What was your first impression of me? 🧐",
+    "SENTIMENT_POSITIVE": "Positive",
+    "SENTIMENT_NEGATIVE": "Negative",
+    "SENTIMENT_NEUTRAL": "Neutral"
   },
   "PUBLIC_PROFILE": {
     "DEFAULT_BIO": "Send me a secret message!",

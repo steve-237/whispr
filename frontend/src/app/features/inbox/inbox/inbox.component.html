@@ -195,7 +195,7 @@
             'color': msg.aiCategory === 'POSITIVE' ? '#10b981' : (msg.aiCategory === 'NEGATIVE' ? '#ef4444' : '#94a3b8'),
             'background': msg.aiCategory === 'POSITIVE' ? 'rgba(16, 185, 129, 0.15)' : (msg.aiCategory === 'NEGATIVE' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(148, 163, 184, 0.15)')
           }" style="padding: 0.25rem 0.6rem; border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 0.3rem; letter-spacing: 0.5px;">
-            {{ msg.aiCategory === 'POSITIVE' ? '😊 Positif' : (msg.aiCategory === 'NEGATIVE' ? '😠 Négatif' : '😐 Neutre') }}
+            {{ msg.aiCategory === 'POSITIVE' ? '😊' : (msg.aiCategory === 'NEGATIVE' ? '😠' : '😐') }} {{ (msg.aiCategory === 'POSITIVE' ? 'INBOX.SENTIMENT_POSITIVE' : (msg.aiCategory === 'NEGATIVE' ? 'INBOX.SENTIMENT_NEGATIVE' : 'INBOX.SENTIMENT_NEUTRAL')) | translate }}
           </span>
 
           <span *ngIf="msg.country" style="display: flex; align-items: center; gap: 0.3rem; background: rgba(0,0,0,0.2); padding: 0.25rem 0.6rem; border-radius: 10px;">
