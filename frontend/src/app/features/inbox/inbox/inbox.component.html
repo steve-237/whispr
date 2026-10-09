@@ -165,11 +165,19 @@
     <!-- LISTE DES MESSAGES -->
     <div *ngIf="messages().length > 0" style="display: flex; flex-direction: column; gap: 0.8rem;">
       <div *ngFor="let msg of messages()" class="animate-fade-in" 
-           [ngStyle]="{'background': msg.isRead ? 'rgba(255,255,255,0.025)' : 'rgba(139, 92, 246, 0.06)'}"
+           [ngStyle]="{
+             'background': msg.type === 'SUPER_WHISPR' ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(245, 158, 11, 0.05))' : (msg.isRead ? 'rgba(255,255,255,0.025)' : 'rgba(139, 92, 246, 0.06)')
+           }"
            style="border: 1px solid; padding: 1.25rem; border-radius: 18px; position: relative; transition: all 0.2s; cursor: pointer;"
-           [style.border-color]="!msg.isRead ? 'rgba(139, 92, 246, 0.3)' : 'rgba(255,255,255,0.06)'"
+           [style.border-color]="msg.type === 'SUPER_WHISPR' ? 'rgba(251, 191, 36, 0.6)' : (!msg.isRead ? 'rgba(139, 92, 246, 0.3)' : 'rgba(255,255,255,0.06)')"
+           [style.box-shadow]="msg.type === 'SUPER_WHISPR' ? '0 0 20px rgba(251, 191, 36, 0.15)' : 'none'"
            (click)="markAsRead(msg)">
         
+        <!-- Badge SUPER WHISPR -->
+        <div *ngIf="msg.type === 'SUPER_WHISPR'" style="position: absolute; top: -10px; right: 50px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #000; padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4); display: flex; align-items: center; gap: 0.3rem;">
+          ⭐ SUPER WHISPR
+        </div>
+
         <!-- Badge Nouveau -->
         <div *ngIf="!msg.isRead" style="position: absolute; top: -8px; left: 16px; background: var(--color-primary); color: white; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 3px 8px rgba(139, 92, 246, 0.4);">
           {{ 'INBOX.MSG_BADGE' | translate }}
@@ -186,7 +194,7 @@
         </p>
 
         <!-- Méta -->
-        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 1rem;">
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.8rem;">
           <span style="display: flex; align-items: center; gap: 0.3rem; background: rgba(0,0,0,0.2); padding: 0.25rem 0.6rem; border-radius: 10px;">
             <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             {{ msg.createdAt | date:'short' }}
@@ -201,15 +209,47 @@
           <span *ngIf="msg.country" style="display: flex; align-items: center; gap: 0.3rem; background: rgba(0,0,0,0.2); padding: 0.25rem 0.6rem; border-radius: 10px;">
             📍 {{ msg.country }}
           </span>
+        </div>
 
-          <ng-container *ngIf="msg.deviceHint">
-            <button *ngIf="!revealedHints()[msg.id]" (click)="revealHint(msg.id); $event.stopPropagation()" style="background: rgba(139, 92, 246, 0.12); border: 1px solid rgba(139, 92, 246, 0.25); color: #c4b5fd; padding: 0.25rem 0.6rem; border-radius: 10px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;">
-              {{ 'INBOX.REVEAL_HINT' | translate }}
-            </button>
-            <span *ngIf="revealedHints()[msg.id]" class="animate-fade-in" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); padding: 0.25rem 0.6rem; border-radius: 10px;">
-              {{ msg.deviceHint }}
-            </span>
-          </ng-container>
+        <!-- Section 🕵️ Débloquer les Indices (Monétisation) -->
+        <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 0.75rem; margin-bottom: 0.8rem;">
+          <div (click)="toggleClues(msg.id); $event.stopPropagation()" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+            <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.85rem; color: #fbbf24;">
+              <span>🕵️</span>
+              <span>Démasquer l'expéditeur (Indices Secrets)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span *ngIf="walletService.wallet()?.isPro" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 10px;">PRO GRATUIT</span>
+              <span style="color: var(--color-text-muted); font-size: 0.8rem;">{{ openedCluesMessageId() === msg.id ? '▲' : '▼' }}</span>
+            </div>
+          </div>
+
+          <!-- Liste des indices dépliée -->
+          <div *ngIf="openedCluesMessageId() === msg.id" class="animate-fade-in" style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.75rem;">
+            
+            <div *ngFor="let clue of (messageClues()[msg.id] || [])" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 0.5rem 0.75rem; border-radius: 10px; font-size: 0.8rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span>{{ clue.clueType === 'LOCATION' ? '📍 Ville exacte' : (clue.clueType === 'DEVICE' ? '📱 Modèle téléphone' : '📡 Opérateur / 5G') }}</span>
+              </div>
+              
+              <div>
+                <!-- Si débloqué -->
+                <span *ngIf="clue.isUnlocked" style="color: #10b981; font-weight: 700; background: rgba(16,185,129,0.15); padding: 0.2rem 0.6rem; border-radius: 8px;">
+                  {{ clue.clueValue }}
+                </span>
+                
+                <!-- Si verrouillé -->
+                <button *ngIf="!clue.isUnlocked" (click)="unlockClue(msg.id, clue.clueType); $event.stopPropagation()" [disabled]="isUnlockingClue()" style="background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); color: #fbbf24; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 8px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+                  <span>🔒 Débloquer</span>
+                  <span>({{ walletService.wallet()?.isPro ? '0 🪙' : '15 🪙' }})</span>
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="!messageClues()[msg.id]" style="text-align: center; color: var(--color-text-muted); font-size: 0.8rem; padding: 0.5rem;">
+              Chargement des indices...
+            </div>
+          </div>
         </div>
 
         <!-- Bouton Story -->

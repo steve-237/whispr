@@ -30,7 +30,7 @@ public class MessageService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
-    public Message sendMessage(String slug, String content, String hashedIp, String rawIp, String userAgent, String country) {
+    public Message sendMessage(String slug, String content, String type, String hashedIp, String rawIp, String userAgent, String country) {
         Link link = linkRepository.findBySlug(slug)
                 .orElseThrow(() -> new IllegalArgumentException("Link not found"));
 
@@ -50,10 +50,11 @@ public class MessageService {
         String sentiment = aiSentimentService.analyzeSentiment(content);
 
         // 2. Sauvegarde du Message
+        String finalType = (type != null && type.equalsIgnoreCase("SUPER_WHISPR")) ? "SUPER_WHISPR" : "text";
         Message message = Message.builder()
                 .link(link)
                 .content(content)
-                .type("text")
+                .type(finalType)
                 .status("UNREAD")
                 .aiCategory(sentiment)
                 .build();

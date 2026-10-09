@@ -13,6 +13,19 @@ export interface LinkDto {
   profileDailyQuestion: string;
 }
 
+export interface WalletDto {
+  coins: number;
+  totalSpentEur: number;
+  isPro: boolean;
+  proExpiresAt?: string;
+}
+
+export interface ClueResponseDto {
+  clueType: string;
+  clueValue: string;
+  isUnlocked: boolean;
+}
+
 export interface MessageSendRequest {
   content: string;
   type: string;
@@ -62,9 +75,26 @@ export class ApiService {
     return this.http.get<LinkDto>(`${this.API_URL}/links/${slug}`);
   }
 
-  sendMessage(slug: string, content: string): Observable<void> {
-    const request: MessageSendRequest = { content, type: 'text' };
+  sendMessage(slug: string, content: string, type: string = 'text'): Observable<void> {
+    const request: MessageSendRequest = { content, type };
     return this.http.post<void>(`${this.API_URL}/messages/send/${slug}`, request);
+  }
+
+  // --- Monétisation & Simulation Stripe ---
+  getWallet(): Observable<WalletDto> {
+    return this.http.get<WalletDto>(`${this.API_URL}/monetization/wallet`);
+  }
+
+  simulateCheckout(packId: string): Observable<WalletDto> {
+    return this.http.post<WalletDto>(`${this.API_URL}/monetization/checkout-simulate`, { packId });
+  }
+
+  getCluesForMessage(messageId: string): Observable<ClueResponseDto[]> {
+    return this.http.get<ClueResponseDto[]>(`${this.API_URL}/monetization/clues/${messageId}`);
+  }
+
+  unlockClue(messageId: string, clueType: string): Observable<ClueResponseDto> {
+    return this.http.post<ClueResponseDto>(`${this.API_URL}/monetization/unlock-clue`, { messageId, clueType });
   }
 
   getInbox(): Observable<MessageDto[]> {

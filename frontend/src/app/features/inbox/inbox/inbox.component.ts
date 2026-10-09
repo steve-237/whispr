@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, signal, OnDestroy, AfterViewInit, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, MessageDto, StatsDto } from '../../../core/services/api.service';
@@ -12,6 +12,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { OnboardingComponent } from '../onboarding/onboarding.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Title } from '@angular/platform-browser';
+import { WalletService } from '../../../shared/components/shop/wallet.service';
+import { ClueResponseDto } from '../../../core/services/api.service';
 
 @Component({
   selector: 'app-inbox',
@@ -20,6 +22,7 @@ import { Title } from '@angular/platform-browser';
   templateUrl: './inbox.component.html'
 })
 export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
+  walletService = inject(WalletService);
   showOnboarding = signal(false);
   messages = signal<MessageDto[]>([]);
   isLoading = signal(true);
@@ -28,6 +31,11 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   messageToDelete = signal<string | null>(null);
   isDeleting = signal(false);
   isCopied = signal(false);
+
+  // Indices secrets par message
+  openedCluesMessageId = signal<string | null>(null);
+  messageClues = signal<{ [msgId: string]: ClueResponseDto[] }>({});
+  isUnlockingClue = signal(false);
 
   // Customization
   showCustomization = signal(false);
@@ -81,6 +89,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!localStorage.getItem('whispr_onboarding_v1')) {
       this.showOnboarding.set(true);
     }
+    this.walletService.loadWallet();
     this.loadMessages();
     this.loadProfileInfo();
     this.loadStats();
@@ -371,6 +380,51 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     this.apiService.markAsRead(msg.id).subscribe({
       next: () => {},
       error: (err) => console.error('Erreur markAsRead', err)
+    });
+  }
+
+  toggleClues(msgId: string): void {
+    if (this.openedCluesMessageId() === msgId) {
+      this.openedCluesMessageId.set(null);
+      return;
+    }
+    this.openedCluesMessageId.set(msgId);
+    if (!this.messageClues()[msgId]) {
+      this.apiService.getCluesForMessage(msgId).subscribe({
+        next: (clues) => {
+          this.messageClues.update(m => ({ ...m, [msgId]: clues }));
+        },
+        error: (err) => console.error('Erreur chargement indices', err)
+      });
+    }
+  }
+
+  unlockClue(msgId: string, clueType: string): void {
+    const isPro = this.walletService.wallet()?.isPro;
+    const coins = this.walletService.wallet()?.coins || 0;
+    if (!isPro && coins < 15) {
+      this.toastService.error('Solde insuffisant (15 pièces requises). Rechargez vos pièces dans la boutique !');
+      this.walletService.openShop();
+      return;
+    }
+
+    this.isUnlockingClue.set(true);
+    this.apiService.unlockClue(msgId, clueType).subscribe({
+      next: (unlocked) => {
+        this.isUnlockingClue.set(false);
+        // Mettre à jour l'indice dans la liste
+        this.messageClues.update(m => {
+          const list = (m[msgId] || []).map(c => c.clueType === clueType ? unlocked : c);
+          return { ...m, [msgId]: list };
+        });
+        // Recharger le wallet pour mettre à jour le solde
+        this.walletService.loadWallet();
+        this.toastService.success('Indice débloqué avec succès ! 🕵️');
+      },
+      error: (err) => {
+        this.isUnlockingClue.set(false);
+        this.toastService.error("Erreur lors du déblocage de l'indice.");
+      }
     });
   }
 

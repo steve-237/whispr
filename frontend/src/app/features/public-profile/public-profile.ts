@@ -25,6 +25,7 @@ export class PublicProfileComponent implements OnInit {
   private toastService = inject(ToastService);
   slug = signal('');
   isLoggingIn = signal(false);
+  isSuperWhispr = signal(false);
 
   constructor(
     private route: ActivatedRoute,
@@ -58,7 +59,8 @@ export class PublicProfileComponent implements OnInit {
     if (!this.messageContent().trim() || !this.profile()) return;
     
     this.isSending.set(true);
-    this.apiService.sendMessage(this.slug(), this.messageContent()).subscribe({
+    const messageType = this.isSuperWhispr() ? 'SUPER_WHISPR' : 'text';
+    this.apiService.sendMessage(this.slug(), this.messageContent(), messageType).subscribe({
       next: () => {
         this.isSending.set(false);
         this.isSent.set(true);

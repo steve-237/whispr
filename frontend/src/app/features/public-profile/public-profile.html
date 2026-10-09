@@ -63,17 +63,40 @@
           onfocus="this.style.borderColor='var(--color-primary)'"
           onblur="this.style.borderColor='var(--color-border)'"></textarea>
         
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem;">
           <span>{{ translate.currentLang() === 'fr' ? '🔒 100% Anonyme • Protégé par IA' : '🔒 100% Anonymous • AI Protected' }}</span>
           <span>{{ messageContent().length }}/500</span>
         </div>
 
+        <!-- Option Booster en Super Whispr ⭐ -->
+        <div (click)="isSuperWhispr.set(!isSuperWhispr())" style="background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 14px; padding: 0.8rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s;" [style.border-color]="isSuperWhispr() ? '#fbbf24' : 'rgba(251, 191, 36, 0.3)'" [style.background]="isSuperWhispr() ? 'rgba(251, 191, 36, 0.18)' : 'rgba(251, 191, 36, 0.08)'">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.5rem;">⭐</span>
+            <div>
+              <div style="font-weight: 800; font-size: 0.9rem; color: #fbbf24;">
+                Super Whispr (Prioritaire & Doré)
+              </div>
+              <div style="font-size: 0.75rem; color: var(--color-text-muted);">
+                Votre message brillera en haut de son Inbox
+              </div>
+            </div>
+          </div>
+          <div>
+            <span style="background: #fbbf24; color: #000; font-weight: 800; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 12px;">
+              {{ isSuperWhispr() ? '✓ ACTIVÉ' : '+ 0,99 € (Gratuit Démo)' }}
+            </span>
+          </div>
+        </div>
+
         <button 
           class="btn btn-primary" 
+          [style.background]="isSuperWhispr() ? 'linear-gradient(135deg, #fbbf24, #d97706)' : ''"
+          [style.color]="isSuperWhispr() ? '#000' : '#fff'"
+          [style.font-weight]="isSuperWhispr() ? '800' : '700'"
           style="width: 100%; font-size: 1.1rem; padding: 1rem;" 
           (click)="sendMessage()" 
           [disabled]="isSending() || !messageContent().trim()">
-          {{ isSending() ? ('PUBLIC_PROFILE.BTN_SENDING' | translate) : ('PUBLIC_PROFILE.BTN_SEND' | translate) }}
+          {{ isSending() ? ('PUBLIC_PROFILE.BTN_SENDING' | translate) : (isSuperWhispr() ? '⭐ Envoyer ce Super Whispr' : ('PUBLIC_PROFILE.BTN_SEND' | translate)) }}
         </button>
       </div>
     </div>
