@@ -18,6 +18,9 @@ export interface WalletDto {
   totalSpentEur: number;
   isPro: boolean;
   proExpiresAt?: string;
+  earningsEur?: number;
+  referralCount?: number;
+  affiliateCode?: string;
 }
 
 export interface ClueResponseDto {

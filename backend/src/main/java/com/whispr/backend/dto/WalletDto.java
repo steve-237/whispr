@@ -7,6 +7,9 @@ public record WalletDto(
         int coins,
         BigDecimal totalSpentEur,
         boolean isPro,
-        ZonedDateTime proExpiresAt
+        ZonedDateTime proExpiresAt,
+        BigDecimal earningsEur,
+        int referralCount,
+        String affiliateCode
 ) {
 }

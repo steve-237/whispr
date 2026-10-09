@@ -72,6 +72,9 @@ public class UserService {
                 .coins(30)
                 .totalSpentEur(java.math.BigDecimal.ZERO)
                 .isPro(false)
+                .earningsEur(java.math.BigDecimal.ZERO)
+                .referralCount(0)
+                .affiliateCode(cleanPseudo)
                 .build();
         walletRepository.save(wallet);
 

@@ -10,8 +10,8 @@ import confetti from 'canvas-confetti';
   standalone: true,
   imports: [CommonModule, TranslatePipe],
   template: `
-    <div *ngIf="walletService.showShopModal()" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem;">
-      <div class="glass-panel animate-fade-in" style="max-width: 550px; width: 100%; max-height: 90vh; overflow-y: auto; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; padding: 2rem; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);">
+    <div *ngIf="walletService.showShopModal()" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem;">
+      <div class="glass-panel animate-fade-in custom-scrollbar" style="max-width: 550px; width: 100%; max-height: 88vh; overflow-y: auto; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; padding: 2rem 1.75rem; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent;">
         
         <!-- Bouton Fermer -->
         <button (click)="walletService.closeShop()" style="position: absolute; top: 1.25rem; right: 1.25rem; background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: background 0.2s;">
@@ -19,23 +19,53 @@ import confetti from 'canvas-confetti';
         </button>
 
         <!-- Titre & Solde -->
-        <div style="text-align: center; margin-bottom: 2rem;">
-          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🪙</div>
-          <h2 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.25rem; background: linear-gradient(135deg, #fff, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <div style="text-align: center; margin-bottom: 1.75rem;">
+          <div style="font-size: 2.2rem; margin-bottom: 0.25rem;">🪙</div>
+          <h2 style="font-size: 1.7rem; font-weight: 800; margin-bottom: 0.25rem; background: linear-gradient(135deg, #fff, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
             Boutique Whispr
           </h2>
-          <p style="color: var(--color-text-muted); font-size: 0.95rem;">
+          <p style="color: var(--color-text-muted); font-size: 0.9rem;">
             Débloquez des indices secrets ou devenez membre PRO !
           </p>
 
           <!-- Solde actuel & Total dépensé -->
-          <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
-            <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 20px; padding: 0.4rem 1rem; color: #fbbf24; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
+          <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 0.75rem; flex-wrap: wrap;">
+            <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 20px; padding: 0.35rem 0.9rem; color: #fbbf24; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem;">
               <span>🪙</span> {{ walletService.wallet()?.coins || 0 }} pièces
             </div>
-            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 0.4rem 1rem; color: #10b981; font-weight: 700; font-size: 0.95rem;">
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 0.35rem 0.9rem; color: #10b981; font-weight: 700; font-size: 0.85rem;">
               💳 {{ walletService.wallet()?.totalSpentEur || 0 }} € dépensés
             </div>
+          </div>
+        </div>
+
+        <!-- Section 📣 Espace Créateur & Influenceur (Partage de Revenus) -->
+        <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15)); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 18px; padding: 1.15rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 800; font-size: 0.95rem; color: #60a5fa;">
+              <span>📣</span>
+              <span>Programme Créateurs & Influenceurs</span>
+            </div>
+            <span style="background: #2563eb; color: white; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 10px;">
+              30% COMMISSION
+            </span>
+          </div>
+          <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0.75rem; line-height: 1.4;">
+            Partagez votre lien de profil sur Instagram, TikTok ou Snapchat. Chaque fois que vos abonnés débloquent des indices ou achètent des pièces sur vos messages, vous gagnez <strong>30% de commission</strong> !
+          </p>
+          <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 0.6rem 0.8rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div>
+              <div style="font-size: 0.7rem; color: var(--color-text-muted);">Vos gains disponibles</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: #10b981;">
+                {{ walletService.wallet()?.earningsEur || '0.00' }} €
+              </div>
+            </div>
+            <button (click)="copyAffiliateLink()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.4rem 0.75rem; border-radius: 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+              📋 Copier mon lien affilié
+            </button>
+          </div>
+          <div style="font-size: 0.7rem; color: #94a3b8; text-align: center;">
+            🎯 Retrait des gains possible dès 20,00 € (PayPal / Virement bancaire)
           </div>
         </div>
 
@@ -133,6 +163,17 @@ import confetti from 'canvas-confetti';
 export class ShopModalComponent {
   walletService = inject(WalletService);
   toastService = inject(ToastService);
+
+  copyAffiliateLink(): void {
+    const code = this.walletService.wallet()?.affiliateCode || '';
+    const base = window.location.origin;
+    const url = `${base}/${code}`;
+    navigator.clipboard.writeText(url).then(() => {
+      this.toastService.success('Lien créateur copié dans le presse-papier ! 📋');
+    }).catch(() => {
+      this.toastService.error('Erreur lors de la copie du lien.');
+    });
+  }
 
   buy(packId: string, successMsg: string): void {
     this.walletService.buyPack(

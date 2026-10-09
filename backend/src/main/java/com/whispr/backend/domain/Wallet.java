@@ -41,6 +41,17 @@ public class Wallet {
     @Column(name = "pro_expires_at")
     private ZonedDateTime proExpiresAt;
 
+    @Column(name = "earnings_eur", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal earningsEur = BigDecimal.ZERO;
+
+    @Column(name = "referral_count", nullable = false)
+    @Builder.Default
+    private int referralCount = 0;
+
+    @Column(name = "affiliate_code", length = 50)
+    private String affiliateCode;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private ZonedDateTime createdAt;

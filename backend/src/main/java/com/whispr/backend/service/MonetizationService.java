@@ -33,6 +33,9 @@ public class MonetizationService {
                             .coins(30) // 30 pièces gratuites de bienvenue
                             .totalSpentEur(BigDecimal.ZERO)
                             .isPro(false)
+                            .earningsEur(BigDecimal.ZERO)
+                            .referralCount(0)
+                            .affiliateCode(user.getPseudo())
                             .build();
                     return walletRepository.save(newWallet);
                 });
@@ -43,7 +46,16 @@ public class MonetizationService {
         User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         Wallet wallet = getOrCreateWallet(user);
-        return new WalletDto(wallet.getCoins(), wallet.getTotalSpentEur(), wallet.isPro(), wallet.getProExpiresAt());
+        String affiliateCode = wallet.getAffiliateCode() != null ? wallet.getAffiliateCode() : user.getPseudo();
+        return new WalletDto(
+                wallet.getCoins(),
+                wallet.getTotalSpentEur(),
+                wallet.isPro(),
+                wallet.getProExpiresAt(),
+                wallet.getEarningsEur(),
+                wallet.getReferralCount(),
+                affiliateCode
+        );
     }
 
     /**
@@ -105,9 +117,16 @@ public class MonetizationService {
                 .coinsDelta(coinsToAdd)
                 .description(desc)
                 .build();
-        transactionRepository.save(transaction);
-
-        return new WalletDto(wallet.getCoins(), wallet.getTotalSpentEur(), wallet.isPro(), wallet.getProExpiresAt());
+        String affiliateCode = wallet.getAffiliateCode() != null ? wallet.getAffiliateCode() : user.getPseudo();
+        return new WalletDto(
+                wallet.getCoins(),
+                wallet.getTotalSpentEur(),
+                wallet.isPro(),
+                wallet.getProExpiresAt(),
+                wallet.getEarningsEur(),
+                wallet.getReferralCount(),
+                affiliateCode
+        );
     }
 
     /**
