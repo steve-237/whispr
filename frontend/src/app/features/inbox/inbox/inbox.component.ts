@@ -521,49 +521,82 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     this.messageToCapture.set(msg);
     this.isCapturing.set(true);
     
+    // Laisser le temps à Angular de rendre l'élément dans le DOM avec le thème
     setTimeout(async () => {
       try {
         const element = document.getElementById('story-sticker-capture');
-        if (!element) throw new Error('Element introuvable');
+        if (!element) throw new Error('Element story-sticker-capture introuvable');
         
-        const canvas = await html2canvas(element, { backgroundColor: null, scale: 2 });
+        const canvas = await html2canvas(element, { 
+          backgroundColor: '#0f172a',
+          scale: 2,
+          useCORS: true,
+          logging: false
+        });
         
         canvas.toBlob(async (blob) => {
           if (!blob) throw new Error('Blob généré vide');
           
           const file = new File([blob], 'whispr-story.png', { type: 'image/png' });
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          const shareTitle = this.translate.instant('INBOX.SHARE_TITLE') || 'Mon message anonyme sur Whispr';
+          const shareText = (this.translate.instant('INBOX.SHARE_TEXT') || 'Envoie-moi un message anonyme : ') + this.getProfileLink();
+
+          let sharedViaApi = false;
+          if (navigator.share) {
             try {
-              await navigator.share({
-                title: this.translate.instant('INBOX.SHARE_TITLE'),
-                text: this.translate.instant('INBOX.SHARE_TEXT') + this.getProfileLink(),
-                files: [file]
-              });
-            } catch (err) {
-              this.downloadImage(canvas.toDataURL('image/png'));
+              if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                  title: shareTitle,
+                  text: shareText,
+                  files: [file]
+                });
+                sharedViaApi = true;
+              } else {
+                // Certains navigateurs mobiles acceptent share sans fichier
+                await navigator.share({
+                  title: shareTitle,
+                  text: shareText,
+                  url: this.getProfileLink()
+                });
+                sharedViaApi = true;
+                // Télécharger l'image pour qu'ils puissent la mettre en fond de story
+                this.downloadImage(canvas.toDataURL('image/png'));
+              }
+            } catch (err: any) {
+              // L'utilisateur a pu simplement annuler la boîte de partage (AbortError)
+              if (err.name !== 'AbortError') {
+                console.warn('Erreur navigator.share, bascule sur téléchargement', err);
+                this.downloadImage(canvas.toDataURL('image/png'));
+              }
+              sharedViaApi = true;
             }
-          } else {
+          }
+
+          if (!sharedViaApi) {
             this.downloadImage(canvas.toDataURL('image/png'));
           }
           
           this.messageToCapture.set(null);
           this.isCapturing.set(false);
+          this.toastService.success('Image générée ! Vous pouvez la publier sur votre statut WhatsApp ou Instagram Story 📸');
         }, 'image/png');
         
       } catch (err) {
         console.error('Erreur de capture', err);
-        alert('Erreur lors de la génération de la Story.');
+        this.toastService.error('Erreur lors de la génération de la Story.');
         this.messageToCapture.set(null);
         this.isCapturing.set(false);
       }
-    }, 150);
+    }, 250);
   }
 
   private downloadImage(dataUrl: string): void {
     const link = document.createElement('a');
-    link.download = 'whispr-story.png';
+    link.download = `whispr-story-${Date.now()}.png`;
     link.href = dataUrl;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   }
 }
 

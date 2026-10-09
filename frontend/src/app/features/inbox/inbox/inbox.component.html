@@ -327,11 +327,26 @@
           </div>
         </div>
 
-        <!-- Bouton Story -->
-        <button (click)="captureStory(msg); $event.stopPropagation()" [disabled]="isCapturing()" style="width: 100%; padding: 0.7rem; font-size: 0.85rem; font-weight: 600; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: all 0.2s;">
-          <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
-          {{ isCapturing() && messageToCapture()?.id === msg.id ? ('INBOX.BTN_STORY_LOADING' | translate) : ('INBOX.BTN_STORY' | translate) }}
-        </button>
+        <!-- Zone Réponse pour Statut / Story -->
+        <div style="margin-top: 0.6rem; margin-bottom: 0.6rem; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 0.6rem; border: 1px solid rgba(255,255,255,0.06);">
+          <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.4rem; font-weight: 600; display: flex; align-items: center; gap: 0.3rem;">
+            <span>✍️</span>
+            <span>Votre réponse publique (affichée sur la Story / Statut) :</span>
+          </div>
+          <textarea 
+            [ngModel]="getReplyText(msg.id)"
+            (ngModelChange)="updateReplyText(msg.id, $event)"
+            (click)="$event.stopPropagation()"
+            placeholder="Tapez votre réponse ici avant de partager..."
+            rows="2"
+            style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.5rem 0.7rem; color: white; font-size: 0.85rem; outline: none; resize: vertical; font-family: inherit; margin-bottom: 0.5rem;"></textarea>
+          
+          <!-- Bouton Partage Statut WhatsApp / Story -->
+          <button (click)="captureStory(msg); $event.stopPropagation()" [disabled]="isCapturing()" style="width: 100%; padding: 0.65rem; font-size: 0.82rem; font-weight: 700; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: linear-gradient(135deg, #25D366, #128C7E); color: white; border: none; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);">
+            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+            {{ isCapturing() && messageToCapture()?.id === msg.id ? 'Génération du Statut / Story...' : 'Partager en Statut WhatsApp / Story' }}
+          </button>
+        </div>
       </div>
     </div>
   </ng-container>
@@ -351,16 +366,26 @@
     </div>
   </div>
 
-  <!-- STORY (CACHÉ) -->
-  <div *ngIf="messageToCapture()" style="position: fixed; left: -9999px; top: -9999px;">
+  <!-- STORY (POUR CAPTURE VISUELLE) -->
+  <div *ngIf="messageToCapture()" style="position: fixed; left: 0; top: 0; width: 1080px; height: 1920px; z-index: -9999; opacity: 0; pointer-events: none; overflow: hidden;">
     <div id="story-sticker-capture" [ngClass]="'theme-' + profileThemeId()" style="width: 1080px; height: 1920px; background: #0f172a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 4rem; position: relative;">
       <div style="position: absolute; top: 10%; left: -5%; width: 400px; height: 400px; background: radial-gradient(circle, var(--color-primary), transparent 70%); opacity: 0.4; border-radius: 50%;"></div>
       <div style="position: absolute; bottom: 15%; right: -5%; width: 350px; height: 350px; background: radial-gradient(circle, var(--color-accent), transparent 70%); opacity: 0.4; border-radius: 50%;"></div>
-      <div style="width: 100%; max-width: 900px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(40px); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 3rem; padding: 4rem 3.5rem; z-index: 10; text-align: center;">
-        <h2 style="color: white; font-size: 2.5rem; margin-bottom: 2rem;">@{{ pseudo() }}</h2>
-        <h3 style="color: rgba(255, 255, 255, 0.85); font-size: 2rem; margin-bottom: 3rem;">{{ profileDailyQuestion() || ('PUBLIC_PROFILE.DEFAULT_QUESTION' | translate) }}</h3>
-        <p style="color: white; font-size: 3.5rem; font-weight: bold; line-height: 1.35; margin-bottom: 0;">"{{ messageToCapture()?.content }}"</p>
+      
+      <!-- Carte principale : Message anonyme -->
+      <div style="width: 100%; max-width: 900px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(40px); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 3rem; padding: 4rem 3.5rem; z-index: 10; text-align: center; box-shadow: 0 40px 80px rgba(0,0,0,0.5);">
+        <h2 style="color: white; font-size: 2.5rem; margin-bottom: 1.5rem;">@{{ pseudo() }}</h2>
+        <h3 style="color: rgba(255, 255, 255, 0.85); font-size: 2rem; margin-bottom: 2.5rem;">{{ profileDailyQuestion() || ('PUBLIC_PROFILE.DEFAULT_QUESTION' | translate) }}</h3>
+        <p style="color: white; font-size: 3.5rem; font-weight: bold; line-height: 1.35; margin-bottom: 0; word-break: break-word;">"{{ messageToCapture()?.content }}"</p>
       </div>
+
+      <!-- Carte réponse personnalisée si saisie -->
+      <div *ngIf="messageToCapture() && getReplyText(messageToCapture()!.id)" style="width: 100%; max-width: 850px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(20px); border: 2px solid rgba(255, 255, 255, 0.15); border-radius: 2rem; padding: 2.5rem 3rem; z-index: 10; text-align: left; box-shadow: 0 20px 40px rgba(0,0,0,0.5); margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+        <span style="color: rgba(255,255,255,0.6); font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">💬 Ma réponse :</span>
+        <p style="color: #e2e8f0; font-size: 2.6rem; font-weight: 600; line-height: 1.4; margin: 0; white-space: pre-wrap; word-break: break-word;">{{ getReplyText(messageToCapture()!.id) }}</p>
+      </div>
+
+      <!-- Pied de Story avec le lien -->
       <div style="z-index: 10; margin-top: 3rem; text-align: center;">
         <p style="color: rgba(255, 255, 255, 0.6); font-size: 1.8rem; margin-bottom: 1.5rem;">{{ 'INBOX.STORY_REPLY' | translate }}</p>
         <div style="display: inline-block; background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(236, 72, 153, 0.4)); border: 2px solid rgba(255, 255, 255, 0.25); border-radius: 2rem; padding: 1.2rem 3rem;">
