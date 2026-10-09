@@ -161,16 +161,16 @@
 
         <div *ngIf="walletService.wallet()?.isPro" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; text-align: center;">
           <div style="background: rgba(255,255,255,0.03); padding: 0.6rem; border-radius: 10px;">
-            <div style="font-size: 1.1rem; font-weight: 800; color: white;">{{ (messages().length * 3) + 12 }}</div>
+            <div style="font-size: 1.1rem; font-weight: 800; color: white;">{{ visitorAnalytics()?.totalViews || (messages().length * 2 + 1) }}</div>
             <div style="font-size: 0.65rem; color: var(--color-text-muted);">Vues du lien</div>
           </div>
           <div style="background: rgba(255,255,255,0.03); padding: 0.6rem; border-radius: 10px;">
-            <div style="font-size: 1.1rem; font-weight: 800; color: #ec4899;">Instagram (78%)</div>
+            <div style="font-size: 1rem; font-weight: 800; color: #ec4899; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ topSourceLabel() }}</div>
             <div style="font-size: 0.65rem; color: var(--color-text-muted);">Source N°1</div>
           </div>
           <div style="background: rgba(255,255,255,0.03); padding: 0.6rem; border-radius: 10px;">
-            <div style="font-size: 1.1rem; font-weight: 800; color: #3b82f6;">France (92%)</div>
-            <div style="font-size: 0.65rem; color: var(--color-text-muted);">Top Région</div>
+            <div style="font-size: 1rem; font-weight: 800; color: #3b82f6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ topCityLabel() }}</div>
+            <div style="font-size: 0.65rem; color: var(--color-text-muted);">Top Ville</div>
           </div>
         </div>
 
@@ -179,6 +179,46 @@
           <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.6rem;">Découvrez combien de personnes ont cliqué sur votre lien depuis Instagram, TikTok ou Snapchat.</div>
           <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 800; background: linear-gradient(135deg, #ec4899, #8b5cf6);">Débloquer avec Whispr PRO (4,99 €)</button>
         </div>
+      </div>
+    </div>
+
+    <!-- BANNIÈRE PUBLICITAIRE (UNIQUEMENT POUR LES UTILISATEURS NON-PRO) -->
+    <div *ngIf="!walletService.wallet()?.isPro && currentAd()" class="animate-fade-in" style="margin-bottom: 1.5rem;">
+      <div (click)="onAdClick(currentAd()!)" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.85)); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 1rem; position: relative; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25); transition: transform 0.2s, border-color 0.2s;">
+        
+        <!-- Badge Sponsorisé -->
+        <div style="position: absolute; top: 8px; right: 12px; font-size: 0.65rem; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">
+          {{ currentAd()!.badgeText }}
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem; min-width: 0;">
+          <!-- Image de la pub si disponible -->
+          <img *ngIf="currentAd()!.imageUrl" [src]="currentAd()!.imageUrl" alt="Ad" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);">
+          <div *ngIf="!currentAd()!.imageUrl" style="width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, #ec4899, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+            📢
+          </div>
+
+          <div style="min-width: 0;">
+            <div style="font-weight: 800; font-size: 0.95rem; color: white; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              {{ currentAd()!.title }}
+            </div>
+            <div style="font-size: 0.78rem; color: var(--color-text-muted); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              {{ currentAd()!.description }}
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-glass" style="flex-shrink: 0; padding: 0.45rem 0.9rem; font-size: 0.8rem; font-weight: 700; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); color: white; display: flex; align-items: center; gap: 0.3rem;">
+          {{ currentAd()!.ctaText }}
+          <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </button>
+      </div>
+
+      <!-- Mention pour masquer les pubs -->
+      <div style="text-align: right; margin-top: 0.3rem; padding-right: 0.5rem;">
+        <span (click)="walletService.openShop(); $event.stopPropagation()" style="font-size: 0.68rem; color: rgba(255, 255, 255, 0.35); text-decoration: underline; cursor: pointer;">
+          Supprimer les pubs avec Whispr PRO 👑
+        </span>
       </div>
     </div>
 

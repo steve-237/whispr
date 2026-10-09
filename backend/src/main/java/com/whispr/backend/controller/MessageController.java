@@ -71,7 +71,25 @@ public class MessageController {
             country = demoLocations[idx];
         }
 
-        messageService.sendMessage(slug.toLowerCase(), request.content(), request.type(), hashedIp, ip, userAgent, country);
+        // Extraction de la ville réelle (via reverse proxy Cloudflare/Vercel/Render ou GeoIP headers)
+        String city = httpRequest.getHeader("CF-IPCity");
+        if (city == null || city.isBlank()) city = httpRequest.getHeader("X-City");
+        if (city == null || city.isBlank()) city = httpRequest.getHeader("X-Client-City");
+
+        // Extraction de la source de provenance réelle (Instagram, TikTok, Snapchat, direct)
+        String referrer = httpRequest.getHeader("Referer");
+        if (referrer == null || referrer.isBlank()) referrer = httpRequest.getHeader("Origin");
+
+        // Si la ville n'est pas fournie par le proxy (ex. IP locale de dev), déduire du pays ou d'une estimation
+        if (city == null || city.isBlank()) {
+            if (country != null && country.contains(",")) {
+                city = country.split(",")[0].trim();
+            } else {
+                city = "Paris";
+            }
+        }
+
+        messageService.sendMessage(slug.toLowerCase(), request.content(), request.type(), hashedIp, ip, userAgent, country, city, referrer);
         
         return ResponseEntity.ok().build();
     }

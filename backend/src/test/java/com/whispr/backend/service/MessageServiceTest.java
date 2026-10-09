@@ -85,7 +85,7 @@ class MessageServiceTest {
         when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
 
         // Act
-        Message result = messageService.sendMessage("tester-slug", "hello", "text", "hash", "127.0.0.1", "ua", "FR");
+        Message result = messageService.sendMessage("tester-slug", "hello", "text", "hash", "127.0.0.1", "ua", "FR", "Paris", "https://instagram.com");
 
         // Assert
         assertNotNull(result);
@@ -102,7 +102,7 @@ class MessageServiceTest {
 
         // Act & Assert
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> 
-            messageService.sendMessage("tester-slug", "spam", "text", "hash", "127.0.0.1", "ua", "FR")
+            messageService.sendMessage("tester-slug", "spam", "text", "hash", "127.0.0.1", "ua", "FR", "Paris", "direct")
         );
         assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
         assertEquals("Vous envoyez trop de messages. Veuillez patienter.", exception.getReason());
@@ -119,7 +119,7 @@ class MessageServiceTest {
 
         // Act & Assert
         Exception exception = assertThrows(IllegalStateException.class, () -> 
-            messageService.sendMessage("tester-slug", "content", "text", "hash", "1.1.1.1", "ua", "FR")
+            messageService.sendMessage("tester-slug", "content", "text", "hash", "1.1.1.1", "ua", "FR", "Paris", "direct")
         );
         assertEquals("Link is currently inactive", exception.getMessage());
     }

@@ -45,6 +45,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/links/**").permitAll()
                 .requestMatchers("/api/messages/send/**").permitAll()
                 .requestMatchers("/api/health").permitAll()
+                .requestMatchers("/api/advertisements/**").permitAll()
                 .requestMatchers("/ws-whispr/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()

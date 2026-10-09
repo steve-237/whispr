@@ -136,6 +136,85 @@ public class AdminController {
         return ResponseEntity.ok(logs);
     }
     
+    private final com.whispr.backend.repository.AdvertisementRepository advertisementRepository;
+
+    @GetMapping("/ads")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<com.whispr.backend.dto.AdvertisementDto>> getAdminAds() {
+        List<com.whispr.backend.dto.AdvertisementDto> ads = advertisementRepository.findAll().stream()
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .map(ad -> new com.whispr.backend.dto.AdvertisementDto(
+                        ad.getId(),
+                        ad.getTitle(),
+                        ad.getDescription(),
+                        ad.getImageUrl(),
+                        ad.getTargetUrl(),
+                        ad.getCtaText(),
+                        ad.getBadgeText(),
+                        ad.isActive(),
+                        ad.getClicksCount(),
+                        ad.getViewsCount(),
+                        ad.getCreatedAt()
+                )).toList();
+        return ResponseEntity.ok(ads);
+    }
+
+    @PostMapping("/ads")
+    @Transactional
+    public ResponseEntity<com.whispr.backend.dto.AdvertisementDto> createAd(@RequestBody CreateAdRequest req) {
+        com.whispr.backend.domain.Advertisement ad = com.whispr.backend.domain.Advertisement.builder()
+                .title(req.title())
+                .description(req.description())
+                .imageUrl(req.imageUrl())
+                .targetUrl(req.targetUrl())
+                .ctaText(req.ctaText() != null && !req.ctaText().isBlank() ? req.ctaText() : "En savoir plus")
+                .badgeText(req.badgeText() != null && !req.badgeText().isBlank() ? req.badgeText() : "Sponsorisé")
+                .isActive(true)
+                .clicksCount(0)
+                .viewsCount(0)
+                .build();
+        ad = advertisementRepository.save(ad);
+        return ResponseEntity.ok(new com.whispr.backend.dto.AdvertisementDto(
+                ad.getId(),
+                ad.getTitle(),
+                ad.getDescription(),
+                ad.getImageUrl(),
+                ad.getTargetUrl(),
+                ad.getCtaText(),
+                ad.getBadgeText(),
+                ad.isActive(),
+                ad.getClicksCount(),
+                ad.getViewsCount(),
+                ad.getCreatedAt()
+        ));
+    }
+
+    @PutMapping("/ads/{id}/toggle")
+    @Transactional
+    public ResponseEntity<Void> toggleAd(@PathVariable UUID id) {
+        advertisementRepository.findById(id).ifPresent(ad -> {
+            ad.setActive(!ad.isActive());
+            advertisementRepository.save(ad);
+        });
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/ads/{id}")
+    @Transactional
+    public ResponseEntity<Void> deleteAd(@PathVariable UUID id) {
+        advertisementRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    public record CreateAdRequest(
+            String title,
+            String description,
+            String imageUrl,
+            String targetUrl,
+            String ctaText,
+            String badgeText
+    ) {}
+
     public record UserDto(String email, String pseudo, String role, String createdAt) {}
     public record MessageDto(String id, String content, String targetUser, Boolean isToxic, String createdAt) {}
     public record AuditLogDto(String targetUser, String hashedIp, String rawIp, String userAgent, String country, String createdAt) {}

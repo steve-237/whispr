@@ -29,6 +29,28 @@ export interface ClueResponseDto {
   isUnlocked: boolean;
 }
 
+export interface AdvertisementDto {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  targetUrl: string;
+  ctaText: string;
+  badgeText: string;
+  isActive: boolean;
+  clicksCount: number;
+  viewsCount: number;
+  createdAt: string;
+}
+
+export interface VisitorAnalyticsDto {
+  totalViews: number;
+  totalMessages: number;
+  sources: { [key: string]: number };
+  topCities: { [key: string]: number };
+  topCountries: { [key: string]: number };
+}
+
 export interface MessageSendRequest {
   content: string;
   type: string;
@@ -98,6 +120,39 @@ export class ApiService {
 
   unlockClue(messageId: string, clueType: string): Observable<ClueResponseDto> {
     return this.http.post<ClueResponseDto>(`${this.API_URL}/monetization/unlock-clue`, { messageId, clueType });
+  }
+
+  getVisitorAnalytics(): Observable<VisitorAnalyticsDto> {
+    return this.http.get<VisitorAnalyticsDto>(`${this.API_URL}/monetization/visitor-analytics`);
+  }
+
+  // --- Publicités ---
+  getActiveAdvertisements(): Observable<AdvertisementDto[]> {
+    return this.http.get<AdvertisementDto[]>(`${this.API_URL}/advertisements`);
+  }
+
+  recordAdView(id: string): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/advertisements/${id}/view`, {});
+  }
+
+  recordAdClick(id: string): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/advertisements/${id}/click`, {});
+  }
+
+  getAdminAds(): Observable<AdvertisementDto[]> {
+    return this.http.get<AdvertisementDto[]>(`${this.API_URL}/admin/ads`);
+  }
+
+  createAdminAd(ad: Partial<AdvertisementDto>): Observable<AdvertisementDto> {
+    return this.http.post<AdvertisementDto>(`${this.API_URL}/admin/ads`, ad);
+  }
+
+  toggleAdminAd(id: string): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/admin/ads/${id}/toggle`, {});
+  }
+
+  deleteAdminAd(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/admin/ads/${id}`);
   }
 
   getInbox(): Observable<MessageDto[]> {

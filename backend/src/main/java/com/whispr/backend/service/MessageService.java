@@ -30,7 +30,7 @@ public class MessageService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
-    public Message sendMessage(String slug, String content, String type, String hashedIp, String rawIp, String userAgent, String country) {
+    public Message sendMessage(String slug, String content, String type, String hashedIp, String rawIp, String userAgent, String country, String city, String referrer) {
         Link link = linkRepository.findBySlug(slug)
                 .orElseThrow(() -> new IllegalArgumentException("Link not found"));
 
@@ -60,13 +60,15 @@ public class MessageService {
                 .build();
         message = messageRepository.save(message);
 
-        // 3. Sauvegarde de l'Audit (SÃ©curitÃ©)
+        // 3. Sauvegarde de l'Audit (Sécurité & Géolocalisation Réelle)
         AuditLog auditLog = AuditLog.builder()
                 .message(message)
                 .hashedIp(hashedIp)
                 .rawIp(rawIp)
                 .userAgent(userAgent)
                 .country(country)
+                .city(city)
+                .referrer(referrer)
                 .build();
         auditLogRepository.save(auditLog);
 

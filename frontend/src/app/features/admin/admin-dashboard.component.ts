@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, signal, computed, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, signal, computed, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
@@ -30,7 +30,10 @@ import Chart from 'chart.js/auto';
           ðŸ‘¥ Utilisateurs
         </button>
         <button (click)="activeTab.set('messages')" [style.color]="activeTab() === 'messages' ? '#ef4444' : 'var(--color-text)'" [style.border-bottom]="activeTab() === 'messages' ? '2px solid #ef4444' : 'none'" style="background: transparent; border: none; font-size: 1.1rem; font-weight: 600; cursor: pointer; padding: 0.5rem 1rem;">
-          ðŸ’¬ Messages
+          💬 Messages
+        </button>
+        <button (click)="activeTab.set('ads')" [style.color]="activeTab() === 'ads' ? '#ef4444' : 'var(--color-text)'" [style.border-bottom]="activeTab() === 'ads' ? '2px solid #ef4444' : 'none'" style="background: transparent; border: none; font-size: 1.1rem; font-weight: 600; cursor: pointer; padding: 0.5rem 1rem;">
+          📢 Publicités
         </button>
       </div>
 
@@ -240,6 +243,112 @@ import Chart from 'chart.js/auto';
           </div>
         </div>
 
+        <!-- ONGLET : GESTION DES PUBLICITÉS -->
+        <div [hidden]="activeTab() !== 'ads'" class="animate-fade-in">
+          
+          <!-- Formulaire de création de pub -->
+          <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
+            <h2 style="margin-top: 0; font-size: 1.25rem; color: #ef4444; display: flex; align-items: center; gap: 0.5rem;">
+              📢 Créer une nouvelle Publicité (Diffusion pour les non-PRO)
+            </h2>
+            <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 1.2rem;">
+              Les publicités créées ici seront affichées sur les fils des utilisateurs gratuits. Les membres Whispr PRO ne voient aucune pub.
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div>
+                <label style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.3rem;">Titre de la publicité *</label>
+                <input type="text" [(ngModel)]="newAdTitle" placeholder="Ex: Découvre notre partenaire" style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.3rem;">URL cible (Redirection) *</label>
+                <input type="url" [(ngModel)]="newAdTargetUrl" placeholder="https://exemple.com" style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.3rem;">Texte du bouton CTA</label>
+                <input type="text" [(ngModel)]="newAdCtaText" placeholder="Ex: En savoir plus" style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.3rem;">URL de l'image (optionnel)</label>
+                <input type="url" [(ngModel)]="newAdImageUrl" placeholder="https://... image.png" style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white;">
+              </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <label style="font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.3rem;">Description courte *</label>
+              <textarea [(ngModel)]="newAdDescription" rows="2" placeholder="Description de l'offre ou du produit..." style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; resize: vertical;"></textarea>
+            </div>
+
+            <button class="btn btn-primary" (click)="createAd()" [disabled]="isSubmittingAd() || !newAdTitle || !newAdDescription || !newAdTargetUrl" style="background: linear-gradient(135deg, #ef4444, #f97316); font-weight: 700; padding: 0.6rem 1.5rem;">
+              {{ isSubmittingAd() ? 'Création en cours...' : '🚀 Publier cette annonce' }}
+            </button>
+          </div>
+
+          <!-- Liste des publicités existantes -->
+          <div class="glass-panel" style="padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h2 style="margin: 0; font-size: 1.25rem;">Campagnes publicitaires en ligne ({{ ads().length }})</h2>
+              <button class="btn btn-glass" (click)="loadAds()" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">Rafraîchir</button>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <th style="padding: 0.8rem; color: var(--color-text-muted);">Aperçu</th>
+                    <th style="padding: 0.8rem; color: var(--color-text-muted);">Titre & Description</th>
+                    <th style="padding: 0.8rem; color: var(--color-text-muted);">Statut</th>
+                    <th style="padding: 0.8rem; color: var(--color-text-muted);">Vues</th>
+                    <th style="padding: 0.8rem; color: var(--color-text-muted);">Clics (CTR)</th>
+                    <th style="padding: 0.8rem; color: var(--color-text-muted);">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let ad of ads()" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 0.8rem;">
+                      <img *ngIf="ad.imageUrl" [src]="ad.imageUrl" alt="Preview" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+                      <div *ngIf="!ad.imageUrl" style="width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;">📢</div>
+                    </td>
+                    <td style="padding: 0.8rem; max-width: 250px;">
+                      <div style="font-weight: 700; color: white;">{{ ad.title }}</div>
+                      <div style="font-size: 0.8rem; color: var(--color-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ ad.description }}</div>
+                      <a [href]="ad.targetUrl" target="_blank" style="font-size: 0.75rem; color: #3b82f6; text-decoration: underline;">{{ ad.targetUrl }}</a>
+                    </td>
+                    <td style="padding: 0.8rem;">
+                      <span [style.background]="ad.isActive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'" [style.color]="ad.isActive ? '#10b981' : '#ef4444'" style="padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">
+                        {{ ad.isActive ? 'Active' : 'Désactivée' }}
+                      </span>
+                    </td>
+                    <td style="padding: 0.8rem; font-weight: 600;">
+                      {{ ad.viewsCount }}
+                    </td>
+                    <td style="padding: 0.8rem; font-weight: 600;">
+                      {{ ad.clicksCount }}
+                      <span style="font-size: 0.75rem; color: var(--color-text-muted); font-weight: normal;">
+                        ({{ ad.viewsCount > 0 ? (ad.clicksCount * 100 / ad.viewsCount | number:'1.1-1') : 0 }}%)
+                      </span>
+                    </td>
+                    <td style="padding: 0.8rem;">
+                      <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-glass" (click)="toggleAd(ad.id)" style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
+                          {{ ad.isActive ? 'Mettre en pause' : 'Activer' }}
+                        </button>
+                        <button class="btn btn-danger" (click)="deleteAd(ad.id)" style="font-size: 0.75rem; padding: 0.3rem 0.6rem; background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">
+                          Supprimer
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div *ngIf="ads().length === 0" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+              Aucune publicité enregistrée. Utilisez le formulaire ci-dessus pour publier une campagne.
+            </div>
+          </div>
+        </div>
+
       </ng-container>
     </div>
   `
@@ -255,7 +364,7 @@ export class AdminDashboardComponent implements OnInit {
       return false;
     }
   });
-  activeTab = signal<'overview' | 'users' | 'messages'>('overview');
+  activeTab = signal<'overview' | 'users' | 'messages' | 'ads'>('overview');
   searchPseudo = signal<string>('');
   
   stats = signal<any>({});
@@ -263,6 +372,15 @@ export class AdminDashboardComponent implements OnInit {
   messages = signal<any[]>([]);
   auditLogs = signal<any[]>([]);
   isLoading = signal(true);
+
+  // Gestion des Publicités
+  ads = signal<any[]>([]);
+  newAdTitle = '';
+  newAdDescription = '';
+  newAdImageUrl = '';
+  newAdTargetUrl = '';
+  newAdCtaText = 'En savoir plus';
+  isSubmittingAd = signal(false);
 
   // Bulk selections
   selectedUsers = signal<string[]>([]);
@@ -288,12 +406,69 @@ export class AdminDashboardComponent implements OnInit {
 
   loadData(): void {
     this.isLoading.set(true);
+    this.loadAds();
     this.apiService.getAdminStats().subscribe({
       next: (s) => {
         this.stats.set(s);
         this.loadUsersAndMessages();
       },
       error: () => this.isLoading.set(false)
+    });
+  }
+
+  loadAds(): void {
+    this.apiService.getAdminAds().subscribe({
+      next: (ads) => this.ads.set(ads),
+      error: (err) => console.error('Erreur chargement pubs admin', err)
+    });
+  }
+
+  createAd(): void {
+    if (!this.newAdTitle || !this.newAdDescription || !this.newAdTargetUrl) return;
+    this.isSubmittingAd.set(true);
+    this.apiService.createAdminAd({
+      title: this.newAdTitle,
+      description: this.newAdDescription,
+      targetUrl: this.newAdTargetUrl,
+      imageUrl: this.newAdImageUrl || undefined,
+      ctaText: this.newAdCtaText || 'En savoir plus',
+      badgeText: 'Sponsorisé'
+    }).subscribe({
+      next: (created) => {
+        this.isSubmittingAd.set(false);
+        this.toastService.success('Publicité créée avec succès !');
+        this.newAdTitle = '';
+        this.newAdDescription = '';
+        this.newAdImageUrl = '';
+        this.newAdTargetUrl = '';
+        this.newAdCtaText = 'En savoir plus';
+        this.loadAds();
+      },
+      error: (err) => {
+        this.isSubmittingAd.set(false);
+        this.toastService.error('Erreur lors de la création de la publicité.');
+      }
+    });
+  }
+
+  toggleAd(id: string): void {
+    this.apiService.toggleAdminAd(id).subscribe({
+      next: () => {
+        this.toastService.success('Statut de la publicité mis à jour.');
+        this.loadAds();
+      },
+      error: () => this.toastService.error('Erreur lors du changement de statut.')
+    });
+  }
+
+  deleteAd(id: string): void {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette publicité ?')) return;
+    this.apiService.deleteAdminAd(id).subscribe({
+      next: () => {
+        this.toastService.success('Publicité supprimée.');
+        this.loadAds();
+      },
+      error: () => this.toastService.error('Erreur lors de la suppression.')
     });
   }
 

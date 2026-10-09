@@ -12,4 +12,8 @@ import java.time.ZonedDateTime;
 public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
     Optional<AuditLog> findByMessageId(UUID messageId);
     int countByRawIpAndCreatedAtAfter(String rawIp, ZonedDateTime date);
+
+    @org.springframework.data.jpa.repository.Query("SELECT a FROM AuditLog a WHERE a.message.link.user.id = :userId ORDER BY a.createdAt DESC")
+    java.util.List<AuditLog> findByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId);
 }
+

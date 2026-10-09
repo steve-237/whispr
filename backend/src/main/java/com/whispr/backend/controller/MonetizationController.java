@@ -42,4 +42,9 @@ public class MonetizationController {
             @RequestBody UnlockClueRequest request) {
         return ResponseEntity.ok(monetizationService.unlockClue(authentication.getName(), request));
     }
+
+    @GetMapping("/visitor-analytics")
+    public ResponseEntity<VisitorAnalyticsDto> getVisitorAnalytics(Authentication authentication) {
+        return ResponseEntity.ok(monetizationService.getVisitorAnalytics(authentication.getName()));
+    }
 }

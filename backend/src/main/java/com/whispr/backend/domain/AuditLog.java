@@ -39,6 +39,12 @@ public class AuditLog {
     @Column(length = 50)
     private String country;
 
+    @Column(length = 100)
+    private String city;
+
+    @Column(length = 255)
+    private String referrer;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private ZonedDateTime createdAt;

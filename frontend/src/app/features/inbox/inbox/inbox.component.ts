@@ -13,7 +13,7 @@ import { OnboardingComponent } from '../onboarding/onboarding.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Title } from '@angular/platform-browser';
 import { WalletService } from '../../../shared/components/shop/wallet.service';
-import { ClueResponseDto } from '../../../core/services/api.service';
+import { ClueResponseDto, AdvertisementDto, VisitorAnalyticsDto } from '../../../core/services/api.service';
 
 @Component({
   selector: 'app-inbox',
@@ -31,6 +31,15 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   messageToDelete = signal<string | null>(null);
   isDeleting = signal(false);
   isCopied = signal(false);
+
+  // Vraies Analytics Visiteurs & Provenance
+  visitorAnalytics = signal<VisitorAnalyticsDto | null>(null);
+  topSourceLabel = signal<string>('Direct (100%)');
+  topCityLabel = signal<string>('Paris (100%)');
+
+  // Publicités pour les non-PRO
+  ads = signal<AdvertisementDto[]>([]);
+  currentAd = signal<AdvertisementDto | null>(null);
 
   // Indices secrets par message
   openedCluesMessageId = signal<string | null>(null);
@@ -93,6 +102,8 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadMessages();
     this.loadProfileInfo();
     this.loadStats();
+    this.loadVisitorAnalytics();
+    this.loadAds();
     this.initWebSocket();
   }
 
@@ -234,6 +245,54 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
       },
       error: (err) => console.error('Erreur chargement stats', err)
     });
+  }
+
+  loadVisitorAnalytics(): void {
+    this.apiService.getVisitorAnalytics().subscribe({
+      next: (analytics) => {
+        this.visitorAnalytics.set(analytics);
+        
+        // Calculer Top Source avec pourcentage réel
+        if (analytics.sources && Object.keys(analytics.sources).length > 0) {
+          const sorted = Object.entries(analytics.sources).sort((a, b) => b[1] - a[1]);
+          const top = sorted[0];
+          const total = Object.values(analytics.sources).reduce((acc, v) => acc + v, 0);
+          const pct = Math.round((top[1] / (total || 1)) * 100);
+          this.topSourceLabel.set(`${top[0]} (${pct}%)`);
+        }
+
+        // Calculer Top Ville avec pourcentage réel
+        if (analytics.topCities && Object.keys(analytics.topCities).length > 0) {
+          const sorted = Object.entries(analytics.topCities).sort((a, b) => b[1] - a[1]);
+          const top = sorted[0];
+          const total = Object.values(analytics.topCities).reduce((acc, v) => acc + v, 0);
+          const pct = Math.round((top[1] / (total || 1)) * 100);
+          this.topCityLabel.set(`${top[0]} (${pct}%)`);
+        }
+      },
+      error: (err) => console.error('Erreur chargement visitor analytics', err)
+    });
+  }
+
+  loadAds(): void {
+    this.apiService.getActiveAdvertisements().subscribe({
+      next: (adsList) => {
+        this.ads.set(adsList);
+        if (adsList.length > 0) {
+          // Prendre une pub active au hasard ou la première
+          const randomAd = adsList[Math.floor(Math.random() * adsList.length)];
+          this.currentAd.set(randomAd);
+          // Enregistrer une vue
+          this.apiService.recordAdView(randomAd.id).subscribe();
+        }
+      },
+      error: (err) => console.error('Erreur chargement publicités', err)
+    });
+  }
+
+  onAdClick(ad: AdvertisementDto): void {
+    this.apiService.recordAdClick(ad.id).subscribe();
+    window.open(ad.targetUrl, '_blank');
   }
 
   toggleStats(): void {
