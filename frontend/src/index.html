@@ -26,17 +26,22 @@
       rel="stylesheet"
     />
     <script>
+      // Polyfill préventif contre les bugs d'injection de wallet tiers (ex: Brave Mobile Crypto Wallet race-condition)
+      try {
+        if (typeof window !== 'undefined' && !window.ethereum) {
+          window.ethereum = {
+            selectedAddress: undefined,
+            isBraveWallet: true
+          };
+        }
+      } catch (e) {}
+
+      // Ne pas injecter de div bloquante sur le body pour les erreurs de scripts tiers/navigateur
       window.addEventListener('error', function (e) {
-        document.body.innerHTML +=
-          '<div style="color:red; background:white; padding:20px; z-index:9999; position:absolute; top:0;">' +
-          e.message +
-          '</div>';
-      });
-      window.addEventListener('unhandledrejection', function (e) {
-        document.body.innerHTML +=
-          '<div style="color:red; background:white; padding:20px; z-index:9999; position:absolute; top:0;">' +
-          e.reason +
-          '</div>';
+        if (e.message && (e.message.includes('selectedAddress') || e.message.includes('ethereum') || e.filename === '')) {
+          e.preventDefault();
+          return false;
+        }
       });
     </script>
     <link rel="manifest" href="manifest.webmanifest" />
