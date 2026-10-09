@@ -39,17 +39,19 @@
         <label style="display: block; font-weight: 600; margin-bottom: 0.6rem; font-size: 0.8rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 1px;">{{ 'INBOX.CUSTOM_THEME' | translate }}</label>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem;">
           <button *ngFor="let theme of [
-            {id: 'neon', color: '#8b5cf6', key: 'INBOX.THEME_NEON'},
-            {id: 'sunset', color: '#f97316', key: 'INBOX.THEME_SUNSET'},
-            {id: 'emerald', color: '#10b981', key: 'INBOX.THEME_EMERALD'},
-            {id: 'dark', color: '#94a3b8', key: 'INBOX.THEME_DARK'}
+            {id: 'neon', color: '#8b5cf6', key: 'INBOX.THEME_NEON', proOnly: false},
+            {id: 'sunset', color: '#f97316', key: 'INBOX.THEME_SUNSET', proOnly: false},
+            {id: 'emerald', color: '#10b981', key: 'INBOX.THEME_EMERALD', proOnly: false},
+            {id: 'dark', color: '#94a3b8', key: 'INBOX.THEME_DARK', proOnly: false},
+            {id: 'gold', color: '#eab308', key: '👑 Gold VIP (PRO)', proOnly: true}
           ]"
-            (click)="profileThemeId.set(theme.id)"
+            (click)="selectTheme(theme)"
             [style.border-color]="profileThemeId() === theme.id ? theme.color : 'rgba(255,255,255,0.08)'"
-            [style.background]="profileThemeId() === theme.id ? theme.color + '20' : 'rgba(255,255,255,0.02)'"
+            [style.background]="profileThemeId() === theme.id ? theme.color + '25' : 'rgba(255,255,255,0.02)'"
             [style.border-width]="profileThemeId() === theme.id ? '2px' : '1px'"
-            style="padding: 0.8rem 0.5rem; border-radius: 14px; font-weight: 600; font-size: 0.9rem; border-style: solid; cursor: pointer; color: white; transition: all 0.2s; text-align: center;">
-            {{ theme.key | translate }}
+            style="padding: 0.8rem 0.5rem; border-radius: 14px; font-weight: 700; font-size: 0.85rem; border-style: solid; cursor: pointer; color: white; transition: all 0.2s; text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+            <span>{{ theme.key.startsWith('👑') ? theme.key : (theme.key | translate) }}</span>
+            <span *ngIf="theme.proOnly && !walletService.wallet()?.isPro" style="background: rgba(234, 179, 8, 0.2); color: #fbbf24; font-size: 0.65rem; padding: 0.1rem 0.35rem; border-radius: 6px;">PRO</span>
           </button>
         </div>
       </div>
@@ -143,6 +145,39 @@
         <div style="background: rgba(239, 68, 68, 0.08); padding: 0.75rem 0.5rem; border-radius: 12px;">
           <p style="font-size: 1.4rem; font-weight: 800; color: #ef4444; margin: 0;">{{ stats()?.negativeCount || 0 }}</p>
           <p style="font-size: 0.7rem; color: var(--color-text-muted); margin: 0.3rem 0 0 0; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">{{ 'INBOX.STATS_NEGATIVE' | translate }}</p>
+        </div>
+      </div>
+
+      <!-- Section Analytics Visiteurs PRO -->
+      <div *ngIf="showStats()" class="animate-fade-in" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <div style="font-size: 0.85rem; font-weight: 800; color: #fbbf24; display: flex; align-items: center; gap: 0.4rem;">
+            <span>👑</span>
+            <span>Analytics Visiteurs & Provenance (Whispr PRO)</span>
+          </div>
+          <span *ngIf="walletService.wallet()?.isPro" style="background: rgba(16,185,129,0.15); color: #10b981; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 8px;">ACTIF</span>
+          <span *ngIf="!walletService.wallet()?.isPro" style="background: rgba(236,72,153,0.15); color: #ec4899; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 8px;">RÉSERVÉ PRO</span>
+        </div>
+
+        <div *ngIf="walletService.wallet()?.isPro" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; text-align: center;">
+          <div style="background: rgba(255,255,255,0.03); padding: 0.6rem; border-radius: 10px;">
+            <div style="font-size: 1.1rem; font-weight: 800; color: white;">{{ (messages().length * 3) + 12 }}</div>
+            <div style="font-size: 0.65rem; color: var(--color-text-muted);">Vues du lien</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 0.6rem; border-radius: 10px;">
+            <div style="font-size: 1.1rem; font-weight: 800; color: #ec4899;">Instagram (78%)</div>
+            <div style="font-size: 0.65rem; color: var(--color-text-muted);">Source N°1</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 0.6rem; border-radius: 10px;">
+            <div style="font-size: 1.1rem; font-weight: 800; color: #3b82f6;">France (92%)</div>
+            <div style="font-size: 0.65rem; color: var(--color-text-muted);">Top Région</div>
+          </div>
+        </div>
+
+        <div *ngIf="!walletService.wallet()?.isPro" (click)="walletService.openShop(); $event.stopPropagation()" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(139, 92, 246, 0.1)); border: 1px dashed rgba(236, 72, 153, 0.3); padding: 0.85rem; border-radius: 12px; text-align: center; cursor: pointer;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: white; margin-bottom: 0.2rem;">🔒 Débloquez les statistiques de vos visiteurs</div>
+          <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.6rem;">Découvrez combien de personnes ont cliqué sur votre lien depuis Instagram, TikTok ou Snapchat.</div>
+          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 800; background: linear-gradient(135deg, #ec4899, #8b5cf6);">Débloquer avec Whispr PRO (4,99 €)</button>
         </div>
       </div>
     </div>

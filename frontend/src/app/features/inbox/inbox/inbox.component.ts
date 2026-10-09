@@ -159,6 +159,18 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
              audio.play().catch(e => console.log('Audio non lu automatiquement', e));
           } catch(e) {}
 
+          // Notification Push du navigateur
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+              new Notification('Nouveau message secret sur Whispr ! 🤫', {
+                body: newMessage.content.length > 50 ? newMessage.content.substring(0, 50) + '...' : newMessage.content,
+                icon: '/favicon.ico'
+              });
+            } catch(e) {}
+          } else if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+          }
+
           // Rafraîchir les stats
           this.loadStats();
         }
@@ -297,6 +309,15 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
         this.toastService.error('Erreur lors de la sauvegarde de la personnalisation.');
       }
     });
+  }
+
+  selectTheme(theme: { id: string, proOnly: boolean }): void {
+    if (theme.proOnly && !this.walletService.wallet()?.isPro) {
+      this.toastService.error('Ce thème doré est réservé aux membres Whispr PRO Club 👑');
+      this.walletService.openShop();
+      return;
+    }
+    this.profileThemeId.set(theme.id);
   }
 
   selectQuickQuestion(q: string): void {

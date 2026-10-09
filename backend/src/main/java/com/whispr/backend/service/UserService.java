@@ -22,19 +22,31 @@ public class UserService {
     private final ProfileRepository profileRepository;
     private final LinkRepository linkRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.whispr.backend.repository.WalletRepository walletRepository;
 
     @Transactional
     public User registerUser(String email, String pseudo, String password) {
-        if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email already in use");
+        String cleanEmail = email != null ? email.trim().toLowerCase() : "";
+        String cleanPseudo = pseudo != null ? pseudo.trim().replaceAll("\\s+", "").toLowerCase() : "";
+
+        if (cleanEmail.isEmpty() || cleanPseudo.isEmpty() || password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Tous les champs sont obligatoires.");
         }
-        if (userRepository.existsByPseudo(pseudo)) {
-            throw new IllegalArgumentException("Pseudo already taken");
+
+        if (cleanPseudo.length() < 3 || cleanPseudo.length() > 30) {
+            throw new IllegalArgumentException("Le pseudo doit contenir entre 3 et 30 caractères.");
+        }
+
+        if (userRepository.existsByEmail(cleanEmail)) {
+            throw new IllegalArgumentException("Cette adresse email est déjà utilisée.");
+        }
+        if (userRepository.existsByPseudo(cleanPseudo)) {
+            throw new IllegalArgumentException("Ce pseudo est déjà pris.");
         }
 
         User user = User.builder()
-                .email(email)
-                .pseudo(pseudo)
+                .email(cleanEmail)
+                .pseudo(cleanPseudo)
                 .passwordHash(passwordEncoder.encode(password))
                 .build();
         
@@ -48,11 +60,20 @@ public class UserService {
 
         Link link = Link.builder()
                 .user(user)
-                .slug(pseudo.toLowerCase()) // default slug based on pseudo
+                .slug(cleanPseudo) // default slug based on sanitized pseudo
                 .isCustom(false)
                 .isActive(true)
                 .build();
         linkRepository.save(link);
+
+        // Initialisation immédiate du Wallet avec 30 pièces de bienvenue
+        com.whispr.backend.domain.Wallet wallet = com.whispr.backend.domain.Wallet.builder()
+                .user(user)
+                .coins(30)
+                .totalSpentEur(java.math.BigDecimal.ZERO)
+                .isPro(false)
+                .build();
+        walletRepository.save(wallet);
 
         return user;
     }

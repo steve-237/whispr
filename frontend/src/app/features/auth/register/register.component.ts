@@ -22,21 +22,28 @@ export class RegisterComponent {
 
   onSubmit(event?: Event): void {
     if (event) event.preventDefault();
-    if (!this.email || !this.pseudo || !this.password) {
+    const cleanEmail = this.email.trim().toLowerCase();
+    const cleanPseudo = this.pseudo.trim().replaceAll(/\s+/g, '').toLowerCase();
+
+    if (!cleanEmail || !cleanPseudo || !this.password) {
       this.error.set('REGISTER.ERROR_EMPTY');
       return;
     }
     this.isLoading.set(true);
     this.error.set('');
 
-    this.authService.register(this.email, this.pseudo, this.password).subscribe({
+    this.authService.register(cleanEmail, cleanPseudo, this.password).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.router.navigate(['/inbox']);
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.error.set('REGISTER.ERROR_GENERIC');
+        if (err.error && err.error.message) {
+          this.error.set(err.error.message);
+        } else {
+          this.error.set('REGISTER.ERROR_GENERIC');
+        }
       }
     });
   }
