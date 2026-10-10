@@ -578,7 +578,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
           
           this.messageToCapture.set(null);
           this.isCapturing.set(false);
-          this.toastService.success('Image générée ! Vous pouvez la publier sur votre statut WhatsApp ou Instagram Story 📸');
+          this.toastService.success(this.translate.instant('INBOX.STORY_SUCCESS_TOAST') || 'Image générée ! Vous pouvez la partager en Story 📸');
         }, 'image/png');
         
       } catch (err) {
