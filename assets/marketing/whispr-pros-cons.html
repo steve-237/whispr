@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whispr - Advantages & Limitations</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg: #070a13;
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #8b5cf6;
+      --cyan: #06b6d4;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: #050811;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+      color: var(--text-main);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+
+    button {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+    }
+
+    /* Infographic Card (1280x720 16:9) */
+    .infographic-container {
+      width: 1280px;
+      height: 720px;
+      background: #080c18;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 90% 20%, rgba(244, 63, 94, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 50% 90%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 40px 52px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8), 0 0 50px rgba(139, 92, 246, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .infographic-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #10b981, #8b5cf6, #f43f5e);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .brand-title {
+      font-size: 30px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #ffffff 40%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .badge-transparency {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      color: #c4b5fd;
+      border-radius: 999px;
+      -webkit-text-fill-color: initial;
+    }
+
+    .brand-subtitle {
+      font-size: 15px;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    .header-tag {
+      font-size: 13px;
+      font-weight: 600;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 16px;
+      border-radius: 10px;
+    }
+
+    /* Comparison Grid: 2 Columns */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      flex: 1;
+      margin-bottom: 20px;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 16px;
+      padding: 20px 22px;
+      border: 1px solid var(--card-border);
+    }
+
+    .col-pros {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+    }
+
+    .col-cons {
+      border-color: rgba(244, 63, 94, 0.3);
+      background: linear-gradient(180deg, rgba(244, 63, 94, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+    }
+
+    .column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 4px;
+    }
+
+    .column-title {
+      font-size: 17px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .col-pros .column-title { color: #34d399; }
+    .col-cons .column-title { color: #fb7185; }
+
+    .column-count {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .col-pros .column-count { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+    .col-cons .column-count { background: rgba(244, 63, 94, 0.2); color: #fda4af; }
+
+    /* Item Card */
+    .item-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .item-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .item-icon {
+      font-size: 16px;
+    }
+
+    .item-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    .item-desc {
+      font-size: 12.5px;
+      color: var(--text-sub);
+      line-height: 1.45;
+      padding-left: 24px;
+    }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 12.5px;
+      color: #94a3b8;
+    }
+
+    .footer-left strong {
+      color: #e2e8f0;
+    }
+
+    .footer-right {
+      font-size: 12.5px;
+      color: #a78bfa;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <button id="downloadBtn">📸 Download Infographic as PNG (HD)</button>
+  </div>
+
+  <div class="infographic-container" id="captureContainer">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <div class="brand-title">
+          Whispr. 🤫
+          <span class="badge-transparency">Engineering Breakdown</span>
+        </div>
+        <p class="brand-subtitle">An honest, transparent evaluation of current strengths & technical limitations</p>
+      </div>
+      <div class="header-tag">
+        <span>v1.1.0 • Monorepo Audit</span>
+      </div>
+    </div>
+
+    <!-- 2 Balanced Columns -->
+    <div class="comparison-grid">
+      
+      <!-- LEFT: PROS -->
+      <div class="column col-pros">
+        <div class="column-header">
+          <div class="column-title">
+            <span>✨ Key Advantages</span>
+          </div>
+          <span class="column-count">4 Core Strengths</span>
+        </div>
+
+        <div class="item-card">
+          <div class="item-top">
+            <span class="item-icon">⚡</span>
+            <span class="item-title">Real-Time WebSockets Experience</span>
+          </div>
+          <p class="item-desc">Messages arrive on screen instantly via STOMP/SockJS without any manual page reload or polling lag.</p>
+        </div>
+
+        <div class="item-card">
+          <div class="item-top">
+            <span class="item-icon">🛡️</span>
+            <span class="item-title">Integrated Sentiment & Anti-Spam</span>
+          </div>
+          <p class="item-desc">Real-time bilingual (EN/FR) toxicity detection coupled with Redis rate-limiting prevents mass flooding and basic harassment.</p>
+        </div>
+
+        <div class="item-card">
+          <div class="item-top">
+            <span class="item-icon">📸</span>
+            <span class="item-title">Frictionless Viral Social Loop</span>
+          </div>
+          <p class="item-desc">Zero account required to send. 1-click snapshot card export (html2canvas) lets users post replies directly to Instagram Stories & TikTok.</p>
+        </div>
+
+        <div class="item-card">
+          <div class="item-top">
+            <span class="item-icon">🏗️</span>
+            <span class="item-title">Modern Enterprise Foundation</span>
+          </div>
+          <p class="item-desc">Clean architecture: Angular 18 Signals, Spring Boot 3 / Java 21, PostgreSQL, Redis, full i18n, and installable PWA support.</p>
+        </div>
+      </div>
+
+      <!-- RIGHT: LIMITATIONS -->
+      <div class="column col-cons">
+        <div class="column-header">
+          <div class="column-title">
+            <span>⚠️ Current Limitations & Roadmap</span>
+          </div>
+          <span class="column-count">4 Honest Boundaries</span>
+        </div>
+
+        <div class="item-card">
+          <div class="item-top">
+            <span class="item-icon">🤖</span>
+            <span class="item-title">Lexical vs Deep Contextual AI</span>
+          </div>
+          <p class="item-desc">Currently dictionary-based. Lacks deep transformer LLMs (BERT/OpenAI) to understand subtle sarcasm, slang, or encoded bullying.</p>
+        </div>
+
+        <div class="item-card">
+          <div class="item-top">
+            <span class="item-icon">📱</span>
+            <span class="item-title">Web/PWA vs Native App Stores</span>
+          </div>
+          <p class="item-desc">Runs as a responsive web app and PWA; not yet distributed as a native binary on the Apple App Store or Google Play Store.</p>
+        </div>
+
+        <div class="item-card">
+          <div class="item-top">
+            <span class="item-icon">💳</span>
+            <span class="item-title">Simulated Virtual Coin Economy</span>
+          </div>
+          <p class="item-desc">The in-app coin wallet for unlocking sender clues is currently simulated; not yet wired to a live payment gateway (Stripe/Apple Pay).</p>
+        </div>
+
+        <div class="item-card">
+          <div class="item-top">
+            <span class="item-icon">🌐</span>
+            <span class="item-title">VPN & Proxy Clue Bypassing</span>
+          </div>
+          <p class="item-desc">Sender city and country clues rely on IP geolocation headers, which can be spoofed or masked by senders using VPNs.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-left">
+        <strong>Status:</strong>
+        <span>100% Fact-Checked</span>
+        <span>•</span>
+        <span>No Exaggeration</span>
+        <span>•</span>
+        <span>github.com/whispr</span>
+      </div>
+      <div class="footer-right">Transparent Tech • Pair Programming Blueprint</div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const container = document.getElementById('captureContainer');
+      html2canvas(container, {
+        scale: 2, // 2x resolution
+        backgroundColor: '#070a13',
+        useCORS: true
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'whispr-advantages-and-limitations.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    });
+  </script>
+</body>
+</html>

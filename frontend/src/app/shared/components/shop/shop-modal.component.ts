@@ -1,14 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WalletService } from './wallet.service';
-import { TranslatePipe } from '@ngx-translate/core';
 import { ToastService } from '../toast/toast.service';
 import confetti from 'canvas-confetti';
 
 @Component({
   selector: 'app-shop-modal',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule],
   template: `
     <div *ngIf="walletService.showShopModal()" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem;">
       <div class="glass-panel animate-fade-in custom-scrollbar" style="max-width: 550px; width: 100%; max-height: 88vh; overflow-y: auto; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; padding: 2rem 1.75rem; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent;">

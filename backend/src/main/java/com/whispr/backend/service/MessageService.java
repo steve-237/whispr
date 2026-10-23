@@ -3,21 +3,25 @@ package com.whispr.backend.service;
 import com.whispr.backend.domain.AuditLog;
 import com.whispr.backend.domain.Link;
 import com.whispr.backend.domain.Message;
+import com.whispr.backend.domain.User;
 import com.whispr.backend.dto.MessageDto;
 import com.whispr.backend.repository.AuditLogRepository;
 import com.whispr.backend.repository.LinkRepository;
 import com.whispr.backend.repository.MessageRepository;
+import com.whispr.backend.repository.UserRepository;
+import com.whispr.backend.util.ClientMetadata;
 import com.whispr.backend.util.DeviceUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
+
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,13 +30,34 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final LinkRepository linkRepository;
     private final AuditLogRepository auditLogRepository;
+    private final UserRepository userRepository;
     private final AiSentimentService aiSentimentService;
+    private final ModerationService moderationService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
+    public Message sendMessage(String slug, String content, String type, ClientMetadata metadata) {
+        return sendMessage(
+                slug,
+                content,
+                type,
+                metadata.hashedIp(),
+                metadata.rawIp(),
+                metadata.userAgent(),
+                metadata.country(),
+                metadata.city(),
+                metadata.referrer()
+        );
+    }
+
+    @Transactional
     public Message sendMessage(String slug, String content, String type, String hashedIp, String rawIp, String userAgent, String country, String city, String referrer) {
+        if (moderationService != null && moderationService.isToxic(content)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Votre message enfreint nos règles de bienveillance et a été bloqué.");
+        }
+
         Link link = linkRepository.findBySlug(slug)
-                .orElseThrow(() -> new IllegalArgumentException("Link not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Link not found"));
 
         if (!link.getIsActive()) {
             throw new IllegalStateException("Link is currently inactive");
@@ -71,12 +96,13 @@ public class MessageService {
                 .referrer(referrer)
                 .build();
         auditLogRepository.save(auditLog);
+        message.setAuditLog(auditLog);
 
-        // 4. Push WebSocket vers l'utilisateur (propriÃ©taire du lien)
+        // 4. Push WebSocket vers l'utilisateur (propriétaire du lien)
         String userEmail = link.getUser().getEmail();
         String deviceHint = DeviceUtil.parseDeviceHint(userAgent);
-        String finalCountry = country != null ? country : "Inconnu ðŸŒ";
-        
+        String finalCountry = country != null ? country : "Inconnu 🌍";
+
         MessageDto dto = new MessageDto(
                 message.getId(),
                 message.getContent(),
@@ -88,11 +114,43 @@ public class MessageService {
                 message.isRead(),
                 message.getAiCategory()
         );
-        
-        // On pousse le message sur le topic personnel de l'utilisateur
-        messagingTemplate.convertAndSend("/topic/user/" + userEmail + "/messages", dto);
+
+        if (messagingTemplate != null) {
+            messagingTemplate.convertAndSend("/topic/user/" + userEmail + "/messages", dto);
+        }
 
         return message;
+    }
+
+    @Transactional(readOnly = true)
+    public List<MessageDto> getInboxMessagesForUser(String userEmail) {
+        User user = userRepository.findByEmailIgnoreCase(userEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Link link = linkRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Link not found for user"));
+
+        return messageRepository.findByLinkIdWithAuditLogOrderByCreatedAtDesc(link.getId())
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    public MessageDto toDto(Message message) {
+        AuditLog audit = message.getAuditLog();
+        String country = (audit != null && audit.getCountry() != null) ? audit.getCountry() : "Inconnu 🌍";
+        String deviceHint = (audit != null) ? DeviceUtil.parseDeviceHint(audit.getUserAgent()) : "🌍 Navigateur Web";
+        return new MessageDto(
+                message.getId(),
+                message.getContent(),
+                message.getType(),
+                message.getStatus(),
+                message.getCreatedAt(),
+                country,
+                deviceHint,
+                message.isRead(),
+                message.getAiCategory()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -103,10 +161,10 @@ public class MessageService {
     @Transactional
     public void deleteMessage(UUID messageId, String userEmail) {
         Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new IllegalArgumentException("Message not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
 
         if (!message.getLink().getUser().getEmail().equals(userEmail)) {
-             throw new IllegalStateException("You do not have permission to delete this message");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to delete this message");
         }
 
         auditLogRepository.findByMessageId(messageId)
@@ -118,10 +176,10 @@ public class MessageService {
     @Transactional
     public void markAsRead(UUID messageId, String userEmail) {
         Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new IllegalArgumentException("Message not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
 
         if (!message.getLink().getUser().getEmail().equals(userEmail)) {
-             throw new IllegalStateException("You do not have permission to update this message");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to update this message");
         }
 
         message.setRead(true);
@@ -129,6 +187,3 @@ public class MessageService {
         messageRepository.save(message);
     }
 }
-
-
-

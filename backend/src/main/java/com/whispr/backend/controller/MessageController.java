@@ -1,23 +1,18 @@
 package com.whispr.backend.controller;
 
-import com.whispr.backend.domain.AuditLog;
-import com.whispr.backend.domain.Message;
 import com.whispr.backend.dto.MessageDto;
 import com.whispr.backend.dto.MessageSendRequest;
 import com.whispr.backend.service.MessageService;
-import com.whispr.backend.service.ModerationService;
-import com.whispr.backend.service.UserService;
-import com.whispr.backend.repository.AuditLogRepository;
-import com.whispr.backend.repository.LinkRepository;
-import com.whispr.backend.util.DeviceUtil;
+import com.whispr.backend.util.ClientMetadata;
+import com.whispr.backend.util.ClientMetadataResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/messages")
@@ -25,109 +20,30 @@ import java.util.stream.Collectors;
 public class MessageController {
 
     private final MessageService messageService;
-    private final UserService userService;
-    private final LinkRepository linkRepository;
-    private final AuditLogRepository auditLogRepository;
-    private final ModerationService moderationService;
+    private final ClientMetadataResolver clientMetadataResolver;
 
     @PostMapping("/send/{slug}")
-    public ResponseEntity<String> sendMessage(
+    public ResponseEntity<Void> sendMessage(
             @PathVariable String slug,
             @RequestBody MessageSendRequest request,
             HttpServletRequest httpRequest) {
-        
-        // ModÃ©ration IA / par mots-clÃ©s
-        if (moderationService.isToxic(request.content())) {
-            return ResponseEntity.badRequest().body("Votre message enfreint nos rÃ¨gles de bienveillance et a Ã©tÃ© bloquÃ©.");
-        }
 
-        // Extraction de l'IP rÃ©elle avec support proxies (Cloudflare, Nginx, X-Forwarded-For)
-        String ip = httpRequest.getHeader("CF-Connecting-IP");
-        if (ip == null || ip.isBlank()) ip = httpRequest.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isBlank()) ip = httpRequest.getRemoteAddr();
+        ClientMetadata metadata = clientMetadataResolver.resolve(httpRequest);
+        messageService.sendMessage(slug.toLowerCase(), request.content(), request.type(), metadata);
 
-        String hashedIp = Integer.toHexString(ip != null ? ip.hashCode() : 0);
-        String userAgent = httpRequest.getHeader("User-Agent");
-        
-        // Extraction de la gÃ©olocalisation ou simulation rÃ©aliste en environnement local/dÃ©mo
-        String country = httpRequest.getHeader("CF-IPCountry");
-        if (country == null || country.isBlank() || "XX".equals(country)) {
-            country = httpRequest.getHeader("X-Country");
-        }
-        if (country == null || country.isBlank() || "127.0.0.1".equals(ip) || "0:0:0:0:0:0:0:1".equals(ip) || (ip != null && (ip.startsWith("192.168.") || ip.startsWith("10.")))) {
-            String[] demoLocations = {
-                "Paris, France ðŸ‡«ðŸ‡·",
-                "Lyon, France ðŸ‡«ðŸ‡·",
-                "Marseille, France ðŸ‡«ðŸ‡·",
-                "Bordeaux, France ðŸ‡«ðŸ‡·",
-                "MontrÃ©al, Canada ðŸ‡¨ðŸ‡¦",
-                "GenÃ¨ve, Suisse ðŸ‡¨ðŸ‡­",
-                "Bruxelles, Belgique ðŸ‡§ðŸ‡ª",
-                "Casablanca, Maroc ðŸ‡²ðŸ‡¦",
-                "Dakar, SÃ©nÃ©gal ðŸ‡¸ðŸ‡³",
-                "Abidjan, CÃ´te d'Ivoire ðŸ‡¨ðŸ‡®"
-            };
-            int idx = Math.abs((userAgent != null ? userAgent.hashCode() : (int) System.currentTimeMillis()) % demoLocations.length);
-            country = demoLocations[idx];
-        }
-
-        // Extraction de la ville réelle (via reverse proxy Cloudflare/Vercel/Render ou GeoIP headers)
-        String city = httpRequest.getHeader("CF-IPCity");
-        if (city == null || city.isBlank()) city = httpRequest.getHeader("X-City");
-        if (city == null || city.isBlank()) city = httpRequest.getHeader("X-Client-City");
-
-        // Extraction de la source de provenance réelle (Instagram, TikTok, Snapchat, direct)
-        String referrer = httpRequest.getHeader("Referer");
-        if (referrer == null || referrer.isBlank()) referrer = httpRequest.getHeader("Origin");
-
-        // Si la ville n'est pas fournie par le proxy (ex. IP locale de dev), déduire du pays ou d'une estimation
-        if (city == null || city.isBlank()) {
-            if (country != null && country.contains(",")) {
-                city = country.split(",")[0].trim();
-            } else {
-                city = "Paris";
-            }
-        }
-
-        messageService.sendMessage(slug.toLowerCase(), request.content(), request.type(), hashedIp, ip, userAgent, country, city, referrer);
-        
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/inbox")
-    public ResponseEntity<List<MessageDto>> getInbox(org.springframework.security.core.Authentication authentication) {
+    public ResponseEntity<List<MessageDto>> getInbox(Authentication authentication) {
         String email = authentication.getName();
-        com.whispr.backend.domain.User user = userService.getUserByEmailIgnoreCase(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-                
-        com.whispr.backend.domain.Link link = linkRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new RuntimeException("Link not found for user"));
-
-        List<MessageDto> messages = messageService.getMessagesForLink(link.getId()).stream()
-                .map(msg -> {
-                    AuditLog auditLog = auditLogRepository.findByMessageId(msg.getId()).orElse(null);
-                    String country = auditLog != null && auditLog.getCountry() != null ? auditLog.getCountry() : "Inconnu ðŸŒ";
-                    String deviceHint = auditLog != null ? DeviceUtil.parseDeviceHint(auditLog.getUserAgent()) : "ðŸŒ Navigateur Web";
-                    return new MessageDto(
-                            msg.getId(),
-                            msg.getContent(),
-                            msg.getType(),
-                            msg.getStatus(),
-                            msg.getCreatedAt(),
-                            country,
-                            deviceHint,
-                            msg.isRead(),
-                            msg.getAiCategory()
-                    );
-                }).collect(Collectors.toList());
-        
-        return ResponseEntity.ok(messages);
+        return ResponseEntity.ok(messageService.getInboxMessagesForUser(email));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMessage(
             @PathVariable UUID id,
-            org.springframework.security.core.Authentication authentication) {
+            Authentication authentication) {
         String email = authentication.getName();
         messageService.deleteMessage(id, email);
         return ResponseEntity.ok().build();
@@ -136,11 +52,9 @@ public class MessageController {
     @PutMapping("/{id}/read")
     public ResponseEntity<Void> markAsRead(
             @PathVariable UUID id,
-            org.springframework.security.core.Authentication authentication) {
+            Authentication authentication) {
         String email = authentication.getName();
         messageService.markAsRead(id, email);
         return ResponseEntity.ok().build();
     }
 }
-
-

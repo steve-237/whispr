@@ -90,7 +90,7 @@ Pour démarrer l'environnement complet sur votre machine en moins de 2 minutes :
 ```bash
 docker-compose up -d
 ```
-*PostgreSQL sera accessible sur le port `5432` et Redis sur le port `6379`.*
+*PostgreSQL sera accessible sur le port `15432` et Redis sur le port `6380`.*
 
 ### 3. Lancement du Backend (API)
 ```bash

@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +21,7 @@ public class UserService {
     private final ProfileRepository profileRepository;
     private final LinkRepository linkRepository;
     private final PasswordEncoder passwordEncoder;
-    private final com.whispr.backend.repository.WalletRepository walletRepository;
+    private final MonetizationService monetizationService;
 
     @Transactional
     public User registerUser(String email, String pseudo, String password) {
@@ -60,23 +59,14 @@ public class UserService {
 
         Link link = Link.builder()
                 .user(user)
-                .slug(cleanPseudo) // default slug based on sanitized pseudo
+                .slug(cleanPseudo)
                 .isCustom(false)
                 .isActive(true)
                 .build();
         linkRepository.save(link);
 
-        // Initialisation immédiate du Wallet avec 30 pièces de bienvenue
-        com.whispr.backend.domain.Wallet wallet = com.whispr.backend.domain.Wallet.builder()
-                .user(user)
-                .coins(30)
-                .totalSpentEur(java.math.BigDecimal.ZERO)
-                .isPro(false)
-                .earningsEur(java.math.BigDecimal.ZERO)
-                .referralCount(0)
-                .affiliateCode(cleanPseudo)
-                .build();
-        walletRepository.save(wallet);
+        // Initialisation standardisée via MonetizationService (DRY)
+        monetizationService.getOrCreateWallet(user);
 
         return user;
     }

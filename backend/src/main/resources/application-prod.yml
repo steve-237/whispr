@@ -23,3 +23,8 @@ jwt:
 
 cors:
   allowed-origins: ${FRONTEND_URL}
+
+whispr:
+  keep-alive:
+    enabled: true
+    url: ${KEEP_ALIVE_URL:https://whispr-z6zx.onrender.com/api/health}

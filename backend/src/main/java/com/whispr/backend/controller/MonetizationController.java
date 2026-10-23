@@ -1,7 +1,9 @@
 package com.whispr.backend.controller;
 
 import com.whispr.backend.dto.*;
+import com.whispr.backend.service.ClueService;
 import com.whispr.backend.service.MonetizationService;
+import com.whispr.backend.service.VisitorAnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,6 +18,8 @@ import java.util.UUID;
 public class MonetizationController {
 
     private final MonetizationService monetizationService;
+    private final ClueService clueService;
+    private final VisitorAnalyticsService visitorAnalyticsService;
 
     @GetMapping("/wallet")
     public ResponseEntity<WalletDto> getWallet(Authentication authentication) {
@@ -33,18 +37,18 @@ public class MonetizationController {
     public ResponseEntity<List<ClueResponseDto>> getCluesForMessage(
             Authentication authentication,
             @PathVariable UUID messageId) {
-        return ResponseEntity.ok(monetizationService.getCluesForMessage(authentication.getName(), messageId));
+        return ResponseEntity.ok(clueService.getCluesForMessage(authentication.getName(), messageId));
     }
 
     @PostMapping("/unlock-clue")
     public ResponseEntity<ClueResponseDto> unlockClue(
             Authentication authentication,
             @RequestBody UnlockClueRequest request) {
-        return ResponseEntity.ok(monetizationService.unlockClue(authentication.getName(), request));
+        return ResponseEntity.ok(clueService.unlockClue(authentication.getName(), request));
     }
 
     @GetMapping("/visitor-analytics")
     public ResponseEntity<VisitorAnalyticsDto> getVisitorAnalytics(Authentication authentication) {
-        return ResponseEntity.ok(monetizationService.getVisitorAnalytics(authentication.getName()));
+        return ResponseEntity.ok(visitorAnalyticsService.getVisitorAnalytics(authentication.getName()));
     }
 }
