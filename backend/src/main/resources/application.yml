@@ -27,7 +27,12 @@ spring:
     baseline-on-migrate: true
 
 jwt:
-  secret: "thisIsAVerySecretKeyForWhisprAppThatMustBeAtLeast32BytesLong"
+  secret: "${JWT_SECRET:thisIsAVerySecretKeyForWhisprAppThatMustBeAtLeast32BytesLong}"
 
 cors:
-  allowed-origins: "http://localhost:4200"
+  allowed-origins: "${CORS_ALLOWED_ORIGINS:http://localhost:4200}"
+
+whispr:
+  keep-alive:
+    enabled: false
+    url: "${KEEP_ALIVE_URL:}"

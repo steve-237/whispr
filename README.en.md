@@ -90,7 +90,7 @@ From the root directory, spin up the Docker containers:
 ```bash
 docker-compose up -d
 ```
-*PostgreSQL will be available on port `5432` and Redis on port `6379`.*
+*PostgreSQL will be available on port `15432` and Redis on port `6380`.*
 
 ### 3. Launch Backend API
 ```bash

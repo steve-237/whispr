@@ -1,15 +1,18 @@
 import { Component, OnInit, signal, OnDestroy, AfterViewInit, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { ApiService, MessageDto, StatsDto } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { WebSocketService } from '../../../core/services/websocket.service';
 import html2canvas from 'html2canvas';
-import { Client } from '@stomp/stompjs';
 import { environment } from '../../../../environments/environment';
 import Chart from 'chart.js/auto';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { OnboardingComponent } from '../onboarding/onboarding.component';
+import { MessageCardComponent } from './message-card.component';
+import { ProfileCustomizerComponent } from './profile-customizer.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Title } from '@angular/platform-browser';
 import { WalletService } from '../../../shared/components/shop/wallet.service';
@@ -18,7 +21,14 @@ import { ClueResponseDto, AdvertisementDto, VisitorAnalyticsDto } from '../../..
 @Component({
   selector: 'app-inbox',
   standalone: true,
-  imports: [CommonModule, DatePipe, FormsModule, TranslatePipe, OnboardingComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    TranslatePipe, 
+    OnboardingComponent, 
+    MessageCardComponent, 
+    ProfileCustomizerComponent
+  ],
   templateUrl: './inbox.component.html'
 })
 export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -82,14 +92,15 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     'INBOX.Q5'
   ]);
 
-  private stompClient: Client | null = null;
+  private wsSubscription: Subscription | null = null;
 
   constructor(
     private apiService: ApiService, 
     private authService: AuthService,
     public translate: TranslateService,
     private toastService: ToastService,
-    private titleService: Title
+    private titleService: Title,
+    private webSocketService: WebSocketService
   ) {
     this.pseudo.set(this.authService.currentUser() || '');
   }
@@ -112,21 +123,16 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
-    if (this.stompClient) {
-      this.stompClient.deactivate();
+    if (this.wsSubscription) {
+      this.wsSubscription.unsubscribe();
     }
+    this.webSocketService.disconnect();
     if (this.chart) {
       this.chart.destroy();
     }
   }
 
   initWebSocket(): void {
-    // Assuming backend runs on 8081
-    const email = this.authService.currentUser() || this.pseudo(); 
-    // Wait, the JWT token holds the email, but since I don't have an email in authService out of the box in frontend,
-    // let's just listen to `/topic/user/${email}/messages`.
-    // We can extract email from token if needed, or we just rely on pseudo if they are same.
-    // In our JWT, email is the subject. We can grab it from localStorage token.
     const token = localStorage.getItem('whispr_token');
     let emailFromToken = this.pseudo();
     if (token) {
@@ -136,63 +142,40 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
       } catch(e) {}
     }
 
-    this.stompClient = new Client({
-      brokerURL: environment.wsUrl.replace('http', 'ws'),
-      debug: function (str) {
-        console.log('[STOMP] ' + str);
-      },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-    });
-
-    this.stompClient.onConnect = (frame) => {
-      console.log('Connecté au WebSocket', frame);
-      this.stompClient?.subscribe(`/topic/user/${emailFromToken}/messages`, (message) => {
-        if (message.body) {
-          const newMessage: MessageDto = JSON.parse(message.body);
-          
-          // Ajouter dynamiquement en haut de la liste
-          this.messages.update(msgs => [newMessage, ...msgs]);
-          
-          // Mettre en surbrillance pendant 3 secondes
-          this.highlightedMessageId.set(newMessage.id);
-          setTimeout(() => {
-            if (this.highlightedMessageId() === newMessage.id) {
-              this.highlightedMessageId.set(null);
-            }
-          }, 3000);
-          
-          // Jouer un son (optionnel, on utilise un bip natif court)
-          try {
-             const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-14.mp3');
-             audio.volume = 0.5;
-             audio.play().catch(e => console.log('Audio non lu automatiquement', e));
-          } catch(e) {}
-
-          // Notification Push du navigateur
-          if ('Notification' in window && Notification.permission === 'granted') {
-            try {
-              new Notification('Nouveau message secret sur Whispr ! 🤫', {
-                body: newMessage.content.length > 50 ? newMessage.content.substring(0, 50) + '...' : newMessage.content,
-                icon: '/favicon.ico'
-              });
-            } catch(e) {}
-          } else if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-          }
-
-          // Rafraîchir les stats
-          this.loadStats();
+    this.wsSubscription = this.webSocketService.connect(emailFromToken).subscribe((newMessage: MessageDto) => {
+      // Ajouter dynamiquement en haut de la liste
+      this.messages.update(msgs => [newMessage, ...msgs]);
+      
+      // Mettre en surbrillance pendant 3 secondes
+      this.highlightedMessageId.set(newMessage.id);
+      setTimeout(() => {
+        if (this.highlightedMessageId() === newMessage.id) {
+          this.highlightedMessageId.set(null);
         }
-      });
-    };
+      }, 3000);
+      
+      // Jouer un son (optionnel, on utilise un bip natif court)
+      try {
+         const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-14.mp3');
+         audio.volume = 0.5;
+         audio.play().catch(e => console.log('Audio non lu automatiquement', e));
+      } catch(e) {}
 
-    this.stompClient.onStompError = (frame) => {
-      console.error('Erreur Broker STOMP: ' + frame.headers['message']);
-    };
+      // Notification Push du navigateur
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification('Nouveau message secret sur Whispr ! 🤫', {
+            body: newMessage.content.length > 50 ? newMessage.content.substring(0, 50) + '...' : newMessage.content,
+            icon: '/favicon.ico'
+          });
+        } catch(e) {}
+      } else if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
 
-    this.stompClient.activate();
+      // Rafraîchir les stats
+      this.loadStats();
+    });
   }
 
   updateTitleBadge(): void {

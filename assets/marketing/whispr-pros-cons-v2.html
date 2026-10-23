@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whispr - Advantages & Limitations (v2)</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg: #070913;
+      --card-bg: rgba(255, 255, 255, 0.035);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #8b5cf6;
+      --pink: #ec4899;
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.25);
+      --coral: #f43f5e;
+      --coral-glow: rgba(244, 63, 94, 0.25);
+      --amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: #03050a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      color: var(--text-main);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    button {
+      background: linear-gradient(135deg, #10b981, #06b6d4);
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+    }
+
+    /* 1400x788 (16:9 ratio) */
+    .poster-outer {
+      box-shadow: 0 35px 70px -15px rgba(0, 0, 0, 0.95), 0 0 60px rgba(139, 92, 246, 0.12);
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .poster {
+      width: 1400px;
+      height: 788px;
+      background: #070a14;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.14) 0%, transparent 40%),
+        radial-gradient(circle at 90% 20%, rgba(244, 63, 94, 0.14) 0%, transparent 40%),
+        radial-gradient(circle at 50% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+      padding: 40px 54px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    /* Top glowing line */
+    .poster::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #10b981 0%, #8b5cf6 50%, #f43f5e 100%);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .brand-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand-title {
+      font-size: 32px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #ffffff 40%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .audit-badge {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .audit-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    /* Split Comparison Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      flex: 1;
+      margin-bottom: 18px;
+    }
+
+    .col {
+      display: flex;
+      flex-direction: column;
+      border-radius: 18px;
+      padding: 22px 24px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--card-border);
+      gap: 10px;
+    }
+
+    .col-pros {
+      border-color: rgba(16, 185, 129, 0.35);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+      box-shadow: 0 0 40px rgba(16, 185, 129, 0.08);
+    }
+
+    .col-cons {
+      border-color: rgba(244, 63, 94, 0.35);
+      background: linear-gradient(180deg, rgba(244, 63, 94, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+      box-shadow: 0 0 40px rgba(244, 63, 94, 0.08);
+    }
+
+    .col-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 4px;
+    }
+
+    .col-title {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: -0.2px;
+    }
+
+    .col-pros .col-title { color: #34d399; }
+    .col-cons .col-title { color: #fb7185; }
+
+    .col-badge {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .col-pros .col-badge {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .col-cons .col-badge {
+      background: rgba(244, 63, 94, 0.2);
+      color: #fda4af;
+      border: 1px solid rgba(244, 63, 94, 0.4);
+    }
+
+    /* Cards inside columns */
+    .item-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .item-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .item-icon {
+      font-size: 16px;
+    }
+
+    .item-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    .item-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      padding-left: 26px;
+    }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .footer-stack {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .footer-stack strong {
+      color: #ffffff;
+    }
+
+    .footer-tag {
+      font-size: 13px;
+      color: #c4b5fd;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <button id="downloadBtn">📸 Download Comparison Infographic (PNG 4K)</button>
+    <span style="font-size: 13px; color: #94a3b8;">Full-resolution, fact-checked comparison for social media posts & presentations.</span>
+  </div>
+
+  <div class="poster-outer">
+    <div class="poster" id="capturePoster">
+      
+      <!-- Header -->
+      <div class="header">
+        <div class="brand-group">
+          <div class="brand-title">
+            Whispr. 🤫
+            <span style="font-size: 18px; color: #94a3b8; font-weight: 400;">• Platform Evaluation</span>
+          </div>
+          <p class="brand-subtitle">An honest, transparent engineering comparison: Strengths vs Current Boundaries</p>
+        </div>
+
+        <div class="audit-badge">
+          <div class="audit-dot"></div>
+          <span>100% Fact-Checked • No Exaggeration</span>
+        </div>
+      </div>
+
+      <!-- Comparison Grid -->
+      <div class="grid">
+        
+        <!-- LEFT: ADVANTAGES -->
+        <div class="col col-pros">
+          <div class="col-header">
+            <div class="col-title">
+              <span>🚀 Core Strengths & Advantages</span>
+            </div>
+            <span class="col-badge">Verified Features</span>
+          </div>
+
+          <div class="item-card">
+            <div class="item-header">
+              <span class="item-icon">⚡</span>
+              <span class="item-title">Real-Time WebSockets Experience</span>
+            </div>
+            <p class="item-desc">Messages arrive instantly on the screen via STOMP/SockJS without any page reloads or polling overhead.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-header">
+              <span class="item-icon">🛡️</span>
+              <span class="item-title">Integrated Sentiment & Anti-Spam Filter</span>
+            </div>
+            <p class="item-desc">Bilingual (FR/EN) sentiment analysis flags toxic words in real time, while Redis rate-limits protect against flood attacks.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-header">
+              <span class="item-icon">📸</span>
+              <span class="item-title">1-Click Story Reply Export</span>
+            </div>
+            <p class="item-desc">Generates formatted visual response cards (html2canvas) directly ready to post on Instagram Stories and TikTok.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-header">
+              <span class="item-icon">🔗</span>
+              <span class="item-title">Zero Friction for Senders</span>
+            </div>
+            <p class="item-desc">Anyone can send an anonymous message via the user's public link without creating an account or logging in.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-header">
+              <span class="item-icon">🏗️</span>
+              <span class="item-title">Solid Fullstack Foundation</span>
+            </div>
+            <p class="item-desc">Angular 18 (Signals), Spring Boot 3 / Java 21, PostgreSQL, Redis, and installable PWA support.</p>
+          </div>
+        </div>
+
+        <!-- RIGHT: LIMITATIONS -->
+        <div class="col col-cons">
+          <div class="col-header">
+            <div class="col-title">
+              <span>⚠️ Current Limitations & Roadmap</span>
+            </div>
+            <span class="col-badge">Engineering Transparency</span>
+          </div>
+
+          <div class="item-card">
+            <div class="item-header">
+              <span class="item-icon">🤖</span>
+              <span class="item-title">Lexical Matching vs Deep Transformer AI</span>
+            </div>
+            <p class="item-desc">Currently dictionary-based; does not yet parse complex sarcasm, double entendre, or nuanced internet slang (LLM roadmap).</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-header">
+              <span class="item-icon">📱</span>
+              <span class="item-title">PWA / Web App vs Native App Stores</span>
+            </div>
+            <p class="item-desc">Runs as a responsive web app and installable PWA; not yet packaged as native binaries on Apple App Store or Google Play.</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-header">
+              <span class="item-icon">💳</span>
+              <span class="item-title">Simulated Virtual Coin Economy</span>
+            </div>
+            <p class="item-desc">The in-app coin wallet for unlocking sender clues is currently simulated; not yet connected to live payment billing (Stripe/Apple Pay).</p>
+          </div>
+
+          <div class="item-card">
+            <div class="item-header">
+              <span class="item-icon">🔔</span>
+              <span class="item-title">No Background Push Notifications</span>
+            </div>
+            <p class="item-desc">Real-time alerts work via WebSockets when the tab is open, but native background mobile push (FCM/APNs) is not yet active when closed.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="footer-stack">
+          <strong>Architecture:</strong>
+          <span>Angular 18</span>
+          <span>•</span>
+          <span>Spring Boot 3 (Java 21)</span>
+          <span>•</span>
+          <span>PostgreSQL</span>
+          <span>•</span>
+          <span>Redis</span>
+          <span>•</span>
+          <span>PWA & i18n</span>
+        </div>
+        <div class="footer-tag">Transparent Engineering • Open-Source Monorepo</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const poster = document.getElementById('capturePoster');
+      html2canvas(poster, {
+        scale: 2, // 2x resolution
+        backgroundColor: '#03050a',
+        useCORS: true
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'whispr-advantages-limitations-v2.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    });
+  </script>
+</body>
+</html>

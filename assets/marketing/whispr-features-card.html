@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whispr - Features Breakdown</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --primary: #8b5cf6;
+      --cyan: #06b6d4;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: #050811;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+      color: var(--text-main);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+
+    button {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+    }
+
+    /* The Infographic Canvas (1920x1080 scaled down for display) */
+    .infographic-container {
+      width: 1280px;
+      height: 720px;
+      background: #090d16;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.18) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 40%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 44px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8), 0 0 50px rgba(139, 92, 246, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient glow lines */
+    .infographic-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #8b5cf6, #06b6d4, transparent);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+
+    .brand-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .brand-title {
+      font-size: 32px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #ffffff 40%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-title span.badge-real {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      border-radius: 999px;
+      -webkit-text-fill-color: initial;
+    }
+
+    .brand-subtitle {
+      font-size: 16px;
+      color: var(--text-sub);
+      font-weight: 400;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    /* 6 Feature Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 20px;
+      flex: 1;
+      margin-bottom: 24px;
+    }
+
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    .card-desc {
+      font-size: 13.5px;
+      color: var(--text-sub);
+      line-height: 1.5;
+      margin-bottom: 12px;
+      flex: 1;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Themes per card */
+    .card-1 .card-icon { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.4); }
+    .card-2 .card-icon { background: rgba(6, 182, 212, 0.2); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.4); }
+    .card-3 .card-icon { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .card-4 .card-icon { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .card-5 .card-icon { background: rgba(244, 63, 94, 0.2); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.4); }
+    .card-6 .card-icon { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .tech-stack {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .tech-stack strong {
+      color: #e2e8f0;
+      font-weight: 600;
+    }
+
+    .tech-stack .dot {
+      color: rgba(255, 255, 255, 0.2);
+    }
+
+    .github-link {
+      font-size: 13px;
+      color: #a78bfa;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <button id="downloadBtn">📸 Download as Image (PNG)</button>
+  </div>
+
+  <div class="infographic-container" id="captureContainer">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand-group">
+        <div class="brand-title">
+          Whispr. 🤫
+          <span class="badge-real">v1.1.0 • Ready to Run</span>
+        </div>
+        <p class="brand-subtitle">What is actually built & running in the codebase right now</p>
+      </div>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span>Full-Stack Verified</span>
+      </div>
+    </div>
+
+    <!-- 6 Real Feature Modules -->
+    <div class="features-grid">
+      <!-- 1 -->
+      <div class="feature-card card-1">
+        <div class="card-top">
+          <div class="card-icon">🔗</div>
+          <div class="card-title">Public Anonymous Link</div>
+        </div>
+        <p class="card-desc">Every user gets a custom shareable link. Profile with custom bio, daily icebreakers & quick questions. Senders require no account or login.</p>
+        <div class="card-tags">
+          <span class="tag">Shareable URL</span>
+          <span class="tag">Daily Questions</span>
+          <span class="tag">Zero Friction</span>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="feature-card card-2">
+        <div class="card-top">
+          <div class="card-icon">⚡</div>
+          <div class="card-title">Real-Time WebSocket Inbox</div>
+        </div>
+        <p class="card-desc">Messages arrive instantly on screen via STOMP/SockJS without reloading. Read/unread tracking, message deletion, and glassmorphic badges.</p>
+        <div class="card-tags">
+          <span class="tag">WebSockets</span>
+          <span class="tag">Live Push</span>
+          <span class="tag">Read/Unread State</span>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="feature-card card-3">
+        <div class="card-top">
+          <div class="card-icon">🛡️</div>
+          <div class="card-title">Bilingual AI Content Filter</div>
+        </div>
+        <p class="card-desc">Built-in sentiment & toxicity engine (FR & EN). Analyzes tone, blocks offensive messages, and enforces rate-limiting against spam and flood.</p>
+        <div class="card-tags">
+          <span class="tag">FR/EN Sentiment</span>
+          <span class="tag">Anti-Toxicity</span>
+          <span class="tag">Rate Limiting</span>
+        </div>
+      </div>
+
+      <!-- 4 -->
+      <div class="feature-card card-4">
+        <div class="card-top">
+          <div class="card-icon">📸</div>
+          <div class="card-title">Social Story Card Export</div>
+        </div>
+        <p class="card-desc">1-click snapshot generator (html2canvas) that transforms received messages and custom replies into formatted cards ready for Instagram & TikTok stories.</p>
+        <div class="card-tags">
+          <span class="tag">html2canvas</span>
+          <span class="tag">IG / TikTok Stories</span>
+          <span class="tag">1-Click Image</span>
+        </div>
+      </div>
+
+      <!-- 5 -->
+      <div class="feature-card card-5">
+        <div class="card-top">
+          <div class="card-icon">🔍</div>
+          <div class="card-title">Sender Clues & Wallet</div>
+        </div>
+        <p class="card-desc">Gamified clue system: users can unlock metadata hints (sender device, approximate city/country) using an in-app virtual coin wallet.</p>
+        <div class="card-tags">
+          <span class="tag">Virtual Wallet</span>
+          <span class="tag">Device Hints</span>
+          <span class="tag">City / Country</span>
+        </div>
+      </div>
+
+      <!-- 6 -->
+      <div class="feature-card card-6">
+        <div class="card-top">
+          <div class="card-icon">📊</div>
+          <div class="card-title">Analytics & Admin Panel</div>
+        </div>
+        <p class="card-desc">Complete admin dashboard (/admin) with user suspension/bans, bulk actions, audit logs, and Chart.js graphs tracking volume and visitor provenance.</p>
+        <div class="card-tags">
+          <span class="tag">Admin Suite</span>
+          <span class="tag">Chart.js</span>
+          <span class="tag">Bulk Moderation</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="tech-stack">
+        <strong>Actual Stack:</strong>
+        <span>Angular 18 (Signals)</span>
+        <span class="dot">•</span>
+        <span>Spring Boot 3 (Java 21)</span>
+        <span class="dot">•</span>
+        <span>PostgreSQL & Redis</span>
+        <span class="dot">•</span>
+        <span>PWA & i18n (FR/EN)</span>
+      </div>
+      <div class="github-link">github.com/whispr • Monorepo</div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const container = document.getElementById('captureContainer');
+      html2canvas(container, {
+        scale: 2, // 2x resolution for ultra-sharp HD
+        backgroundColor: '#090d16',
+        useCORS: true
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'whispr-features-breakdown.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,60 +1,60 @@
 package com.whispr.backend.security;
 
+import com.whispr.backend.util.ClientMetadataResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Component
+@RequiredArgsConstructor
 public class RateLimitInterceptor implements HandlerInterceptor {
 
-    // Limite: 50 requêtes
+    private final ClientMetadataResolver clientMetadataResolver;
+
     private static final int MAX_REQUESTS = 50;
-    // Fenêtre: 1 heure en millisecondes
     private static final long TIME_WINDOW = 3600 * 1000L;
 
-    // Stockage en mémoire (Map de IP -> Liste des timestamps des requêtes)
+    // Cache d'adresses IP vers historique des requêtes
     private final Map<String, Queue<Long>> requestCounts = new ConcurrentHashMap<>();
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        
-        // Autoriser le preflight CORS
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
 
-        // Extraction de l'IP
-        String ip = request.getHeader("CF-Connecting-IP");
-        if (ip == null || ip.isBlank()) ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isBlank()) ip = request.getRemoteAddr();
-        
-        if (ip == null) ip = "unknown";
+        String ip = clientMetadataResolver.extractClientIp(request);
+        if (ip == null || ip.isBlank()) {
+            ip = "unknown";
+        }
 
         long now = System.currentTimeMillis();
-        
         Queue<Long> requests = requestCounts.computeIfAbsent(ip, k -> new ConcurrentLinkedQueue<>());
-        
-        // Nettoyer les requêtes trop vieilles (hors de la fenêtre d'1 heure)
+
         while (!requests.isEmpty() && (now - requests.peek()) > TIME_WINDOW) {
             requests.poll();
         }
 
-        if (requests.size() >= MAX_REQUESTS) {
-            // Limite atteinte, on rejette
-            response.setStatus(429); // 429 Too Many Requests
-            response.getWriter().write("Too many requests. Vous avez atteint la limite de messages pour cette heure.");
-            return false; // Bloque la requête
+        // Si la file est vide pour cette IP, nettoyer la clé pour éviter une fuite mémoire
+        if (requests.isEmpty()) {
+            requestCounts.remove(ip, requests);
         }
 
-        // On enregistre la nouvelle requête
+        if (requests.size() >= MAX_REQUESTS) {
+            response.setStatus(429);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"message\":\"Vous envoyez trop de messages. Veuillez patienter.\"}");
+            return false;
+        }
+
         requests.add(now);
-        return true; // Autorise la requête
+        return true;
     }
 }

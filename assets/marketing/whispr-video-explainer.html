@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whispr - Video Explainer Generator</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.12);
+      --primary: #8b5cf6;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      overflow-x: hidden;
+    }
+
+    header {
+      text-align: center;
+      max-width: 800px;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2));
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #c4b5fd;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 40%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+    }
+
+    /* Video Player Container */
+    .video-wrapper {
+      position: relative;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px rgba(139, 92, 246, 0.15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 1000px;
+      width: 100%;
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #060911;
+    }
+
+    canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* Subtitle Banner Overlay */
+    .subtitles-box {
+      width: 100%;
+      background: rgba(10, 15, 28, 0.95);
+      border-top: 1px solid var(--border);
+      padding: 14px 20px;
+      font-size: 15px;
+      line-height: 1.5;
+      text-align: center;
+      color: #e2e8f0;
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+    }
+
+    .subtitles-box strong {
+      color: var(--accent);
+      margin-right: 6px;
+    }
+
+    /* Controls Bar */
+    .controls {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.95);
+      border-top: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      border: none;
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+    }
+
+    button.primary:hover {
+      background: linear-gradient(135deg, #9d74f8, #7578f3);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+    }
+
+    button.export-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: none;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    }
+
+    button.export-btn:hover {
+      background: linear-gradient(135deg, #34d399, #10b981);
+    }
+
+    button.recording {
+      background: #ef4444 !important;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .timeline-container {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .time-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 45px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+      width: 0%;
+      transition: width 0.05s linear;
+    }
+
+    /* Instructions & details */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      max-width: 1000px;
+      width: 100%;
+      margin-top: 24px;
+    }
+
+    .info-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+
+    .info-card h3 {
+      font-size: 15px;
+      color: #c4b5fd;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-card p, .info-card li {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .info-card ul {
+      padding-left: 18px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">Social Media Ready • Explainer Video Studio</div>
+    <h1>Whispr: How It Works (Video Generator)</h1>
+    <p class="subtitle">Real-time animated motion video explaining Whispr in English. Watch the live interactive animation or export it directly as a video file (.webm / .mp4).</p>
+  </header>
+
+  <div class="video-wrapper">
+    <div class="canvas-container">
+      <canvas id="videoCanvas" width="1280" height="720"></canvas>
+    </div>
+
+    <div class="subtitles-box" id="subtitlesBox">
+      <span><strong>Whispr:</strong> Click Play to start the animated explainer video.</span>
+    </div>
+
+    <div class="controls">
+      <div class="btn-group">
+        <button id="playBtn" class="primary">
+          <span id="playIcon">▶</span> <span id="playText">Play Video</span>
+        </button>
+        <button id="restartBtn">🔄 Restart</button>
+        <button id="voiceBtn">🔊 English Voice: ON</button>
+        <button id="formatBtn">🖥️ Format: 16:9 Landscape</button>
+      </div>
+
+      <div class="timeline-container">
+        <span class="time-label" id="currentTime">00:00</span>
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="time-label" id="totalTime">00:40</span>
+      </div>
+
+      <div class="btn-group">
+        <button id="exportBtn" class="export-btn">
+          <span>⏺</span> <span id="exportText">Export Video (.webm)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h3>🎬 How to Export & Publish</h3>
+      <p>Click <strong>"Export Video (.webm)"</strong>. The video engine will render the 40-second animated presentation frame-by-frame at 60 FPS in high definition and download it directly to your machine.</p>
+      <ul>
+        <li>Native support on Twitter/X, Discord, Telegram, and Chrome.</li>
+        <li>Convert to MP4 with 1 click on Canva, CapCut, or online if needed for Instagram.</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>📱 Multi-Platform Formats</h3>
+      <p>Click <strong>"Format"</strong> to toggle between:</p>
+      <ul>
+        <li><strong>16:9 Landscape</strong> (1280x720): Perfect for LinkedIn, X (Twitter), YouTube.</li>
+        <li><strong>9:16 Portrait</strong> (720x1280): Perfect for TikTok, Instagram Reels, YouTube Shorts.</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>🗣️ English Voiceover & Subtitles</h3>
+      <p>Features synchronized on-screen subtitle cards and automated English voice narration using browser speech synthesis with sound effects.</p>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('videoCanvas');
+    const ctx = canvas.getContext('2d');
+    const playBtn = document.getElementById('playBtn');
+    const playText = document.getElementById('playText');
+    const playIcon = document.getElementById('playIcon');
+    const restartBtn = document.getElementById('restartBtn');
+    const voiceBtn = document.getElementById('voiceBtn');
+    const formatBtn = document.getElementById('formatBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const exportText = document.getElementById('exportText');
+    const progressFill = document.getElementById('progressFill');
+    const progressBar = document.getElementById('progressBar');
+    const currentTimeLabel = document.getElementById('currentTime');
+    const totalTimeLabel = document.getElementById('totalTime');
+    const subtitlesBox = document.getElementById('subtitlesBox');
+
+    // Video State
+    const TOTAL_DURATION = 40; // 40 seconds
+    let currentTime = 0;
+    let isPlaying = false;
+    let isRecording = false;
+    let voiceEnabled = true;
+    let isPortrait = false;
+    let lastTimestamp = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let audioContext = null;
+
+    // Dimensions
+    function updateCanvasSize() {
+      if (isPortrait) {
+        canvas.width = 720;
+        canvas.height = 1280;
+        formatBtn.textContent = "📱 Format: 9:16 Portrait";
+      } else {
+        canvas.width = 1280;
+        canvas.height = 720;
+        formatBtn.textContent = "🖥️ Format: 16:9 Landscape";
+      }
+      renderFrame(currentTime);
+    }
+
+    // Storyboard Scenes Configuration
+    const scenes = [
+      {
+        id: 'problem',
+        start: 0,
+        end: 8,
+        title: "THE ANONYMOUS APP DILEMMA",
+        subtitle: "Why Traditional Apps (NGL, Tellonym) Fail",
+        script: "Anonymous messaging apps always go viral, but they suffer from a fatal flaw: unchecked toxic cyberbullying and privacy leaks.",
+        caption: "⚠️ Traditional apps suffer from severe cyberbullying and plaintext IP tracking."
+      },
+      {
+        id: 'intro',
+        start: 8,
+        end: 16,
+        title: "INTRODUCING WHISPR 🤫",
+        subtitle: "Next-Gen AI-Guarded Anonymous Messaging",
+        script: "Meet Whispr. An intimate sanctuary where freedom of speech meets zero tolerance for toxicity.",
+        caption: "✨ Whispr: Absolute freedom of expression, rigorously safeguarded by AI."
+      },
+      {
+        id: 'flow',
+        start: 16,
+        end: 27,
+        title: "HOW IT WORKS: REAL-TIME AI FILTER",
+        subtitle: "Every message is analyzed in under 2 seconds",
+        script: "Here is how it works: Real-time AI analyzes sentiment in under 2 seconds. Toxic harassment is blocked at the source, while authentic messages land safely in your inbox.",
+        caption: "🛡️ Proactive AI analyzes content before arrival. Hate is neutralized, privacy preserved."
+      },
+      {
+        id: 'tech',
+        start: 27,
+        end: 35,
+        title: "ENGINEERED FOR SCALE & PRIVACY",
+        subtitle: "Enterprise-Grade Architecture",
+        script: "Built on Angular 18, Spring Boot 3, Redis rate-limiting, and PostgreSQL with zero plaintext IP storage for 100% GDPR compliance.",
+        caption: "⚡ Angular 18 • Spring Boot 3 / Java 21 • Redis • PostgreSQL Cryptographic Hashing."
+      },
+      {
+        id: 'cta',
+        start: 35,
+        end: 40,
+        title: "TEST THE LIVE DEMO NOW",
+        subtitle: "Open-Source & Ready to Deploy",
+        script: "Whispr proves that freedom and safety can coexist online. Check out the demo and star the project on GitHub!",
+        caption: "🚀 Try the demo now at localhost:4200 or star the repository on GitHub!"
+      }
+    ];
+
+    // Web Speech API Voiceover
+    let currentSpeechUtterance = null;
+    let spokenScenes = new Set();
+
+    function speakScene(scene) {
+      if (!voiceEnabled || !('speechSynthesis' in window)) return;
+      if (spokenScenes.has(scene.id)) return;
+      spokenScenes.add(scene.id);
+
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(scene.script);
+      utterance.lang = 'en-US';
+      utterance.rate = 1.05;
+      utterance.pitch = 1.0;
+      
+      // Select an English voice if available
+      const voices = window.speechSynthesis.getVoices();
+      const engVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Microsoft') || v.name.includes('Samantha')));
+      if (engVoice) utterance.voice = engVoice;
+
+      window.speechSynthesis.speak(utterance);
+      currentSpeechUtterance = utterance;
+    }
+
+    // Audio SFX Synthesis (Whoosh, Chimes, Alerts)
+    function playSound(type) {
+      try {
+        if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') audioContext.resume();
+
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+
+        const now = audioContext.currentTime;
+        if (type === 'alert') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.exponentialRampToValueAtTime(110, now + 0.3);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        } else if (type === 'success') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now); // C5
+          osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === 'transition') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(600, now + 0.2);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        }
+      } catch (e) {
+        // AudioContext not available or locked
+      }
+    }
+
+    // Background Particle Field
+    const particles = Array.from({ length: 45 }, () => ({
+      x: Math.random(),
+      y: Math.random(),
+      size: Math.random() * 2 + 1,
+      speedX: (Math.random() - 0.5) * 0.0008,
+      speedY: (Math.random() - 0.5) * 0.0008,
+      opacity: Math.random() * 0.5 + 0.2
+    }));
+
+    // Rendering Engine
+    function renderFrame(t) {
+      const W = canvas.width;
+      const H = canvas.height;
+      const scale = isPortrait ? H / 1280 : W / 1280;
+
+      // 1. Background
+      ctx.fillStyle = "#070b14";
+      ctx.fillRect(0, 0, W, H);
+
+      // Radial Glows
+      const grad1 = ctx.createRadialGradient(W * 0.2, H * 0.3, 10, W * 0.2, H * 0.3, W * 0.7);
+      grad1.addColorStop(0, "rgba(139, 92, 246, 0.15)");
+      grad1.addColorStop(1, "rgba(7, 11, 20, 0)");
+      ctx.fillStyle = grad1;
+      ctx.fillRect(0, 0, W, H);
+
+      const grad2 = ctx.createRadialGradient(W * 0.8, H * 0.7, 10, W * 0.8, H * 0.7, W * 0.6);
+      grad2.addColorStop(0, "rgba(6, 182, 212, 0.12)");
+      grad2.addColorStop(1, "rgba(7, 11, 20, 0)");
+      ctx.fillStyle = grad2;
+      ctx.fillRect(0, 0, W, H);
+
+      // Floating Particles
+      particles.forEach(p => {
+        p.x = (p.x + p.speedX + 1) % 1;
+        p.y = (p.y + p.speedY + 1) % 1;
+        ctx.fillStyle = `rgba(196, 181, 253, ${p.opacity * 0.4})`;
+        ctx.beginPath();
+        ctx.arc(p.x * W, p.y * H, p.size * scale, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Find current scene
+      const scene = scenes.find(s => t >= s.start && t < s.end) || scenes[scenes.length - 1];
+      const sceneProgress = (t - scene.start) / (scene.end - scene.start);
+
+      // Trigger Voiceover & Subtitles
+      if (isPlaying) {
+        speakScene(scene);
+      }
+      subtitlesBox.innerHTML = `<strong>Scene:</strong> ${scene.caption}`;
+
+      // Top Watermark / Brand Header
+      renderHeader(W, H, scale);
+
+      // Render Scene Content
+      if (scene.id === 'problem') {
+        renderProblemScene(W, H, scale, sceneProgress, t);
+      } else if (scene.id === 'intro') {
+        renderIntroScene(W, H, scale, sceneProgress, t);
+      } else if (scene.id === 'flow') {
+        renderFlowScene(W, H, scale, sceneProgress, t);
+      } else if (scene.id === 'tech') {
+        renderTechScene(W, H, scale, sceneProgress, t);
+      } else if (scene.id === 'cta') {
+        renderCtaScene(W, H, scale, sceneProgress, t);
+      }
+
+      // Bottom Progress Line inside canvas
+      ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.fillRect(0, H - 4 * scale, W, 4 * scale);
+      const videoProg = t / TOTAL_DURATION;
+      const progGrad = ctx.createLinearGradient(0, 0, W, 0);
+      progGrad.addColorStop(0, "#8b5cf6");
+      progGrad.addColorStop(1, "#06b6d4");
+      ctx.fillStyle = progGrad;
+      ctx.fillRect(0, H - 4 * scale, W * videoProg, 4 * scale);
+    }
+
+    function renderHeader(W, H, scale) {
+      ctx.save();
+      ctx.font = `bold ${18 * scale}px sans-serif`;
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillText("Whispr 🤫", 40 * scale, 50 * scale);
+
+      ctx.font = `${13 * scale}px sans-serif`;
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillText("AI-POWERED ANONYMOUS PLATFORM", 140 * scale, 50 * scale);
+
+      ctx.fillStyle = "rgba(16, 185, 129, 0.2)";
+      roundRect(ctx, W - 180 * scale, 32 * scale, 140 * scale, 28 * scale, 14 * scale);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.5)";
+      ctx.stroke();
+
+      ctx.fillStyle = "#10b981";
+      ctx.font = `bold ${11 * scale}px sans-serif`;
+      ctx.fillText("● AI GUARD ACTIVE", W - 165 * scale, 50 * scale);
+      ctx.restore();
+    }
+
+    // SCENE 1: PROBLEM
+    function renderProblemScene(W, H, scale, progress, t) {
+      ctx.save();
+      const centerY = isPortrait ? H * 0.35 : H * 0.45;
+
+      // Section Pill
+      drawBadge(W / 2, centerY - 140 * scale, "⚠️ THE STRUCTURAL FLAW", "#ef4444", scale);
+
+      // Main Title
+      ctx.font = `bold ${34 * scale}px sans-serif`;
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.fillText("Why Traditional Anonymous Apps Fail", W / 2, centerY - 80 * scale);
+
+      ctx.font = `${17 * scale}px sans-serif`;
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillText("NGL, Tellonym, and Sarahah built viral apps, but toxicity destroyed them.", W / 2, centerY - 45 * scale);
+
+      // Two Warning Cards
+      const cardW = isPortrait ? W * 0.85 : 440 * scale;
+      const cardH = 150 * scale;
+      const gap = 30 * scale;
+
+      const card1X = isPortrait ? W / 2 - cardW / 2 : W / 2 - cardW - gap / 2;
+      const card2X = isPortrait ? W / 2 - cardW / 2 : W / 2 + gap / 2;
+      const card1Y = isPortrait ? centerY : centerY + 10 * scale;
+      const card2Y = isPortrait ? centerY + cardH + 20 * scale : centerY + 10 * scale;
+
+      drawGlassCard(card1X, card1Y, cardW, cardH, 16 * scale, "rgba(239, 68, 68, 0.15)", "rgba(239, 68, 68, 0.4)");
+      ctx.font = `bold ${18 * scale}px sans-serif`;
+      ctx.fillStyle = "#fca5a5";
+      ctx.textAlign = "left";
+      ctx.fillText("🚫 Rampant Cyberbullying", card1X + 25 * scale, card1Y + 45 * scale);
+      ctx.font = `${14 * scale}px sans-serif`;
+      ctx.fillStyle = "#e2e8f0";
+      ctx.fillText("• Reactive keyword filters easily bypassed", card1X + 25 * scale, card1Y + 75 * scale);
+      ctx.fillText("• Severe harassment leads to App Store bans", card1X + 25 * scale, card1Y + 100 * scale);
+      ctx.fillText("• Victims are left unprotected in their inboxes", card1X + 25 * scale, card1Y + 125 * scale);
+
+      drawGlassCard(card2X, card2Y, cardW, cardH, 16 * scale, "rgba(239, 68, 68, 0.15)", "rgba(239, 68, 68, 0.4)");
+      ctx.font = `bold ${18 * scale}px sans-serif`;
+      ctx.fillStyle = "#fca5a5";
+      ctx.textAlign = "left";
+      ctx.fillText("🔓 Data Privacy Violations", card2X + 25 * scale, card2Y + 45 * scale);
+      ctx.font = `${14 * scale}px sans-serif`;
+      ctx.fillStyle = "#e2e8f0";
+      ctx.fillText("• Plaintext IP address logging & selling", card2X + 25 * scale, card2Y + 75 * scale);
+      ctx.fillText("• Fake paid 'hint' features reveal identities", card2X + 25 * scale, card2Y + 100 * scale);
+      ctx.fillText("• Zero GDPR compliance or safety guarantees", card2X + 25 * scale, card2Y + 125 * scale);
+
+      ctx.restore();
+    }
+
+    // SCENE 2: INTRODUCING WHISPR
+    function renderIntroScene(W, H, scale, progress, t) {
+      ctx.save();
+      const centerY = isPortrait ? H * 0.4 : H * 0.48;
+
+      drawBadge(W / 2, centerY - 150 * scale, "✨ THE SOLUTION", "#8b5cf6", scale);
+
+      ctx.font = `bold ${42 * scale}px sans-serif`;
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.fillText("Whispr. 🤫", W / 2, centerY - 90 * scale);
+
+      ctx.font = `${20 * scale}px sans-serif`;
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillText("Freedom of Speech. Zero Cyberbullying.", W / 2, centerY - 50 * scale);
+
+      ctx.font = `${15 * scale}px sans-serif`;
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillText("The next-generation AI-powered, secure anonymous messaging platform.", W / 2, centerY - 20 * scale);
+
+      // 3 Value Pillars
+      const pillarW = isPortrait ? W * 0.85 : 320 * scale;
+      const pillarH = 120 * scale;
+      const gap = 20 * scale;
+      const totalW = isPortrait ? pillarW : pillarW * 3 + gap * 2;
+      const startX = W / 2 - totalW / 2;
+
+      const pillars = [
+        { icon: "🤖", title: "Real-Time AI Moderation", desc: "Analyzed in < 2 seconds. Toxic hate stopped before arrival." },
+        { icon: "🔐", title: "Cryptographic Anonymity", desc: "Systematic IP hashing. Zero plaintext logs. 100% GDPR." },
+        { icon: "🎨", title: "Glassmorphism UI", desc: "Modern Angular 18 dark mode with fluid micro-interactions." }
+      ];
+
+      pillars.forEach((p, idx) => {
+        const px = isPortrait ? W / 2 - pillarW / 2 : startX + idx * (pillarW + gap);
+        const py = isPortrait ? centerY + 20 * scale + idx * (pillarH + 15 * scale) : centerY + 30 * scale;
+
+        drawGlassCard(px, py, pillarW, pillarH, 14 * scale, "rgba(139, 92, 246, 0.12)", "rgba(139, 92, 246, 0.35)");
+        ctx.font = `bold ${16 * scale}px sans-serif`;
+        ctx.fillStyle = "#c4b5fd";
+        ctx.textAlign = "left";
+        ctx.fillText(`${p.icon}  ${p.title}`, px + 20 * scale, py + 40 * scale);
+
+        ctx.font = `${13 * scale}px sans-serif`;
+        ctx.fillStyle = "#cbd5e1";
+        wrapText(ctx, p.desc, px + 20 * scale, py + 68 * scale, pillarW - 40 * scale, 18 * scale);
+      });
+
+      ctx.restore();
+    }
+
+    // SCENE 3: HOW IT WORKS (LIVE SIMULATION)
+    function renderFlowScene(W, H, scale, progress, t) {
+      ctx.save();
+      const centerY = isPortrait ? H * 0.35 : H * 0.42;
+
+      drawBadge(W / 2, centerY - 150 * scale, "⚡ LIVE SIMULATION", "#06b6d4", scale);
+
+      ctx.font = `bold ${32 * scale}px sans-serif`;
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.fillText("How Whispr Protects Users in Real-Time", W / 2, centerY - 95 * scale);
+
+      // Simulation Container
+      const simW = isPortrait ? W * 0.9 : 880 * scale;
+      const simH = 260 * scale;
+      const simX = W / 2 - simW / 2;
+      const simY = centerY - 60 * scale;
+
+      drawGlassCard(simX, simY, simW, simH, 16 * scale, "rgba(15, 23, 42, 0.8)", "rgba(255, 255, 255, 0.15)");
+
+      // Case A: Toxic Message (Left)
+      const caseW = (simW - 50 * scale) / 2;
+      const box1X = simX + 18 * scale;
+      const box2X = isPortrait ? box1X : simX + caseW + 32 * scale;
+      const box1Y = simY + 20 * scale;
+      const box2Y = isPortrait ? box1Y + 120 * scale : simY + 20 * scale;
+
+      // Card 1: Toxic Attempt
+      drawGlassCard(box1X, box1Y, caseW, 215 * scale, 12 * scale, "rgba(239, 68, 68, 0.1)", "rgba(239, 68, 68, 0.4)");
+      ctx.textAlign = "left";
+      ctx.font = `bold ${14 * scale}px sans-serif`;
+      ctx.fillStyle = "#f87171";
+      ctx.fillText("TEST CASE 1: TOXIC HARASSMENT", box1X + 16 * scale, box1Y + 30 * scale);
+
+      // Mock chat bubble
+      drawChatBubble(box1X + 16 * scale, box1Y + 45 * scale, caseW - 32 * scale, 45 * scale, '"You are ugly and nobody likes you"', "#ef4444", scale);
+
+      // AI Analysis Result
+      ctx.font = `${13 * scale}px sans-serif`;
+      ctx.fillStyle = "#fca5a5";
+      ctx.fillText("🤖 AI Guard Analysis: (1.1s)", box1X + 16 * scale, box1Y + 115 * scale);
+
+      ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
+      roundRect(ctx, box1X + 16 * scale, box1Y + 130 * scale, caseW - 32 * scale, 32 * scale, 6 * scale);
+      ctx.fill();
+      ctx.fillStyle = "#ef4444";
+      ctx.font = `bold ${12 * scale}px sans-serif`;
+      ctx.fillText("🚫 BLOCKED & DROPPED AT SOURCE", box1X + 28 * scale, box1Y + 151 * scale);
+
+      ctx.font = `${11 * scale}px sans-serif`;
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillText("Never delivered to inbox • Sender warned", box1X + 16 * scale, box1Y + 185 * scale);
+
+      // Card 2: Uplifting Message (Right)
+      drawGlassCard(box2X, box2Y, caseW, 215 * scale, 12 * scale, "rgba(16, 185, 129, 0.1)", "rgba(16, 185, 129, 0.4)");
+      ctx.font = `bold ${14 * scale}px sans-serif`;
+      ctx.fillStyle = "#34d399";
+      ctx.fillText("TEST CASE 2: AUTHENTIC FEEDBACK", box2X + 16 * scale, box2Y + 30 * scale);
+
+      drawChatBubble(box2X + 16 * scale, box2Y + 45 * scale, caseW - 32 * scale, 45 * scale, '"Your presentation today was so inspiring!"', "#10b981", scale);
+
+      ctx.font = `${13 * scale}px sans-serif`;
+      ctx.fillStyle = "#6ee7b7";
+      ctx.fillText("🤖 AI Guard Analysis: (0.9s)", box2X + 16 * scale, box2Y + 115 * scale);
+
+      ctx.fillStyle = "rgba(16, 185, 129, 0.25)";
+      roundRect(ctx, box2X + 16 * scale, box2Y + 130 * scale, caseW - 32 * scale, 32 * scale, 6 * scale);
+      ctx.fill();
+      ctx.fillStyle = "#10b981";
+      ctx.font = `bold ${12 * scale}px sans-serif`;
+      ctx.fillText("✅ APPROVED & ENCRYPTED", box2X + 28 * scale, box2Y + 151 * scale);
+
+      ctx.font = `${11 * scale}px sans-serif`;
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillText("Delivered to inbox with unread notification badge", box2X + 16 * scale, box2Y + 185 * scale);
+
+      ctx.restore();
+    }
+
+    // SCENE 4: ARCHITECTURE
+    function renderTechScene(W, H, scale, progress, t) {
+      ctx.save();
+      const centerY = isPortrait ? H * 0.35 : H * 0.45;
+
+      drawBadge(W / 2, centerY - 150 * scale, "🏗️ ENTERPRISE ARCHITECTURE", "#8b5cf6", scale);
+
+      ctx.font = `bold ${32 * scale}px sans-serif`;
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.fillText("Engineered for Speed, Privacy & Scale", W / 2, centerY - 95 * scale);
+
+      // Architecture Nodes Flow
+      const nodeW = 180 * scale;
+      const nodeH = 100 * scale;
+      const nodes = [
+        { label: "📱 Angular 18", sub: "Glassmorphism UI\nSignals & Router", color: "#dd0031" },
+        { label: "⚙️ Spring Boot 3", sub: "Java 21 REST API\nJWT Security", color: "#10b981" },
+        { label: "🤖 AI Guard", sub: "Real-Time Moderation\n< 2s Latency", color: "#8b5cf6" },
+        { label: "⚡ Redis 7", sub: "Rate-Limiting\nAnti-DDoS Cache", color: "#ef4444" },
+        { label: "🗄️ PostgreSQL", sub: "Cryptographic IP Hash\nFlyway Migrations", color: "#0284c7" }
+      ];
+
+      const startX = W / 2 - (nodes.length * (nodeW + 20 * scale) - 20 * scale) / 2;
+
+      nodes.forEach((n, idx) => {
+        const nx = isPortrait ? W / 2 - nodeW / 2 : startX + idx * (nodeW + 20 * scale);
+        const ny = isPortrait ? centerY - 50 * scale + idx * (nodeH + 15 * scale) : centerY - 30 * scale;
+
+        drawGlassCard(nx, ny, nodeW, nodeH, 12 * scale, "rgba(255, 255, 255, 0.05)", n.color);
+
+        ctx.textAlign = "center";
+        ctx.font = `bold ${14 * scale}px sans-serif`;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(n.label, nx + nodeW / 2, ny + 32 * scale);
+
+        ctx.font = `${11 * scale}px sans-serif`;
+        ctx.fillStyle = "#94a3b8";
+        const lines = n.sub.split('\n');
+        lines.forEach((l, lIdx) => {
+          ctx.fillText(l, nx + nodeW / 2, ny + 58 * scale + lIdx * 18 * scale);
+        });
+
+        // Connector Arrow (if not last)
+        if (idx < nodes.length - 1 && !isPortrait) {
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+          ctx.lineWidth = 2 * scale;
+          ctx.beginPath();
+          ctx.moveTo(nx + nodeW, ny + nodeH / 2);
+          ctx.lineTo(nx + nodeW + 20 * scale, ny + nodeH / 2);
+          ctx.stroke();
+        }
+      });
+
+      // Bottom Architecture Badges
+      const badgeY = isPortrait ? centerY + 500 * scale : centerY + 130 * scale;
+      ctx.textAlign = "center";
+      ctx.font = `${14 * scale}px sans-serif`;
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillText("🛡️ Zero Plaintext IP Storage • 100% GDPR Compliant • Anti-DDoS & Rate-Limited", W / 2, badgeY);
+
+      ctx.restore();
+    }
+
+    // SCENE 5: CALL TO ACTION
+    function renderCtaScene(W, H, scale, progress, t) {
+      ctx.save();
+      const centerY = isPortrait ? H * 0.42 : H * 0.48;
+
+      drawBadge(W / 2, centerY - 150 * scale, "🚀 OPEN-SOURCE PROJECT", "#10b981", scale);
+
+      ctx.font = `bold ${40 * scale}px sans-serif`;
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.fillText("Whispr: Speak Freely. Stay Safe.", W / 2, centerY - 85 * scale);
+
+      ctx.font = `${17 * scale}px sans-serif`;
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillText("The modern fullstack blueprint for safe, AI-moderated social interactions.", W / 2, centerY - 45 * scale);
+
+      // CTA Box
+      const boxW = isPortrait ? W * 0.85 : 550 * scale;
+      const boxH = 140 * scale;
+      const boxX = W / 2 - boxW / 2;
+      const boxY = centerY - 15 * scale;
+
+      drawGlassCard(boxX, boxY, boxW, boxH, 16 * scale, "rgba(139, 92, 246, 0.18)", "rgba(139, 92, 246, 0.5)");
+
+      ctx.font = `bold ${20 * scale}px sans-serif`;
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillText("⭐ Star the Project on GitHub", W / 2, boxY + 45 * scale);
+
+      ctx.font = `${14 * scale}px sans-serif`;
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillText("Explore the complete monorepo & Docker environment", W / 2, boxY + 75 * scale);
+
+      ctx.font = `${13 * scale}px sans-serif`;
+      ctx.fillStyle = "#cbd5e1";
+      ctx.fillText("Demo: http://localhost:4200/demo • © 2026 Whispr Team", W / 2, boxY + 105 * scale);
+
+      ctx.restore();
+    }
+
+    // UI Drawing Helpers
+    function drawBadge(x, y, text, color, scale) {
+      ctx.save();
+      ctx.font = `bold ${12 * scale}px sans-serif`;
+      const w = ctx.measureText(text).width + 24 * scale;
+      const h = 26 * scale;
+
+      ctx.fillStyle = `${color}25`;
+      roundRect(ctx, x - w / 2, y - h / 2, w, h, 13 * scale);
+      ctx.fill();
+
+      ctx.strokeStyle = `${color}88`;
+      ctx.lineWidth = 1 * scale;
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    function drawGlassCard(x, y, w, h, r, bg, border) {
+      ctx.save();
+      ctx.fillStyle = bg;
+      roundRect(ctx, x, y, w, h, r);
+      ctx.fill();
+
+      ctx.strokeStyle = border;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawChatBubble(x, y, w, h, text, borderColor, scale) {
+      ctx.save();
+      ctx.fillStyle = "rgba(255, 255, 255, 0.06)";
+      roundRect(ctx, x, y, w, h, 8 * scale);
+      ctx.fill();
+
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 1.2 * scale;
+      ctx.stroke();
+
+      ctx.font = `italic ${13 * scale}px sans-serif`;
+      ctx.fillStyle = "#f8fafc";
+      ctx.textAlign = "left";
+      ctx.fillText(text, x + 14 * scale, y + 27 * scale);
+      ctx.restore();
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+      const words = text.split(' ');
+      let line = '';
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          ctx.fillText(line, x, y);
+          line = words[n] + ' ';
+          y += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, y);
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    // Animation Loop
+    function step(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const delta = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      if (isPlaying) {
+        currentTime += delta;
+
+        // Check scene transitions for sound
+        const prevScene = scenes.find(s => (currentTime - delta) >= s.start && (currentTime - delta) < s.end);
+        const currScene = scenes.find(s => currentTime >= s.start && currentTime < s.end);
+        if (prevScene && currScene && prevScene.id !== currScene.id) {
+          playSound('transition');
+        }
+
+        if (currentTime >= TOTAL_DURATION) {
+          currentTime = TOTAL_DURATION;
+          pauseVideo();
+          if (isRecording) stopRecording();
+        }
+
+        progressFill.style.width = `${(currentTime / TOTAL_DURATION) * 100}%`;
+        currentTimeLabel.textContent = formatTime(currentTime);
+      }
+
+      renderFrame(currentTime);
+
+      if (isPlaying || isRecording) {
+        requestAnimationFrame(step);
+      }
+    }
+
+    // Video Controls
+    function playVideo() {
+      isPlaying = true;
+      playText.textContent = "Pause";
+      playIcon.textContent = "⏸";
+      lastTimestamp = null;
+      if (audioContext && audioContext.state === 'suspended') audioContext.resume();
+      requestAnimationFrame(step);
+    }
+
+    function pauseVideo() {
+      isPlaying = false;
+      playText.textContent = "Play Video";
+      playIcon.textContent = "▶";
+      if (window.speechSynthesis) window.speechSynthesis.pause();
+    }
+
+    function restartVideo() {
+      currentTime = 0;
+      spokenScenes.clear();
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      progressFill.style.width = "0%";
+      currentTimeLabel.textContent = "00:00";
+      playVideo();
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (isPlaying) pauseVideo();
+      else playVideo();
+    });
+
+    restartBtn.addEventListener('click', restartVideo);
+
+    voiceBtn.addEventListener('click', () => {
+      voiceEnabled = !voiceEnabled;
+      voiceBtn.textContent = voiceEnabled ? "🔊 English Voice: ON" : "🔇 English Voice: OFF";
+      if (!voiceEnabled && window.speechSynthesis) window.speechSynthesis.cancel();
+    });
+
+    formatBtn.addEventListener('click', () => {
+      isPortrait = !isPortrait;
+      updateCanvasSize();
+    });
+
+    progressBar.addEventListener('click', (e) => {
+      const rect = progressBar.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+      currentTime = ratio * TOTAL_DURATION;
+      spokenScenes.clear();
+      progressFill.style.width = `${ratio * 100}%`;
+      currentTimeLabel.textContent = formatTime(currentTime);
+      renderFrame(currentTime);
+    });
+
+    // Video Recording & Export (.webm)
+    function startRecording() {
+      if (isRecording) return;
+      isRecording = true;
+      recordedChunks = [];
+
+      exportBtn.classList.add('recording');
+      exportText.textContent = "Recording HD Video...";
+
+      // Setup Canvas Capture Stream at 60 FPS
+      const stream = canvas.captureStream(60);
+
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : 'video/webm';
+
+      mediaRecorder = new MediaRecorder(stream, {
+        mimeType: mimeType,
+        videoBitsPerSecond: 8000000 // 8 Mbps high quality
+      });
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = isPortrait ? 'whispr-explainer-portrait-9x16.webm' : 'whispr-explainer-landscape-16x9.webm';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }, 100);
+
+        exportBtn.classList.remove('recording');
+        exportText.textContent = "Export Video (.webm)";
+        isRecording = false;
+        alert("🎉 Video generated and downloaded successfully! You can publish it directly on social media.");
+      };
+
+      mediaRecorder.start();
+      restartVideo();
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+    }
+
+    exportBtn.addEventListener('click', () => {
+      startRecording();
+    });
+
+    // Initialize
+    updateCanvasSize();
+    renderFrame(0);
+  </script>
+</body>
+</html>

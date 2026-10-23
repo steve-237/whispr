@@ -3,14 +3,14 @@ import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SwUpdate } from '@angular/service-worker';
 import { ApiService } from './core/services/api.service';
-import { TranslateService, TranslatePipe, translate } from '@ngx-translate/core';
+import { TranslateService, translate } from '@ngx-translate/core';
 import { ToastComponent } from './shared/components/toast/toast.component';
 import { ShopModalComponent } from './shared/components/shop/shop-modal.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, TranslatePipe, ToastComponent, ShopModalComponent],
+  imports: [RouterOutlet, CommonModule, ToastComponent, ShopModalComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -18,7 +18,7 @@ export class App implements OnInit {
   protected readonly title = signal('frontend');
   public isBackendReady = signal<boolean>(false);
   public isWakingUp = signal<boolean>(false);
-  private swUpdate = inject(SwUpdate);
+  private swUpdate = inject(SwUpdate, { optional: true });
 
   // Signaux de traduction
   wakeUpText = translate('APP.WAKE_UP');
@@ -30,11 +30,11 @@ export class App implements OnInit {
     this.translate.addLangs(['fr', 'en']);
     
     // Détecter la langue du navigateur
-    const browserLang = navigator.language || navigator.languages?.[0] || 'fr';
+    const browserLang = typeof navigator !== 'undefined' ? (navigator.language || navigator.languages?.[0] || 'fr') : 'fr';
     const langToUse = browserLang.toLowerCase().includes('en') ? 'en' : 'fr';
     
     // Si la langue est sauvegardée dans le localStorage, on l'utilise, sinon on prend celle du navigateur
-    const savedLang = localStorage.getItem('whispr_lang');
+    const savedLang = typeof localStorage !== 'undefined' ? localStorage.getItem('whispr_lang') : null;
     const finalLang = savedLang || langToUse;
     this.translate.setFallbackLang(finalLang);
     this.translate.use(finalLang);
@@ -44,7 +44,7 @@ export class App implements OnInit {
     this.checkBackendStatus();
     
     // Auto-reload pour PWA
-    if (this.swUpdate.isEnabled) {
+    if (this.swUpdate?.isEnabled) {
       this.swUpdate.versionUpdates.subscribe((evt) => {
         if (evt.type === 'VERSION_READY') {
           // Force le rechargement du navigateur pour utiliser la nouvelle version

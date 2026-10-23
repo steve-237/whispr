@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whispr - Official Social Media Poster</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg: #070a14;
+      --primary: #8b5cf6;
+      --pink: #ec4899;
+      --cyan: #06b6d4;
+      --emerald: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: #04060c;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      color: var(--text-main);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    button {
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(236, 72, 153, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(236, 72, 153, 0.6);
+    }
+
+    .hint-text {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* 1920x1080 Poster Container scaled down for browser preview */
+    .poster-outer {
+      position: relative;
+      box-shadow: 0 35px 70px -15px rgba(0, 0, 0, 0.9), 0 0 60px rgba(168, 85, 247, 0.15);
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .poster {
+      width: 1400px;
+      height: 788px; /* 16:9 ratio */
+      background: #080c18;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(168, 85, 247, 0.22) 0%, transparent 45%),
+        radial-gradient(circle at 85% 25%, rgba(236, 72, 153, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 50% 85%, rgba(6, 182, 212, 0.12) 0%, transparent 50%);
+      padding: 44px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient top glow border */
+    .poster::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #8b5cf6, #ec4899, #06b6d4);
+    }
+
+    /* Header */
+    .poster-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 2;
+    }
+
+    .brand-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .brand-title {
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(135deg, #ffffff 40%, #f472b6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .beta-pill {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(236, 72, 153, 0.25));
+      border: 1px solid rgba(236, 72, 153, 0.5);
+      color: #fbcfe8;
+      -webkit-text-fill-color: initial;
+    }
+
+    .brand-tagline {
+      font-size: 18px;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+
+    .header-badges {
+      display: flex;
+      gap: 10px;
+    }
+
+    .h-badge {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(10px);
+    }
+
+    .h-badge.live {
+      border-color: rgba(16, 185, 129, 0.5);
+      color: #34d399;
+    }
+
+    /* Main Showcase Area */
+    .showcase-area {
+      position: relative;
+      flex: 1;
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1200px;
+      z-index: 2;
+    }
+
+    /* Primary Mockup: Landing Screen */
+    .mockup-main {
+      width: 780px;
+      background: #0b0f1a;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 
+        0 25px 60px -10px rgba(0, 0, 0, 0.8),
+        0 0 50px rgba(168, 85, 247, 0.25);
+      overflow: hidden;
+      transform: translateX(-120px) rotateY(6deg) rotateX(2deg);
+      transition: all 0.3s;
+    }
+
+    .mockup-header {
+      background: rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .url-bar {
+      margin-left: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 4px 14px;
+      font-size: 11px;
+      color: #94a3b8;
+      width: 220px;
+    }
+
+    .mockup-main img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Secondary Mockup: Login Screen */
+    .mockup-secondary {
+      position: absolute;
+      right: 40px;
+      bottom: -10px;
+      width: 480px;
+      background: #0b0f1a;
+      border-radius: 16px;
+      border: 1px solid rgba(236, 72, 153, 0.4);
+      box-shadow: 
+        0 30px 70px -10px rgba(0, 0, 0, 0.9),
+        0 0 50px rgba(236, 72, 153, 0.3);
+      overflow: hidden;
+      transform: rotateY(-8deg) rotateX(4deg) translateZ(40px);
+      transition: all 0.3s;
+    }
+
+    .mockup-secondary img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Floating Feature Badges */
+    .floating-callout {
+      position: absolute;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 12px;
+      padding: 10px 16px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffffff;
+      z-index: 5;
+    }
+
+    .callout-1 {
+      top: 10px;
+      left: 20px;
+      border-color: rgba(168, 85, 247, 0.6);
+      background: rgba(20, 15, 38, 0.88);
+    }
+
+    .callout-2 {
+      bottom: 20px;
+      left: 120px;
+      border-color: rgba(6, 182, 212, 0.6);
+      background: rgba(10, 25, 38, 0.88);
+    }
+
+    .callout-3 {
+      top: 40px;
+      right: 20px;
+      border-color: rgba(236, 72, 153, 0.6);
+      background: rgba(38, 15, 28, 0.88);
+    }
+
+    .callout-icon {
+      font-size: 18px;
+    }
+
+    /* Footer */
+    .poster-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 2;
+    }
+
+    .footer-stack {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    .footer-stack strong {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .footer-stack .sep {
+      color: rgba(255, 255, 255, 0.2);
+    }
+
+    .footer-cta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cta-pill {
+      font-size: 13px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      color: #ffffff;
+      padding: 8px 18px;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <button id="downloadBtn">📸 Download Poster as Image (PNG HD)</button>
+    <span class="hint-text">1-Click high-resolution export ready for LinkedIn, X (Twitter), Instagram & presentations.</span>
+  </div>
+
+  <div class="poster-outer">
+    <div class="poster" id="capturePoster">
+      
+      <!-- Top Brand Header -->
+      <div class="poster-header">
+        <div class="brand-left">
+          <div class="brand-title">
+            Whispr. 🤫
+            <span class="beta-pill">✨ Beta Live</span>
+          </div>
+          <p class="brand-tagline">The Next-Generation AI-Guarded Anonymous Messaging Platform</p>
+        </div>
+
+        <div class="header-badges">
+          <div class="h-badge live">
+            <span>●</span>
+            <span>Real-Time Moderation</span>
+          </div>
+          <div class="h-badge">
+            <span>🔐</span>
+            <span>100% Privacy</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center UI Showcase with Real User Screenshots -->
+      <div class="showcase-area">
+        
+        <!-- Floating Callout 1 -->
+        <div class="floating-callout callout-1">
+          <span class="callout-icon">⚡</span>
+          <div>
+            <div>WebSockets Live Inbox</div>
+            <small style="color: #c4b5fd; font-weight: 400;">Messages arrive instantly</small>
+          </div>
+        </div>
+
+        <!-- Floating Callout 2 -->
+        <div class="floating-callout callout-2">
+          <span class="callout-icon">🔗</span>
+          <div>
+            <div>1-Click Shareable Link</div>
+            <small style="color: #67e8f9; font-weight: 400;">No account needed to send</small>
+          </div>
+        </div>
+
+        <!-- Floating Callout 3 -->
+        <div class="floating-callout callout-3">
+          <span class="callout-icon">🛡️</span>
+          <div>
+            <div>AI Moderation Guard</div>
+            <small style="color: #f472b6; font-weight: 400;">Hate speech filtered at source</small>
+          </div>
+        </div>
+
+        <!-- Main Mockup: Real Landing Page -->
+        <div class="mockup-main">
+          <div class="mockup-header">
+            <div class="dot dot-red"></div>
+            <div class="dot dot-yellow"></div>
+            <div class="dot dot-green"></div>
+            <div class="url-bar">https://whispr.me</div>
+          </div>
+          <img src="./assets/screen_home.png" alt="Whispr Landing Page Screenshot">
+        </div>
+
+        <!-- Secondary Mockup: Real Login Card -->
+        <div class="mockup-secondary">
+          <div class="mockup-header">
+            <div class="dot dot-red"></div>
+            <div class="dot dot-yellow"></div>
+            <div class="dot dot-green"></div>
+            <div class="url-bar">https://whispr.me/login</div>
+          </div>
+          <img src="./assets/screen_login.png" alt="Whispr Login Card Screenshot">
+        </div>
+
+      </div>
+
+      <!-- Bottom Tech & Action Footer -->
+      <div class="poster-footer">
+        <div class="footer-stack">
+          <strong>Architecture:</strong>
+          <span>Angular 18 (Signals)</span>
+          <span class="sep">•</span>
+          <span>Spring Boot 3 (Java 21)</span>
+          <span class="sep">•</span>
+          <span>PostgreSQL & Redis</span>
+          <span class="sep">•</span>
+          <span>PWA & i18n</span>
+        </div>
+
+        <div class="footer-cta">
+          <span style="font-size: 13px; color: #cbd5e1;">Open-Source Project</span>
+          <div class="cta-pill">Try the Demo 🚀</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const poster = document.getElementById('capturePoster');
+      html2canvas(poster, {
+        scale: 2, // 2x resolution for ultra-crisp 4K rendering
+        backgroundColor: '#04060c',
+        useCORS: true
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'whispr-official-poster-real-ui.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    });
+  </script>
+</body>
+</html>

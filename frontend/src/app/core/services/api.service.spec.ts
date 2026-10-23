@@ -1,86 +1,137 @@
-import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { ApiService, MessageDto, LinkDto } from './api.service';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { of } from 'rxjs';
+import { ApiService, MessageDto, LinkDto, VisitorAnalyticsDto, WalletDto } from './api.service';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 describe('ApiService', () => {
   let service: ApiService;
-  let httpMock: HttpTestingController;
+  let httpClientMock: any;
   const API_URL = environment.apiUrl;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [ApiService]
-    });
-    service = TestBed.inject(ApiService);
-    httpMock = TestBed.inject(HttpTestingController);
+    httpClientMock = {
+      get: vi.fn(),
+      post: vi.fn(),
+      put: vi.fn(),
+      delete: vi.fn()
+    };
+    service = new ApiService(httpClientMock as unknown as HttpClient);
   });
 
-  afterEach(() => {
-    httpMock.verify(); // S'assure qu'aucune requête HTTP inattendue n'est en cours
-  });
-
-  it('devrait être créé', () => {
+  it('devrait être initialisé correctement', () => {
     expect(service).toBeTruthy();
   });
 
   describe('sendMessage', () => {
-    it('devrait envoyer un message texte à un slug donné', () => {
+    it('devrait envoyer une requête POST avec le slug et le contenu', () => {
       const slug = 'test-slug';
-      const content = 'Un message très secret';
+      const content = 'Un message secret';
+      httpClientMock.post.mockReturnValue(of({}));
 
       service.sendMessage(slug, content).subscribe();
 
-      const req = httpMock.expectOne(`${API_URL}/messages/send/${slug}`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ content, type: 'text' });
+      expect(httpClientMock.post).toHaveBeenCalledWith(
+        `${API_URL}/messages/send/${slug}`,
+        { content, type: 'text' }
+      );
+    });
 
-      req.flush(null); // Simule une réponse vide (void) avec succès
+    it('devrait envoyer le type personnalisé si spécifié', () => {
+      const slug = 'test-slug';
+      httpClientMock.post.mockReturnValue(of({}));
+
+      service.sendMessage(slug, 'Hello', 'SUPER_WHISPR').subscribe();
+
+      expect(httpClientMock.post).toHaveBeenCalledWith(
+        `${API_URL}/messages/send/${slug}`,
+        { content: 'Hello', type: 'SUPER_WHISPR' }
+      );
     });
   });
 
   describe('getInbox', () => {
-    it('devrait récupérer la liste des messages', () => {
+    it('devrait récupérer la boîte de réception', () => {
       const mockMessages: MessageDto[] = [
-        { id: '1', content: 'Message 1', type: 'text', status: 'UNREAD', createdAt: '2023-10-10' },
-        { id: '2', content: 'Message 2', type: 'text', status: 'READ', createdAt: '2023-10-11' }
+        { id: '1', content: 'Message 1', type: 'text', status: 'UNREAD', createdAt: '2026-10-23' },
+        { id: '2', content: 'Message 2', type: 'text', status: 'READ', createdAt: '2026-10-23' }
       ];
+      httpClientMock.get.mockReturnValue(of(mockMessages));
 
-      service.getInbox().subscribe((messages) => {
-        expect(messages.length).toBe(2);
-        expect(messages).toEqual(mockMessages);
-      });
+      let result: MessageDto[] = [];
+      service.getInbox().subscribe(data => (result = data));
 
-      const req = httpMock.expectOne(`${API_URL}/messages/inbox`);
-      expect(req.request.method).toBe('GET');
-
-      req.flush(mockMessages);
+      expect(httpClientMock.get).toHaveBeenCalledWith(`${API_URL}/messages/inbox`);
+      expect(result).toEqual(mockMessages);
     });
   });
 
   describe('getLinkInfo', () => {
-    it('devrait récupérer les infos publiques du profil', () => {
+    it('devrait récupérer les informations publiques du lien', () => {
       const mockLink: LinkDto = {
         id: '123',
-        slug: 'test-slug',
+        slug: 'mon-lien',
         isActive: true,
         profileBio: 'Ma bio',
         profileAvatarUrl: '',
         profileThemeId: 'neon',
-        profileDailyQuestion: 'Posez une question'
+        profileDailyQuestion: 'Posez-moi une question'
       };
+      httpClientMock.get.mockReturnValue(of(mockLink));
 
-      service.getLinkInfo('test-slug').subscribe((link) => {
-        expect(link.slug).toBe('test-slug');
-        expect(link.profileBio).toBe('Ma bio');
-      });
+      let result: LinkDto | undefined;
+      service.getLinkInfo('mon-lien').subscribe(data => (result = data));
 
-      const req = httpMock.expectOne(`${API_URL}/links/test-slug`);
-      expect(req.request.method).toBe('GET');
-
-      req.flush(mockLink);
+      expect(httpClientMock.get).toHaveBeenCalledWith(`${API_URL}/links/mon-lien`);
+      expect(result?.slug).toBe('mon-lien');
     });
   });
 
+  describe('deleteMessage & markAsRead', () => {
+    it('devrait appeler DELETE pour supprimer un message', () => {
+      httpClientMock.delete.mockReturnValue(of(null));
+      service.deleteMessage('msg-123').subscribe();
+      expect(httpClientMock.delete).toHaveBeenCalledWith(`${API_URL}/messages/msg-123`);
+    });
+
+    it('devrait appeler PUT pour marquer un message comme lu', () => {
+      httpClientMock.put.mockReturnValue(of(null));
+      service.markAsRead('msg-123').subscribe();
+      expect(httpClientMock.put).toHaveBeenCalledWith(`${API_URL}/messages/msg-123/read`, {});
+    });
+  });
+
+  describe('Analytics & Monétisation', () => {
+    it('devrait récupérer les analytics visiteurs', () => {
+      const mockAnalytics: VisitorAnalyticsDto = {
+        totalViews: 42,
+        totalMessages: 10,
+        sources: { 'Instagram': 5 },
+        topCities: { 'Paris': 4 },
+        topCountries: { 'France': 10 }
+      };
+      httpClientMock.get.mockReturnValue(of(mockAnalytics));
+
+      let res: VisitorAnalyticsDto | undefined;
+      service.getVisitorAnalytics().subscribe(data => (res = data));
+
+      expect(httpClientMock.get).toHaveBeenCalledWith(`${API_URL}/monetization/visitor-analytics`);
+      expect(res?.totalViews).toBe(42);
+    });
+
+    it('devrait récupérer les informations du portefeuille', () => {
+      const mockWallet: WalletDto = {
+        coins: 100,
+        totalSpentEur: 4.99,
+        isPro: true
+      };
+      httpClientMock.get.mockReturnValue(of(mockWallet));
+
+      let wallet: WalletDto | undefined;
+      service.getWallet().subscribe(data => (wallet = data));
+
+      expect(httpClientMock.get).toHaveBeenCalledWith(`${API_URL}/monetization/wallet`);
+      expect(wallet?.isPro).toBe(true);
+    });
+  });
 });

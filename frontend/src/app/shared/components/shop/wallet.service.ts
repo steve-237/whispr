@@ -1,15 +1,15 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { ApiService, WalletDto } from '../../../core/services/api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WalletService {
-  private apiService = inject(ApiService);
-
   wallet = signal<WalletDto | null>(null);
   showShopModal = signal(false);
   isLoading = signal(false);
+
+  constructor(private apiService: ApiService) {}
 
   loadWallet(): void {
     this.apiService.getWallet().subscribe({
