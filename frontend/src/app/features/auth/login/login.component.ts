@@ -21,12 +21,13 @@ export class LoginComponent {
 
   onSubmit(event?: Event): void {
     if (event) event.preventDefault();
-    if (!this.email || !this.password) return;
+    const cleanEmail = this.email ? this.email.trim() : '';
+    if (!cleanEmail || !this.password) return;
     
     this.isLoading.set(true);
     this.error.set('');
 
-    this.authService.login(this.email, this.password).subscribe({
+    this.authService.login(cleanEmail, this.password).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.router.navigate(['/inbox']);
