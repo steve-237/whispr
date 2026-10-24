@@ -39,7 +39,9 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
-        if (err.error && err.error.message) {
+        if (err.status === 0 || err.status === 504) {
+          this.error.set('Le serveur de production est en cours de réveil ou temporairement inaccessible. Veuillez patienter quelques secondes et réessayer.');
+        } else if (err.error && err.error.message) {
           this.error.set(err.error.message);
         } else {
           this.error.set('REGISTER.ERROR_GENERIC');

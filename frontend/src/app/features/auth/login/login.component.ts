@@ -34,7 +34,15 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.error.set('LOGIN.ERROR_CREDENTIALS');
+        if (err.status === 0 || err.status === 504) {
+          this.error.set('Le serveur de production est en cours de réveil ou temporairement inaccessible. Veuillez réessayer dans quelques instants.');
+        } else if (err.status === 403) {
+          this.error.set('Ce compte a été suspendu.');
+        } else if (err.error && err.error.message) {
+          this.error.set(err.error.message);
+        } else {
+          this.error.set('LOGIN.ERROR_CREDENTIALS');
+        }
       }
     });
   }

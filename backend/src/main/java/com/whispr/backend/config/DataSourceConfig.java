@@ -4,10 +4,10 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 
 import javax.sql.DataSource;
 import java.net.URI;
@@ -17,26 +17,23 @@ public class DataSourceConfig {
 
     private static final Logger log = LoggerFactory.getLogger(DataSourceConfig.class);
 
-    @Value("${spring.datasource.url:}")
-    private String rawUrl;
+    private final Environment environment;
 
-    @Value("${spring.datasource.username:}")
-    private String username;
-
-    @Value("${spring.datasource.password:}")
-    private String password;
-
-    @Value("${spring.datasource.driver-class-name:}")
-    private String driverClassName;
+    public DataSourceConfig(Environment environment) {
+        this.environment = environment;
+    }
 
     @Bean
     @Primary
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
         
+        String rawUrl = getFirstConfigured("spring.datasource.url", "DATABASE_URL", "SPRING_DATASOURCE_URL");
+        String user = getFirstConfigured("spring.datasource.username", "DATABASE_USER", "SPRING_DATASOURCE_USERNAME");
+        String pass = getFirstConfigured("spring.datasource.password", "DATABASE_PASSWORD", "SPRING_DATASOURCE_PASSWORD");
+        String driverClassName = getFirstConfigured("spring.datasource.driver-class-name", "SPRING_DATASOURCE_DRIVER_CLASS_NAME");
+
         String jdbcUrl = rawUrl != null ? rawUrl.trim() : "";
-        String user = username != null ? username.trim() : "";
-        String pass = password != null ? password.trim() : "";
 
         // Support direct cloud URLs formatted as postgres:// or postgresql://
         if (!jdbcUrl.isEmpty() && (jdbcUrl.startsWith("postgres://") || jdbcUrl.startsWith("postgresql://"))) {
@@ -51,10 +48,10 @@ public class DataSourceConfig {
 
                 if (uri.getUserInfo() != null && !uri.getUserInfo().isBlank()) {
                     String[] userInfoParts = uri.getUserInfo().split(":", 2);
-                    if (user.isEmpty()) {
+                    if (user == null || user.isEmpty()) {
                         user = userInfoParts[0];
                     }
-                    if (pass.isEmpty() && userInfoParts.length > 1) {
+                    if ((pass == null || pass.isEmpty()) && userInfoParts.length > 1) {
                         pass = userInfoParts[1];
                     }
                 }
@@ -81,10 +78,10 @@ public class DataSourceConfig {
         }
 
         config.setJdbcUrl(jdbcUrl);
-        if (!user.isEmpty()) {
+        if (user != null && !user.isEmpty()) {
             config.setUsername(user);
         }
-        if (!pass.isEmpty()) {
+        if (pass != null && !pass.isEmpty()) {
             config.setPassword(pass);
         }
         if (driverClassName != null && !driverClassName.isBlank()) {
@@ -102,5 +99,15 @@ public class DataSourceConfig {
         config.setMaxLifetime(600000);
 
         return new HikariDataSource(config);
+    }
+
+    private String getFirstConfigured(String... propertyNames) {
+        for (String prop : propertyNames) {
+            String val = environment.getProperty(prop);
+            if (val != null && !val.isBlank()) {
+                return val.trim();
+            }
+        }
+        return null;
     }
 }
