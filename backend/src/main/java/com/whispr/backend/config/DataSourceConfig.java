@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 
 import javax.sql.DataSource;
-import java.net.URI;
 
 @Configuration
 public class DataSourceConfig {
@@ -35,46 +34,76 @@ public class DataSourceConfig {
 
         String jdbcUrl = rawUrl != null ? rawUrl.trim() : "";
 
+        // Fast-path for H2 in-memory test database
+        if (jdbcUrl.startsWith("jdbc:h2:")) {
+            config.setJdbcUrl(jdbcUrl);
+            config.setUsername(user != null ? user : "sa");
+            config.setPassword(pass != null ? pass : "");
+            config.setDriverClassName("org.h2.Driver");
+            return new HikariDataSource(config);
+        }
+
         // Support direct cloud URLs formatted as postgres:// or postgresql://
         if (!jdbcUrl.isEmpty() && (jdbcUrl.startsWith("postgres://") || jdbcUrl.startsWith("postgresql://"))) {
             try {
-                String cleanUrl = jdbcUrl.replace("postgres://", "http://").replace("postgresql://", "http://");
-                URI uri = new URI(cleanUrl);
+                String withoutScheme = jdbcUrl.replaceFirst("^postgres(ql)?://", "");
+                
+                int slashIndex = withoutScheme.indexOf('/');
+                int atIndex = slashIndex != -1 ? withoutScheme.substring(0, slashIndex).lastIndexOf('@') : withoutScheme.lastIndexOf('@');
 
-                String host = uri.getHost();
-                int port = uri.getPort() == -1 ? 5432 : uri.getPort();
-                String path = uri.getPath();
-                String query = uri.getQuery();
+                String hostPortDb = withoutScheme;
+                if (atIndex != -1) {
+                    String userInfo = withoutScheme.substring(0, atIndex);
+                    hostPortDb = withoutScheme.substring(atIndex + 1);
 
-                if (uri.getUserInfo() != null && !uri.getUserInfo().isBlank()) {
-                    String[] userInfoParts = uri.getUserInfo().split(":", 2);
-                    if (user == null || user.isEmpty()) {
-                        user = userInfoParts[0];
-                    }
-                    if ((pass == null || pass.isEmpty()) && userInfoParts.length > 1) {
-                        pass = userInfoParts[1];
+                    int colonIndex = userInfo.indexOf(':');
+                    if (colonIndex != -1) {
+                        if (user == null || user.isEmpty()) {
+                            user = java.net.URLDecoder.decode(userInfo.substring(0, colonIndex), java.nio.charset.StandardCharsets.UTF_8);
+                        }
+                        if (pass == null || pass.isEmpty()) {
+                            pass = java.net.URLDecoder.decode(userInfo.substring(colonIndex + 1), java.nio.charset.StandardCharsets.UTF_8);
+                        }
+                    } else if (user == null || user.isEmpty()) {
+                        user = java.net.URLDecoder.decode(userInfo, java.nio.charset.StandardCharsets.UTF_8);
                     }
                 }
 
-                jdbcUrl = "jdbc:postgresql://" + host + ":" + port + path;
-                if (query != null && !query.isBlank()) {
+                String query = "";
+                int qIndex = hostPortDb.indexOf('?');
+                if (qIndex != -1) {
+                    query = hostPortDb.substring(qIndex + 1);
+                    hostPortDb = hostPortDb.substring(0, qIndex);
+                }
+
+                // If default port is omitted (e.g. host/database)
+                if (!hostPortDb.contains(":") && hostPortDb.contains("/")) {
+                    int firstSlash = hostPortDb.indexOf('/');
+                    String hostOnly = hostPortDb.substring(0, firstSlash);
+                    String dbOnly = hostPortDb.substring(firstSlash);
+                    hostPortDb = hostOnly + ":5432" + dbOnly;
+                }
+
+                jdbcUrl = "jdbc:postgresql://" + hostPortDb;
+                if (!query.isBlank()) {
                     jdbcUrl += "?" + query;
-                    if (!jdbcUrl.contains("sslmode=")) {
-                        jdbcUrl += "&sslmode=require";
-                    }
-                } else {
-                    jdbcUrl += "?sslmode=require";
                 }
 
-                log.info("Successfully converted cloud URI to PostgreSQL JDBC URL format (host={}, port={}, database={})", host, port, path);
+                log.info("Converted cloud URI to PostgreSQL JDBC URL: {}", sanitizeUrl(jdbcUrl));
             } catch (Exception e) {
                 log.warn("Could not parse cloud PostgreSQL URI, keeping raw URL: {}", e.getMessage());
             }
         }
 
-        // Auto-append sslmode=require for non-localhost postgres URLs if missing
-        if (jdbcUrl.startsWith("jdbc:postgresql://") && !jdbcUrl.contains("localhost") && !jdbcUrl.contains("127.0.0.1") && !jdbcUrl.contains("sslmode=")) {
-            jdbcUrl += (jdbcUrl.contains("?") ? "&" : "?") + "sslmode=require";
+        // Apply sslmode=prefer for remote postgres URLs if no sslmode is specified.
+        // 'prefer' automatically uses SSL if supported (external Render, Neon, Supabase)
+        // and falls back gracefully to non-SSL on internal networks (e.g. Render internal private hostname).
+        if (jdbcUrl.startsWith("jdbc:postgresql://") 
+                && !jdbcUrl.contains("localhost") 
+                && !jdbcUrl.contains("127.0.0.1") 
+                && !jdbcUrl.contains("sslmode=")
+                && !jdbcUrl.contains("ssl=")) {
+            jdbcUrl += (jdbcUrl.contains("?") ? "&" : "?") + "sslmode=prefer";
         }
 
         config.setJdbcUrl(jdbcUrl);
@@ -90,8 +119,8 @@ public class DataSourceConfig {
             config.setDriverClassName("org.postgresql.Driver");
         }
 
-        // Connection pool resilience against hung cloud connections
-        config.setConnectionTimeout(15000); // 15 seconds max instead of 30s+
+        // Connection pool resilience against hung connections
+        config.setConnectionTimeout(15000); // 15 seconds
         config.setValidationTimeout(5000);
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(2);
@@ -109,5 +138,10 @@ public class DataSourceConfig {
             }
         }
         return null;
+    }
+
+    private String sanitizeUrl(String url) {
+        if (url == null) return "null";
+        return url.replaceAll(":[^:@/]+@", ":***@");
     }
 }
