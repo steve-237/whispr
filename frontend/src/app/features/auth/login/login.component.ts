@@ -21,19 +21,28 @@ export class LoginComponent {
 
   onSubmit(event?: Event): void {
     if (event) event.preventDefault();
-    if (!this.email || !this.password) return;
+    const cleanEmail = this.email ? this.email.trim() : '';
+    if (!cleanEmail || !this.password) return;
     
     this.isLoading.set(true);
     this.error.set('');
 
-    this.authService.login(this.email, this.password).subscribe({
+    this.authService.login(cleanEmail, this.password).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.router.navigate(['/inbox']);
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.error.set('LOGIN.ERROR_CREDENTIALS');
+        if (err.status === 0 || err.status === 504) {
+          this.error.set('Le serveur de production est en cours de réveil ou temporairement inaccessible. Veuillez réessayer dans quelques instants.');
+        } else if (err.status === 403) {
+          this.error.set('Ce compte a été suspendu.');
+        } else if (err.error && err.error.message) {
+          this.error.set(err.error.message);
+        } else {
+          this.error.set('LOGIN.ERROR_CREDENTIALS');
+        }
       }
     });
   }

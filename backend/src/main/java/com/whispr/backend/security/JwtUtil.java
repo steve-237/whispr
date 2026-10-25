@@ -13,13 +13,23 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.secret:thisIsAVerySecretKeyForWhisprAppThatMustBeAtLeast32BytesLong}")
     private String secret;
     
     private final long expiration = 86400000; // 1 day in ms
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+        byte[] keyBytes = (secret != null ? secret : "thisIsAVerySecretKeyForWhisprAppThatMustBeAtLeast32BytesLong")
+                .getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        if (keyBytes.length < 32) {
+            try {
+                java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+                keyBytes = md.digest(keyBytes);
+            } catch (java.security.NoSuchAlgorithmException e) {
+                keyBytes = java.util.Arrays.copyOf(keyBytes, 32);
+            }
+        }
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generateToken(String email, String pseudo, String role) {
