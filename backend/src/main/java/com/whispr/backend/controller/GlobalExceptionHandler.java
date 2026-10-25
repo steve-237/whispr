@@ -3,6 +3,7 @@ package com.whispr.backend.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
@@ -35,6 +36,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleAuthenticationException(AuthenticationException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("message", "Identifiants incorrects"));
+    }
+
+    @ExceptionHandler(CannotCreateTransactionException.class)
+    public ResponseEntity<Map<String, String>> handleTransactionException(CannotCreateTransactionException e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("message", "La base de données est en cours de réveil ou de reconnexion. Veuillez patienter quelques instants et réessayer."));
     }
 
     @ExceptionHandler(Exception.class)
