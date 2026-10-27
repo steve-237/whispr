@@ -95,9 +95,22 @@ public class DataSourceConfig {
             }
         }
 
-        // Apply sslmode=prefer for remote postgres URLs if no sslmode is specified.
-        // 'prefer' automatically uses SSL if supported (external Render, Neon, Supabase)
-        // and falls back gracefully to non-SSL on internal networks (e.g. Render internal private hostname).
+        // Supabase / Transaction Pooler optimization:
+        // Port 6543 uses transaction-level pooling (PgBouncer/Supavisor).
+        // Setting prepareThreshold=0 prevents "prepared statement already exists" errors in PostgreSQL JDBC.
+        if (jdbcUrl.contains(":6543") && !jdbcUrl.contains("prepareThreshold=")) {
+            jdbcUrl += (jdbcUrl.contains("?") ? "&" : "?") + "prepareThreshold=0";
+            log.info("Detected transaction pooler (port 6543): enabled prepareThreshold=0 for Supabase compatibility");
+        }
+
+        // Supabase strictly enforces SSL
+        if ((jdbcUrl.contains("supabase.co") || jdbcUrl.contains("supabase.com")) 
+                && !jdbcUrl.contains("sslmode=") 
+                && !jdbcUrl.contains("ssl=")) {
+            jdbcUrl += (jdbcUrl.contains("?") ? "&" : "?") + "sslmode=require";
+        }
+
+        // Apply sslmode=prefer for general remote postgres URLs if no sslmode is specified.
         if (jdbcUrl.startsWith("jdbc:postgresql://") 
                 && !jdbcUrl.contains("localhost") 
                 && !jdbcUrl.contains("127.0.0.1") 
