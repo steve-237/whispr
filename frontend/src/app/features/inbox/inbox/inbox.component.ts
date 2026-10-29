@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import html2canvas from 'html2canvas';
+import confetti from 'canvas-confetti';
 import { environment } from '../../../../environments/environment';
 import Chart from 'chart.js/auto';
 
@@ -112,6 +113,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.checkPaymentRedirect();
     if (!localStorage.getItem('whispr_onboarding_v1')) {
       this.showOnboarding.set(true);
     }
@@ -186,6 +188,28 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
       // Rafraîchir les stats
       this.loadStats();
     });
+  }
+
+  checkPaymentRedirect(): void {
+    if (typeof window === 'undefined') return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const payment = urlParams.get('payment');
+    if (payment === 'success') {
+      try {
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#fbbf24', '#8b5cf6', '#ec4899', '#10b981']
+        });
+      } catch (e) {}
+      this.toastService.success(this.translate.instant('SHOP.PAYMENT_SUCCESS') || 'Paiement réussi ! Vos Whispr Coins ont été crédités. 🎉');
+      this.walletService.loadWallet();
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (payment === 'cancelled') {
+      this.toastService.error(this.translate.instant('SHOP.PAYMENT_CANCELLED') || 'Paiement annulé. Aucun montant n\'a été débité.');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }
 
   enableNotifications(): void {

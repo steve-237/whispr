@@ -5,6 +5,7 @@ import com.whispr.backend.service.ClueService;
 import com.whispr.backend.service.MonetizationService;
 import com.whispr.backend.service.PayoutService;
 import com.whispr.backend.service.VisitorAnalyticsService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -26,6 +27,21 @@ public class MonetizationController {
     @GetMapping("/wallet")
     public ResponseEntity<WalletDto> getWallet(Authentication authentication) {
         return ResponseEntity.ok(monetizationService.getWalletDto(authentication.getName()));
+    }
+
+    @PostMapping("/create-checkout-session")
+    public ResponseEntity<CheckoutSessionResponse> createCheckoutSession(
+            Authentication authentication,
+            @Valid @RequestBody CreateCheckoutSessionRequest request) {
+        return ResponseEntity.ok(monetizationService.createCheckoutSession(authentication.getName(), request));
+    }
+
+    @PostMapping("/webhook")
+    public ResponseEntity<String> handleStripeWebhook(
+            @RequestBody String payload,
+            @RequestHeader(value = "Stripe-Signature", required = false) String sigHeader) {
+        monetizationService.handleWebhook(payload, sigHeader);
+        return ResponseEntity.ok("Webhook handled successfully");
     }
 
     @PostMapping("/checkout-simulate")

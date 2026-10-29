@@ -37,18 +37,32 @@ export class WalletService {
     this.showShopModal.set(false);
   }
 
-  buyPack(packId: string, onSuccess?: () => void, onError?: (err: any) => void): void {
+  buyPack(packId: string, promoCode?: string, onSuccess?: () => void, onError?: (err: any) => void): void {
     this.isLoading.set(true);
-    this.apiService.simulateCheckout(packId).subscribe({
-      next: (updatedWallet: WalletDto) => {
+    this.apiService.createCheckoutSession(packId, promoCode).subscribe({
+      next: (res: { sessionId: string, checkoutUrl: string }) => {
         this.isLoading.set(false);
-        this.wallet.set(updatedWallet);
+        if (res && res.checkoutUrl) {
+          if (typeof window !== 'undefined') {
+            window.location.href = res.checkoutUrl;
+          }
+        }
         if (onSuccess) onSuccess();
       },
       error: (err: any) => {
-        this.isLoading.set(false);
-        console.error('Erreur checkout', err);
-        if (onError) onError(err);
+        // Fallback simulateCheckout si mode hors ligne / mock
+        this.apiService.simulateCheckout(packId).subscribe({
+          next: (updatedWallet: WalletDto) => {
+            this.isLoading.set(false);
+            this.wallet.set(updatedWallet);
+            if (onSuccess) onSuccess();
+          },
+          error: (simErr: any) => {
+            this.isLoading.set(false);
+            console.error('Erreur checkout', simErr);
+            if (onError) onError(simErr);
+          }
+        });
       }
     });
   }

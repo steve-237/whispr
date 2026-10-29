@@ -198,12 +198,19 @@ import confetti from 'canvas-confetti';
                   (click)="buy('PRO_MONTHLY', 'Abonnement Whispr PRO Club activé ! 👑')" 
                   [disabled]="walletService.isLoading()"
                   class="btn" style="width: 100%; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; font-weight: 700; padding: 0.8rem; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);">
-            {{ walletService.isLoading() ? 'Validation du paiement...' : 'Passer PRO (Simulation Stripe - 4,99 €)' }}
+            {{ walletService.isLoading() ? 'Validation du paiement...' : 'Passer PRO (Stripe - 4,99 €)' }}
           </button>
           
           <div *ngIf="walletService.wallet()?.isPro" style="text-align: center; color: #10b981; font-weight: 700; font-size: 0.9rem; padding: 0.5rem; background: rgba(16, 185, 129, 0.15); border-radius: 10px;">
             ✓ Vous êtes déjà membre PRO ! (Actif jusqu'au {{ walletService.wallet()?.proExpiresAt | date:'shortDate' }})
           </div>
+        </div>
+
+                <!-- Code Promo Créateur -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); border-radius: 14px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 1.2rem;">🎟️</span>
+          <input type="text" [ngModel]="promoCodeInput()" (ngModelChange)="promoCodeInput.set($event)" placeholder="Code promo influenceur (-10%)..." style="flex: 1; background: transparent; border: none; color: white; font-size: 0.85rem; outline: none; font-weight: 600;" />
+          <span *ngIf="promoCodeInput().trim()" style="font-size: 0.75rem; color: #10b981; font-weight: 700;">-10% appliqué</span>
         </div>
 
         <!-- Section Packs de Pièces -->
@@ -268,6 +275,7 @@ import confetti from 'canvas-confetti';
 export class ShopModalComponent {
   walletService = inject(WalletService);
   toastService = inject(ToastService);
+  promoCodeInput = signal<string>("");
 
   showPayoutForm = signal(false);
   showPayoutHistory = signal(false);
@@ -336,8 +344,10 @@ export class ShopModalComponent {
   }
 
   buy(packId: string, successMsg: string): void {
+    const promo = this.promoCodeInput().trim();
     this.walletService.buyPack(
       packId,
+      promo ? promo : undefined,
       () => {
         confetti({
           particleCount: 120,
@@ -347,8 +357,8 @@ export class ShopModalComponent {
         });
         this.toastService.success(successMsg);
       },
-      (err) => {
-        this.toastService.error("Erreur lors de la simulation d'achat");
+      (err: any) => {
+        this.toastService.error("Erreur lors de l'initialisation du paiement Stripe");
       }
     );
   }
