@@ -32,7 +32,7 @@ public class MessageController {
             HttpServletRequest httpRequest) {
 
         ClientMetadata metadata = clientMetadataResolver.resolve(httpRequest);
-        messageService.sendMessage(slug.toLowerCase(), request.content(), request.type(), metadata);
+        messageService.sendMessage(slug.toLowerCase(), request, metadata);
 
         return ResponseEntity.ok().build();
     }

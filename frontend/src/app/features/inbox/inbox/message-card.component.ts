@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -38,8 +38,42 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
         </button>
       </div>
 
-      <!-- Contenu -->
-      <p style="font-size: 1.05rem; line-height: 1.6; margin: 0 4.5rem 1rem 0; color: white; word-break: break-word;" [style.font-weight]="msg.isRead ? '400' : '600'">
+      <!-- Lecteur Audio (US-07 Audio Whispr) -->
+      <div *ngIf="msg.audioUrl" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 0.8rem 1rem; margin-top: 0.5rem; margin-bottom: 0.9rem; margin-right: 4.5rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;" (click)="$event.stopPropagation()">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <button 
+            type="button"
+            (click)="toggleAudioPlay()" 
+            style="width: 42px; height: 42px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4); flex-shrink: 0;">
+            <span *ngIf="!isPlayingAudio">▶️</span>
+            <span *ngIf="isPlayingAudio">⏸️</span>
+          </button>
+
+          <div>
+            <div style="font-weight: 700; font-size: 0.9rem; color: white; display: flex; align-items: center; gap: 0.4rem;">
+              <span>🎙️ Mémo vocal anonyme</span>
+              <span *ngIf="msg.voiceFilter" style="background: rgba(255,255,255,0.08); font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 8px; color: #fbbf24;">
+                {{ msg.voiceFilter === 'ROBOT' ? '🤖 Robot' : (msg.voiceFilter === 'HELIUM' ? '🎈 Hélium' : (msg.voiceFilter === 'DEEP' ? '👹 Grave' : '🎙️ Normal')) }}
+              </span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--color-text-muted); display: flex; align-items: center; gap: 0.4rem;">
+              <span>⏱️ {{ (msg.audioDurationSeconds || 5) }}s</span>
+              <span *ngIf="isPlayingAudio" style="color: #10b981;">• En cours de lecture...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Animation equalizer -->
+        <div *ngIf="isPlayingAudio" style="display: flex; align-items: flex-end; gap: 3px; height: 18px;">
+          <span style="display: inline-block; width: 3px; height: 16px; background: #8b5cf6; border-radius: 2px;"></span>
+          <span style="display: inline-block; width: 3px; height: 10px; background: #ec4899; border-radius: 2px;"></span>
+          <span style="display: inline-block; width: 3px; height: 18px; background: #fbbf24; border-radius: 2px;"></span>
+          <span style="display: inline-block; width: 3px; height: 12px; background: #10b981; border-radius: 2px;"></span>
+        </div>
+      </div>
+
+      <!-- Contenu Texte -->
+      <p *ngIf="!msg.audioUrl || (msg.content && !msg.content.startsWith('🎙️'))" style="font-size: 1.05rem; line-height: 1.6; margin: 0 4.5rem 1rem 0; color: white; word-break: break-word;" [style.font-weight]="msg.isRead ? '400' : '600'">
         "{{ msg.content }}"
       </p>
 
@@ -119,7 +153,7 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
     </div>
   `
 })
-export class MessageCardComponent {
+export class MessageCardComponent implements OnDestroy {
   @Input({ required: true }) msg!: MessageDto;
   @Input() isOpenedClues = false;
   @Input() clues: ClueResponseDto[] = [];
@@ -135,4 +169,53 @@ export class MessageCardComponent {
   @Output() unlock = new EventEmitter<{ msgId: string; clueType: string }>();
   @Output() replyChange = new EventEmitter<string>();
   @Output() capture = new EventEmitter<MessageDto>();
+
+  isPlayingAudio = false;
+  private audioInstance: HTMLAudioElement | null = null;
+
+  ngOnDestroy(): void {
+    this.stopAudio();
+  }
+
+  toggleAudioPlay(): void {
+    if (!this.msg?.audioUrl) return;
+
+    if (this.isPlayingAudio) {
+      this.pauseAudio();
+      return;
+    }
+
+    if (!this.audioInstance) {
+      this.audioInstance = new Audio(this.msg.audioUrl);
+      this.audioInstance.onended = () => {
+        this.isPlayingAudio = false;
+      };
+      this.audioInstance.onerror = () => {
+        this.isPlayingAudio = false;
+      };
+    }
+
+    this.audioInstance.play().then(() => {
+      this.isPlayingAudio = true;
+    }).catch(e => {
+      console.warn("Erreur lecture audio:", e);
+      this.isPlayingAudio = false;
+    });
+  }
+
+  pauseAudio(): void {
+    if (this.audioInstance) {
+      this.audioInstance.pause();
+    }
+    this.isPlayingAudio = false;
+  }
+
+  private stopAudio(): void {
+    if (this.audioInstance) {
+      this.audioInstance.pause();
+      this.audioInstance.currentTime = 0;
+      this.audioInstance = null;
+    }
+    this.isPlayingAudio = false;
+  }
 }

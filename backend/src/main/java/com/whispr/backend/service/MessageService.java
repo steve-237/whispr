@@ -5,6 +5,7 @@ import com.whispr.backend.domain.Link;
 import com.whispr.backend.domain.Message;
 import com.whispr.backend.domain.User;
 import com.whispr.backend.dto.MessageDto;
+import com.whispr.backend.dto.MessageSendRequest;
 import com.whispr.backend.repository.AuditLogRepository;
 import com.whispr.backend.repository.LinkRepository;
 import com.whispr.backend.repository.MessageRepository;
@@ -37,6 +38,24 @@ public class MessageService {
     private final BlockedSenderService blockedSenderService;
 
     @Transactional
+    public Message sendMessage(String slug, MessageSendRequest request, ClientMetadata metadata) {
+        return sendMessage(
+                slug,
+                request.content(),
+                request.type(),
+                request.audioUrl(),
+                request.audioDurationSeconds(),
+                request.voiceFilter(),
+                metadata.hashedIp(),
+                metadata.rawIp(),
+                metadata.userAgent(),
+                metadata.country(),
+                metadata.city(),
+                metadata.referrer()
+        );
+    }
+
+    @Transactional
     public Message sendMessage(String slug, String content, String type, ClientMetadata metadata) {
         return sendMessage(
                 slug,
@@ -53,6 +72,11 @@ public class MessageService {
 
     @Transactional
     public Message sendMessage(String slug, String content, String type, String hashedIp, String rawIp, String userAgent, String country, String city, String referrer) {
+        return sendMessage(slug, content, type, null, null, null, hashedIp, rawIp, userAgent, country, city, referrer);
+    }
+
+    @Transactional
+    public Message sendMessage(String slug, String content, String type, String audioUrl, Integer audioDurationSeconds, String voiceFilter, String hashedIp, String rawIp, String userAgent, String country, String city, String referrer) {
         if (moderationService != null && moderationService.isToxic(content)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Votre message enfreint nos règles de bienveillance et a été bloqué.");
         }
@@ -86,13 +110,28 @@ public class MessageService {
         String sentiment = aiSentimentService.analyzeSentiment(content);
 
         // 2. Sauvegarde du Message
-        String finalType = (type != null && type.equalsIgnoreCase("SUPER_WHISPR")) ? "SUPER_WHISPR" : "text";
+        String finalType;
+        if ((audioUrl != null && !audioUrl.isBlank()) || "AUDIO".equalsIgnoreCase(type)) {
+            finalType = "AUDIO";
+            if (content == null || content.isBlank()) {
+                String filterLabel = (voiceFilter != null) ? voiceFilter : "NORMAL";
+                content = "🎙️ Mémo vocal (" + filterLabel + ")";
+            }
+        } else if (type != null && type.equalsIgnoreCase("SUPER_WHISPR")) {
+            finalType = "SUPER_WHISPR";
+        } else {
+            finalType = "text";
+        }
+
         Message message = Message.builder()
                 .link(link)
                 .content(content)
                 .type(finalType)
                 .status("UNREAD")
                 .aiCategory(sentiment)
+                .audioUrl(audioUrl)
+                .audioDurationSeconds(audioDurationSeconds)
+                .voiceFilter(voiceFilter)
                 .build();
         message = messageRepository.save(message);
 

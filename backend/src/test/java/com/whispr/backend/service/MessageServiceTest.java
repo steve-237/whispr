@@ -238,4 +238,26 @@ class MessageServiceTest {
         verify(auditLogRepository, never()).save(any());
         verify(messagingTemplate, never()).convertAndSend(anyString(), any(Object.class));
     }
+    @Test
+    void sendMessage_WithAudio_ShouldSaveAudioUrlAndDuration() {
+        when(linkRepository.findBySlug("test-slug")).thenReturn(Optional.of(mockLink));
+        when(messageRepository.save(any(Message.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        com.whispr.backend.dto.MessageSendRequest req = new com.whispr.backend.dto.MessageSendRequest(
+                "", "AUDIO", "data:audio/webm;base64,GkXfo59ChoEBQveBAULygQRC...", 8, "ROBOT"
+        );
+        com.whispr.backend.util.ClientMetadata metadata = new com.whispr.backend.util.ClientMetadata(
+                "hash123", "192.168.1.1", "Mozilla", "France", "Paris", "direct"
+        );
+
+        Message result = messageService.sendMessage("test-slug", req, metadata);
+
+        assertNotNull(result);
+        assertEquals("AUDIO", result.getType());
+        assertEquals("data:audio/webm;base64,GkXfo59ChoEBQveBAULygQRC...", result.getAudioUrl());
+        assertEquals(8, result.getAudioDurationSeconds());
+        assertEquals("ROBOT", result.getVoiceFilter());
+        assertTrue(result.getContent().contains("ROBOT"));
+        verify(messageRepository, times(1)).save(any(Message.class));
+    }
 }
