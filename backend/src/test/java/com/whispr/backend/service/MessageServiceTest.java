@@ -53,6 +53,8 @@ class MessageServiceTest {
 
     @Mock
     private SimpMessagingTemplate messagingTemplate;
+    @Mock
+    private BlockedSenderService blockedSenderService;
 
     @InjectMocks
     private MessageService messageService;
@@ -220,5 +222,20 @@ class MessageServiceTest {
         assertTrue(message.isRead());
         assertEquals("READ", message.getStatus());
         verify(messageRepository, times(1)).save(message);
+    }
+
+    @Test
+    void sendMessage_WhenSenderIsBlocked_ShouldReturnSimulatedMessageWithoutSavingOrPushing() {
+        when(linkRepository.findBySlug("test-slug")).thenReturn(Optional.of(mockLink));
+        when(blockedSenderService.isSenderBlocked(mockUser.getId(), "blocked-hash-123")).thenReturn(true);
+
+        Message result = messageService.sendMessage("test-slug", "Toxic harassment message", "text",
+                "blocked-hash-123", "192.168.1.1", "Mozilla", "France", "Paris", "direct");
+
+        assertNotNull(result);
+        assertEquals("DELIVERED", result.getStatus());
+        verify(messageRepository, never()).save(any());
+        verify(auditLogRepository, never()).save(any());
+        verify(messagingTemplate, never()).convertAndSend(anyString(), any(Object.class));
     }
 }

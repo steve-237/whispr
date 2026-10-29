@@ -19,7 +19,7 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
          (click)="markRead.emit(msg)">
       
       <!-- Badge SUPER WHISPR -->
-      <div *ngIf="msg.type === 'SUPER_WHISPR'" style="position: absolute; top: -10px; right: 50px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #000; padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4); display: flex; align-items: center; gap: 0.3rem;">
+      <div *ngIf="msg.type === 'SUPER_WHISPR'" style="position: absolute; top: -10px; right: 80px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #000; padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4); display: flex; align-items: center; gap: 0.3rem;">
         ⭐ SUPER WHISPR
       </div>
 
@@ -28,13 +28,18 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
         {{ 'INBOX.MSG_BADGE' | translate }}
       </div>
 
-      <!-- Supprimer -->
-      <button (click)="delete.emit(msg.id); $event.stopPropagation()" style="position: absolute; top: 0.75rem; right: 0.75rem; background: rgba(0,0,0,0.15); border: none; color: var(--color-text-muted); padding: 0.35rem; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Supprimer">
-        <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-      </button>
+      <!-- Actions: Bloquer & Supprimer -->
+      <div style="position: absolute; top: 0.75rem; right: 0.75rem; display: flex; gap: 0.4rem; align-items: center;">
+        <button (click)="block.emit(msg.id); $event.stopPropagation()" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 0.8rem;" title="Bloquer cet expéditeur (Shadowban)">
+          🚫
+        </button>
+        <button (click)="delete.emit(msg.id); $event.stopPropagation()" style="background: rgba(0,0,0,0.15); border: none; color: var(--color-text-muted); padding: 0.35rem; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Supprimer">
+          <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        </button>
+      </div>
 
       <!-- Contenu -->
-      <p style="font-size: 1.05rem; line-height: 1.6; margin: 0 2rem 1rem 0; color: white; word-break: break-word;" [style.font-weight]="msg.isRead ? '400' : '600'">
+      <p style="font-size: 1.05rem; line-height: 1.6; margin: 0 4.5rem 1rem 0; color: white; word-break: break-word;" [style.font-weight]="msg.isRead ? '400' : '600'">
         "{{ msg.content }}"
       </p>
 
@@ -125,6 +130,7 @@ export class MessageCardComponent {
 
   @Output() markRead = new EventEmitter<MessageDto>();
   @Output() delete = new EventEmitter<string>();
+  @Output() block = new EventEmitter<string>();
   @Output() toggleClues = new EventEmitter<string>();
   @Output() unlock = new EventEmitter<{ msgId: string; clueType: string }>();
   @Output() replyChange = new EventEmitter<string>();

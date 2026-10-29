@@ -191,7 +191,14 @@
     <!-- MESSAGES HEADER -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0 0.25rem;">
       <h2 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: white;">{{ 'INBOX.MESSAGES_TITLE' | translate }}</h2>
-      <span style="background: rgba(255,255,255,0.08); padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: var(--color-text-muted);">{{ messages().length }}</span>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <button *ngIf="blockedSenders().length > 0" 
+                (click)="toggleBlockedModal()" 
+                style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+          🛡️ {{ blockedSenders().length }} bloqué(s)
+        </button>
+        <span style="background: rgba(255,255,255,0.08); padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: var(--color-text-muted);">{{ messages().length }}</span>
+      </div>
     </div>
 
     <!-- BOÎTE VIDE -->
@@ -216,6 +223,7 @@
         [isPro]="walletService.wallet()?.isPro || false"
         (markRead)="markAsRead($event)"
         (delete)="openDeleteModal($event)"
+        (block)="openBlockModal($event)"
         (toggleClues)="toggleClues($event)"
         (unlock)="unlockClue($event.msgId, $event.clueType)"
         (replyChange)="updateReplyText(msg.id, $event)"
@@ -235,6 +243,58 @@
       <div style="display: flex; flex-direction: column; gap: 0.6rem;">
         <button (click)="confirmDelete()" [disabled]="isDeleting()" style="width: 100%; background: #ef4444; border: none; border-radius: 12px; padding: 0.85rem; font-weight: 700; color: white; cursor: pointer; font-size: 0.95rem;">{{ 'INBOX.DELETE_BTN_CONFIRM' | translate }}</button>
         <button (click)="cancelDelete()" [disabled]="isDeleting()" style="width: 100%; border-radius: 12px; padding: 0.85rem; font-weight: 600; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: white; cursor: pointer; font-size: 0.95rem;">{{ 'INBOX.DELETE_BTN_CANCEL' | translate }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMATION BLOCAGE EXPÉDITEUR (US-08) -->
+  <div *ngIf="messageToBlock()" class="animate-fade-in" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 1rem;" (click)="cancelBlock()">
+    <div style="background: #1e293b; border: 1px solid rgba(239, 68, 68, 0.4); max-width: 380px; width: 100%; padding: 2rem 1.5rem; text-align: center; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);" (click)="$event.stopPropagation()">
+      <div style="width: 52px; height: 52px; background: rgba(239, 68, 68, 0.15); color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto; font-size: 1.5rem;">
+        🚫
+      </div>
+      <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 800; color: white;">Bloquer cet expéditeur ?</h3>
+      <p style="color: var(--color-text-muted); font-size: 0.85rem; line-height: 1.5; margin: 0 0 1.5rem 0;">
+        Cet expéditeur sera placé en <strong>Shadowban</strong> : ses futurs messages seront silencieusement ignorés sans qu'il ne s'en aperçoive. Le message actuel sera également retiré.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+        <button (click)="confirmBlock()" [disabled]="isBlocking()" style="width: 100%; background: #ef4444; border: none; border-radius: 12px; padding: 0.85rem; font-weight: 700; color: white; cursor: pointer; font-size: 0.95rem;">
+          {{ isBlocking() ? 'Blocage en cours...' : 'Confirmer le blocage 🛡️' }}
+        </button>
+        <button (click)="cancelBlock()" [disabled]="isBlocking()" style="width: 100%; border-radius: 12px; padding: 0.85rem; font-weight: 600; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: white; cursor: pointer; font-size: 0.95rem;">
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL GESTION DES EXPÉDITEURS BLOQUÉS -->
+  <div *ngIf="showBlockedModal()" class="animate-fade-in" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 1rem;" (click)="showBlockedModal.set(false)">
+    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1); max-width: 420px; width: 100%; padding: 1.75rem; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);" (click)="$event.stopPropagation()">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 0.4rem;">
+          <span>🛡️</span> Expéditeurs bloqués
+        </h3>
+        <button (click)="showBlockedModal.set(false)" style="background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">✕</button>
+      </div>
+      <p style="color: var(--color-text-muted); font-size: 0.8rem; margin-bottom: 1rem;">
+        Ces expéditeurs ne peuvent plus vous contacter. Vous pouvez les débloquer à tout moment.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 0.6rem; max-height: 240px; overflow-y: auto;">
+        <div *ngFor="let b of blockedSenders()" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 0.6rem 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="color: white; font-weight: 700; font-size: 0.85rem;">{{ b.displayName }}</div>
+            <div style="color: var(--color-text-muted); font-size: 0.7rem;">{{ b.createdAt | date:'shortDate' }}</div>
+          </div>
+          <button (click)="unblock(b.id)" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; font-size: 0.75rem; font-weight: 700; padding: 0.35rem 0.65rem; border-radius: 8px; cursor: pointer;">
+            Débloquer
+          </button>
+        </div>
+
+        <div *ngIf="blockedSenders().length === 0" style="text-align: center; color: var(--color-text-muted); font-size: 0.85rem; padding: 1.5rem;">
+          Aucun expéditeur bloqué pour le moment.
+        </div>
       </div>
     </div>
   </div>

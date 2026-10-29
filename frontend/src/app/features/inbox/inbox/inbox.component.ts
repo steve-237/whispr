@@ -16,7 +16,7 @@ import { ProfileCustomizerComponent } from './profile-customizer.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Title } from '@angular/platform-browser';
 import { WalletService } from '../../../shared/components/shop/wallet.service';
-import { ClueResponseDto, AdvertisementDto, VisitorAnalyticsDto } from '../../../core/services/api.service';
+import { ClueResponseDto, AdvertisementDto, VisitorAnalyticsDto, BlockedSenderDto } from '../../../core/services/api.service';
 
 @Component({
   selector: 'app-inbox',
@@ -39,6 +39,10 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   error = signal('');
   pseudo = signal('');
   messageToDelete = signal<string | null>(null);
+  messageToBlock = signal<string | null>(null);
+  isBlocking = signal(false);
+  blockedSenders = signal<BlockedSenderDto[]>([]);
+  showBlockedModal = signal(false);
   isDeleting = signal(false);
   isCopied = signal(false);
 
@@ -115,6 +119,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadStats();
     this.loadVisitorAnalytics();
     this.loadAds();
+    this.loadBlockedSenders();
     this.initWebSocket();
   }
 
@@ -425,6 +430,56 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
         this.messageToDelete.set(null);
       }
     });
+  }
+
+  openBlockModal(id: string): void {
+    this.messageToBlock.set(id);
+  }
+
+  cancelBlock(): void {
+    this.messageToBlock.set(null);
+  }
+
+  confirmBlock(): void {
+    const id = this.messageToBlock();
+    if (!id) return;
+
+    this.isBlocking.set(true);
+    this.apiService.blockSender(id).subscribe({
+      next: () => {
+        this.isBlocking.set(false);
+        this.messageToBlock.set(null);
+        const currentMessages = this.messages();
+        this.messages.set(currentMessages.filter(m => m.id !== id));
+        this.toastService.success('Expéditeur bloqué. Ses futurs messages seront silencieusement rejetés ! 🛡️');
+        this.loadBlockedSenders();
+      },
+      error: (err) => {
+        this.isBlocking.set(false);
+        this.toastService.error(err?.error?.message || 'Erreur lors du blocage.');
+      }
+    });
+  }
+
+  loadBlockedSenders(): void {
+    this.apiService.getBlockedSenders().subscribe({
+      next: (data) => this.blockedSenders.set(data),
+      error: (err) => console.error('Erreur chargement expéditeurs bloqués', err)
+    });
+  }
+
+  unblock(blockId: string): void {
+    this.apiService.unblockSender(blockId).subscribe({
+      next: () => {
+        this.toastService.success('Expéditeur débloqué.');
+        this.loadBlockedSenders();
+      },
+      error: () => this.toastService.error('Erreur lors du déblocage.')
+    });
+  }
+
+  toggleBlockedModal(): void {
+    this.showBlockedModal.update(v => !v);
   }
 
   markAsRead(msg: MessageDto): void {
