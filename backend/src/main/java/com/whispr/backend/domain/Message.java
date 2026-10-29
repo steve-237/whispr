@@ -45,6 +45,15 @@ public class Message {
     @Column(name = "toxicity_score", precision = 5, scale = 4)
     private BigDecimal toxicityScore;
 
+    @Column(name = "audio_url", columnDefinition = "TEXT")
+    private String audioUrl;
+
+    @Column(name = "audio_duration_seconds")
+    private Integer audioDurationSeconds;
+
+    @Column(name = "voice_filter", length = 50)
+    private String voiceFilter;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private ZonedDateTime createdAt;
@@ -56,4 +65,3 @@ public class Message {
     @OneToOne(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
     private AuditLog auditLog;
 }
-

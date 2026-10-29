@@ -11,6 +11,7 @@ describe('MessageCardComponent', () => {
     expect(comp.replyText).toBe('');
     expect(comp.isCapturing).toBe(false);
     expect(comp.isPro).toBe(false);
+    expect(comp.isPlayingAudio).toBe(false);
   });
 
   it('devrait accepter un input msg', () => {
@@ -20,11 +21,23 @@ describe('MessageCardComponent', () => {
       content: 'Secret hello',
       createdAt: '2026-10-23T20:00:00Z',
       isRead: false,
-      type: 'SUPER_WHISPR'
+      type: 'SUPER_WHISPR',
+      audioUrl: 'data:audio/wav;base64,UklGRg==',
+      audioDurationSeconds: 7,
+      voiceFilter: 'ROBOT'
     };
     comp.msg = mockMsg;
 
     expect(comp.msg.id).toBe('test-1');
     expect(comp.msg.type).toBe('SUPER_WHISPR');
+    expect(comp.msg.audioDurationSeconds).toBe(7);
+    expect(comp.msg.voiceFilter).toBe('ROBOT');
+  });
+
+  it('devrait gérer la pause audio', () => {
+    const comp = new MessageCardComponent();
+    comp.isPlayingAudio = true;
+    comp.pauseAudio();
+    expect(comp.isPlayingAudio).toBe(false);
   });
 });

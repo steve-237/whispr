@@ -32,11 +32,11 @@
         <p style="color: var(--color-text-muted);">{{ 'PUBLIC_PROFILE.SUCCESS_DESC' | translate }}</p>
         
         <div *ngIf="slug() === 'demo'" style="margin-top: 2rem; padding: 1.5rem; background: rgba(var(--color-primary-rgb), 0.1); border-radius: var(--radius-md); border: 1px solid rgba(var(--color-primary-rgb), 0.2);">
-          <h4 style="color: white; margin-bottom: 0.5rem;">{{ translate.currentLang() === 'fr' ? 'C\\'était un message de démo !' : 'That was a demo message!' }}</h4>
+          <h4 style="color: white; margin-bottom: 0.5rem;">{{ translate.currentLang() === 'fr' ? 'C\'était un message de démo !' : 'That was a demo message!' }}</h4>
           <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">{{ translate.currentLang() === 'fr' ? 'Voulez-vous voir à quoi ressemble la boîte de réception et comment votre message y apparaît ?' : 'Do you want to see what the inbox looks like and how your message appears there?' }}</p>
           <button class="btn btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem;" (click)="loginToDemo()" [disabled]="isLoggingIn()">
             <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-            {{ isLoggingIn() ? (translate.currentLang() === 'fr' ? 'Connexion en cours...' : 'Logging in...') : (translate.currentLang() === 'fr' ? 'Ouvrir l\\'Inbox de Démo' : 'Open Demo Inbox') }}
+            {{ isLoggingIn() ? (translate.currentLang() === 'fr' ? 'Connexion en cours...' : 'Logging in...') : (translate.currentLang() === 'fr' ? 'Ouvrir l\'Inbox de Démo' : 'Open Demo Inbox') }}
           </button>
         </div>
 
@@ -53,19 +53,149 @@
       </div>
 
       <div *ngIf="!isSent()">
-        <textarea 
-          [ngModel]="messageContent()"
-          (ngModelChange)="messageContent.set($event)"
-          rows="4" 
-          maxlength="500"
-          [placeholder]="'PUBLIC_PROFILE.TEXTAREA_PLACEHOLDER' | translate"
-          style="width: 100%; padding: 0.875rem; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); color: white; font-family: var(--font-family-base); font-size: 16px; resize: vertical; margin-bottom: 0.5rem; outline: none; transition: border-color 0.2s;"
-          onfocus="this.style.borderColor='var(--color-primary)'"
-          onblur="this.style.borderColor='var(--color-border)'"></textarea>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem;">
-          <span>{{ translate.currentLang() === 'fr' ? '🔒 100% Anonyme • Protégé par IA' : '🔒 100% Anonymous • AI Protected' }}</span>
-          <span>{{ messageContent().length }}/500</span>
+        <!-- Onglets Choix du Format : Texte vs Audio Déformé -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; background: rgba(0,0,0,0.25); padding: 0.3rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+          <button 
+            type="button"
+            (click)="setInputMode('TEXT')" 
+            [style.background]="inputMode() === 'TEXT' ? 'var(--color-primary)' : 'transparent'"
+            [style.color]="inputMode() === 'TEXT' ? '#fff' : 'var(--color-text-muted)'"
+            style="flex: 1; border: none; padding: 0.5rem; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+            <span>✍️</span>
+            <span>{{ translate.currentLang() === 'fr' ? 'Message Texte' : 'Text Message' }}</span>
+          </button>
+          <button 
+            type="button"
+            (click)="setInputMode('AUDIO')" 
+            [style.background]="inputMode() === 'AUDIO' ? 'linear-gradient(135deg, #ec4899, #8b5cf6)' : 'transparent'"
+            [style.color]="inputMode() === 'AUDIO' ? '#fff' : 'var(--color-text-muted)'"
+            style="flex: 1; border: none; padding: 0.5rem; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+            <span>🎙️</span>
+            <span>{{ translate.currentLang() === 'fr' ? 'Mémo Vocal Déformé' : 'Distorted Voice Note' }}</span>
+          </button>
+        </div>
+
+        <!-- Formulaire TEXTE -->
+        <div *ngIf="inputMode() === 'TEXT'">
+          <textarea 
+            [ngModel]="messageContent()"
+            (ngModelChange)="messageContent.set($event)"
+            rows="4" 
+            maxlength="500"
+            [placeholder]="'PUBLIC_PROFILE.TEXTAREA_PLACEHOLDER' | translate"
+            style="width: 100%; box-sizing: border-box; padding: 0.875rem; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border); color: white; font-family: var(--font-family-base); font-size: 16px; resize: vertical; margin-bottom: 0.5rem; outline: none; transition: border-color 0.2s;"
+            onfocus="this.style.borderColor='var(--color-primary)'"
+            onblur="this.style.borderColor='var(--color-border)'"></textarea>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem;">
+            <span>{{ translate.currentLang() === 'fr' ? '🔒 100% Anonyme • Protégé par IA' : '🔒 100% Anonymous • AI Protected' }}</span>
+            <span>{{ messageContent().length }}/500</span>
+          </div>
+        </div>
+
+        <!-- Formulaire AUDIO (US-07) -->
+        <div *ngIf="inputMode() === 'AUDIO'" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem;">
+          <!-- Sélecteur de filtres de voix -->
+          <div style="margin-bottom: 1rem;">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.5rem;">
+              {{ translate.currentLang() === 'fr' ? '🎭 Choisissez votre voix anonyme :' : '🎭 Choose your anonymous voice:' }}
+            </label>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem;">
+              <button 
+                type="button"
+                (click)="changeFilter('ROBOT')"
+                [style.background]="selectedFilter() === 'ROBOT' ? 'rgba(139, 92, 246, 0.3)' : 'rgba(255,255,255,0.04)'"
+                [style.border-color]="selectedFilter() === 'ROBOT' ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)'"
+                style="border: 1px solid; border-radius: 10px; padding: 0.5rem 0.25rem; text-align: center; cursor: pointer; color: white; transition: all 0.2s;">
+                <div style="font-size: 1.2rem;">🤖</div>
+                <div style="font-size: 0.7rem; font-weight: 700;">Robot</div>
+              </button>
+              <button 
+                type="button"
+                (click)="changeFilter('HELIUM')"
+                [style.background]="selectedFilter() === 'HELIUM' ? 'rgba(236, 72, 153, 0.3)' : 'rgba(255,255,255,0.04)'"
+                [style.border-color]="selectedFilter() === 'HELIUM' ? '#ec4899' : 'rgba(255,255,255,0.1)'"
+                style="border: 1px solid; border-radius: 10px; padding: 0.5rem 0.25rem; text-align: center; cursor: pointer; color: white; transition: all 0.2s;">
+                <div style="font-size: 1.2rem;">🎈</div>
+                <div style="font-size: 0.7rem; font-weight: 700;">Hélium</div>
+              </button>
+              <button 
+                type="button"
+                (click)="changeFilter('DEEP')"
+                [style.background]="selectedFilter() === 'DEEP' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.04)'"
+                [style.border-color]="selectedFilter() === 'DEEP' ? '#10b981' : 'rgba(255,255,255,0.1)'"
+                style="border: 1px solid; border-radius: 10px; padding: 0.5rem 0.25rem; text-align: center; cursor: pointer; color: white; transition: all 0.2s;">
+                <div style="font-size: 1.2rem;">👹</div>
+                <div style="font-size: 0.7rem; font-weight: 700;">Grave</div>
+              </button>
+              <button 
+                type="button"
+                (click)="changeFilter('NORMAL')"
+                [style.background]="selectedFilter() === 'NORMAL' ? 'rgba(251, 191, 36, 0.3)' : 'rgba(255,255,255,0.04)'"
+                [style.border-color]="selectedFilter() === 'NORMAL' ? '#fbbf24' : 'rgba(255,255,255,0.1)'"
+                style="border: 1px solid; border-radius: 10px; padding: 0.5rem 0.25rem; text-align: center; cursor: pointer; color: white; transition: all 0.2s;">
+                <div style="font-size: 1.2rem;">🎙️</div>
+                <div style="font-size: 0.7rem; font-weight: 700;">Normal</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- État 1: Non enregistré -->
+          <div *ngIf="!rawAudioBlob()" style="text-align: center; padding: 1rem 0;">
+            <div style="margin-bottom: 1rem; position: relative; display: inline-block;">
+              <button 
+                type="button"
+                (click)="isRecording() ? stopAudioRecording() : startAudioRecording()"
+                [style.background]="isRecording() ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, var(--color-primary), var(--color-accent))'"
+                [style.box-shadow]="isRecording() ? '0 0 25px rgba(239, 68, 68, 0.6)' : '0 4px 15px rgba(139, 92, 246, 0.4)'"
+                style="width: 72px; height: 72px; border-radius: 50%; border: none; color: white; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto; transition: all 0.2s;">
+                <span *ngIf="!isRecording()">🎙️</span>
+                <span *ngIf="isRecording()" style="display: inline-block; width: 22px; height: 22px; background: white; border-radius: 4px;"></span>
+              </button>
+            </div>
+
+            <div *ngIf="isRecording()" style="color: #ef4444; font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+              <span style="display: inline-block; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; animation: pulse 1s infinite;"></span>
+              <span>0:{{ recordingSeconds() < 10 ? '0' + recordingSeconds() : recordingSeconds() }} / 0:10</span>
+            </div>
+            <div *ngIf="!isRecording()" style="font-size: 0.85rem; color: var(--color-text-muted);">
+              {{ translate.currentLang() === 'fr' ? 'Appuyez sur le micro pour enregistrer (10s max)' : 'Tap microphone to record (10s max)' }}
+            </div>
+          </div>
+
+          <!-- État 2: Audio capturé & Prévisualisation -->
+          <div *ngIf="rawAudioBlob()" class="animate-fade-in" style="background: rgba(255,255,255,0.04); border-radius: 12px; padding: 1rem; border: 1px solid rgba(255,255,255,0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.2rem;">
+                  {{ selectedFilter() === 'ROBOT' ? '🤖' : (selectedFilter() === 'HELIUM' ? '🎈' : (selectedFilter() === 'DEEP' ? '👹' : '🎙️')) }}
+                </span>
+                <span style="font-weight: 700; font-size: 0.9rem; color: white;">
+                  {{ translate.currentLang() === 'fr' ? 'Mémo prêt (' + recordedDuration() + 's)' : 'Audio note ready (' + recordedDuration() + 's)' }}
+                </span>
+              </div>
+              <button 
+                type="button"
+                (click)="cancelOrResetAudio()" 
+                style="background: transparent; border: none; color: #ef4444; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
+                ✕ {{ translate.currentLang() === 'fr' ? 'Recommencer' : 'Retake' }}
+              </button>
+            </div>
+
+            <!-- Bouton Écouter le filtre -->
+            <button 
+              type="button"
+              (click)="togglePreviewAudio()" 
+              [disabled]="isProcessingFilter()"
+              style="width: 100%; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.4); color: white; padding: 0.7rem; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <span *ngIf="!isPlayingPreview()">▶️ {{ translate.currentLang() === 'fr' ? 'Écouter la voix déformée' : 'Play distorted preview' }}</span>
+              <span *ngIf="isPlayingPreview()">⏸️ {{ translate.currentLang() === 'fr' ? 'Pause' : 'Pause' }}</span>
+            </button>
+            
+            <div style="font-size: 0.75rem; color: #10b981; text-align: center;">
+              ✓ {{ translate.currentLang() === 'fr' ? 'Voix anonymisée avec succès !' : 'Voice successfully anonymized!' }}
+            </div>
+          </div>
         </div>
 
         <!-- Option Booster en Super Whispr ⭐ -->
@@ -95,7 +225,7 @@
           [style.font-weight]="isSuperWhispr() ? '800' : '700'"
           style="width: 100%; font-size: 1.1rem; padding: 1rem;" 
           (click)="sendMessage()" 
-          [disabled]="isSending() || !messageContent().trim()">
+          [disabled]="isSending() || (inputMode() === 'TEXT' ? !messageContent().trim() : !processedAudioBase64())">
           {{ isSending() ? ('PUBLIC_PROFILE.BTN_SENDING' | translate) : (isSuperWhispr() ? '⭐ Envoyer ce Super Whispr' : ('PUBLIC_PROFILE.BTN_SEND' | translate)) }}
         </button>
       </div>

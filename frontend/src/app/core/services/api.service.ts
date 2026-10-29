@@ -86,6 +86,9 @@ export interface BlockedSenderDto {
 export interface MessageSendRequest {
   content: string;
   type: string;
+  audioUrl?: string;
+  audioDurationSeconds?: number;
+  voiceFilter?: string;
 }
 
 export interface MessageDto {
@@ -98,6 +101,9 @@ export interface MessageDto {
   deviceHint?: string;
   isRead?: boolean;
   aiCategory?: string;
+  audioUrl?: string;
+  audioDurationSeconds?: number;
+  voiceFilter?: string;
 }
 
 export interface ProfileUpdateRequest {
@@ -132,8 +138,8 @@ export class ApiService {
     return this.http.get<LinkDto>(`${this.API_URL}/links/${slug}`);
   }
 
-  sendMessage(slug: string, content: string, type: string = 'text'): Observable<void> {
-    const request: MessageSendRequest = { content, type };
+  sendMessage(slug: string, content: string, type: string = 'text', audioUrl?: string, audioDurationSeconds?: number, voiceFilter?: string): Observable<void> {
+    const request: MessageSendRequest = { content, type, audioUrl, audioDurationSeconds, voiceFilter };
     return this.http.post<void>(`${this.API_URL}/messages/send/${slug}`, request);
   }
 
