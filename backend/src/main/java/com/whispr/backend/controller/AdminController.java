@@ -1,11 +1,14 @@
 package com.whispr.backend.controller;
 
 import com.whispr.backend.dto.AdvertisementDto;
+import com.whispr.backend.dto.PayoutResponseDto;
+import com.whispr.backend.dto.UpdatePayoutStatusRequest;
 import com.whispr.backend.dto.admin.AdminAuditLogDto;
 import com.whispr.backend.dto.admin.AdminMessageDto;
 import com.whispr.backend.dto.admin.AdminUserDto;
 import com.whispr.backend.dto.admin.CreateAdRequest;
 import com.whispr.backend.service.AdminService;
+import com.whispr.backend.service.PayoutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +26,7 @@ import java.util.UUID;
 public class AdminController {
 
     private final AdminService adminService;
+    private final PayoutService payoutService;
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Long>> getStats() {
@@ -118,5 +122,20 @@ public class AdminController {
     public ResponseEntity<Void> deleteAd(@PathVariable UUID id) {
         adminService.deleteAd(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/payouts")
+    public ResponseEntity<List<PayoutResponseDto>> getPayouts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100));
+        return ResponseEntity.ok(payoutService.getAllPayoutRequests(pageable).getContent());
+    }
+
+    @PutMapping("/payouts/{id}/status")
+    public ResponseEntity<PayoutResponseDto> updatePayoutStatus(
+            @PathVariable UUID id,
+            @RequestBody UpdatePayoutStatusRequest request) {
+        return ResponseEntity.ok(payoutService.updatePayoutStatus(id, request));
     }
 }

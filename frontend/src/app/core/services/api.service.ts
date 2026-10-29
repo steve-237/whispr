@@ -51,6 +51,31 @@ export interface VisitorAnalyticsDto {
   topCountries: { [key: string]: number };
 }
 
+export interface PayoutResponseDto {
+  id: string;
+  userId: string;
+  userPseudo: string;
+  userEmail: string;
+  amountEur: number;
+  method: string;
+  payoutDetails: string;
+  status: 'PENDING' | 'APPROVED' | 'PAID' | 'REJECTED';
+  adminNote?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePayoutRequest {
+  amountEur: number;
+  method: string;
+  payoutDetails: string;
+}
+
+export interface UpdatePayoutStatusRequest {
+  status: string;
+  adminNote?: string;
+}
+
 export interface MessageSendRequest {
   content: string;
   type: string;
@@ -217,6 +242,23 @@ export class ApiService {
 
   markAsRead(messageId: string): Observable<void> {
     return this.http.put<void>(`${this.API_URL}/messages/${messageId}/read`, {});
+  }
+
+  // --- Retraits de gains créateurs (US-05) ---
+  createPayoutRequest(req: CreatePayoutRequest): Observable<PayoutResponseDto> {
+    return this.http.post<PayoutResponseDto>(`${this.API_URL}/monetization/payout-request`, req);
+  }
+
+  getPayoutHistory(): Observable<PayoutResponseDto[]> {
+    return this.http.get<PayoutResponseDto[]>(`${this.API_URL}/monetization/payout-history`);
+  }
+
+  getAdminPayouts(): Observable<PayoutResponseDto[]> {
+    return this.http.get<PayoutResponseDto[]>(`${this.API_URL}/admin/payouts`);
+  }
+
+  updateAdminPayoutStatus(id: string, req: UpdatePayoutStatusRequest): Observable<PayoutResponseDto> {
+    return this.http.put<PayoutResponseDto>(`${this.API_URL}/admin/payouts/${id}/status`, req);
   }
 }
 

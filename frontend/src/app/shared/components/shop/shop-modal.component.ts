@@ -1,5 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { WalletService } from './wallet.service';
 import { ToastService } from '../toast/toast.service';
 import confetti from 'canvas-confetti';
@@ -7,7 +8,7 @@ import confetti from 'canvas-confetti';
 @Component({
   selector: 'app-shop-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div *ngIf="walletService.showShopModal()" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem;">
       <div class="glass-panel animate-fade-in custom-scrollbar" style="max-width: 550px; width: 100%; max-height: 88vh; overflow-y: auto; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; padding: 2rem 1.75rem; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent;">
@@ -38,7 +39,7 @@ import confetti from 'canvas-confetti';
           </div>
         </div>
 
-        <!-- Section 📣 Espace Créateur & Influenceur (Partage de Revenus) -->
+        <!-- Section 📣 Espace Créateur & Influenceur (Partage de Revenus & Retraits US-05) -->
         <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15)); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 18px; padding: 1.15rem; margin-bottom: 1.5rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
             <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 800; font-size: 0.95rem; color: #60a5fa;">
@@ -52,20 +53,125 @@ import confetti from 'canvas-confetti';
           <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0.75rem; line-height: 1.4;">
             Partagez votre lien de profil sur Instagram, TikTok ou Snapchat. Chaque fois que vos abonnés débloquent des indices ou achètent des pièces sur vos messages, vous gagnez <strong>30% de commission</strong> !
           </p>
-          <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 0.6rem 0.8rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-            <div>
-              <div style="font-size: 0.7rem; color: var(--color-text-muted);">Vos gains disponibles</div>
-              <div style="font-size: 1.15rem; font-weight: 800; color: #10b981;">
-                {{ walletService.wallet()?.earningsEur || '0.00' }} €
+
+          <!-- Solde gains & Actions -->
+          <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 0.75rem 0.9rem; margin-bottom: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <div>
+                <div style="font-size: 0.7rem; color: var(--color-text-muted);">Vos gains disponibles</div>
+                <div style="font-size: 1.25rem; font-weight: 800; color: #10b981;">
+                  {{ walletService.wallet()?.earningsEur || '0.00' }} €
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button (click)="copyAffiliateLink()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.4rem 0.75rem; border-radius: 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                  📋 Copier le lien
+                </button>
+                <button *ngIf="canWithdraw() && !showPayoutForm()" 
+                        (click)="openPayoutForm()" 
+                        style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; padding: 0.4rem 0.85rem; border-radius: 10px; font-size: 0.75rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">
+                  💸 Retirer mes gains
+                </button>
               </div>
             </div>
-            <button (click)="copyAffiliateLink()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.4rem 0.75rem; border-radius: 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-              📋 Copier mon lien affilié
+
+            <!-- Progression si solde < 20€ -->
+            <div *ngIf="!canWithdraw()" style="font-size: 0.75rem; color: #94a3b8; text-align: center; padding-top: 0.25rem; border-top: 1px dashed rgba(255,255,255,0.1);">
+              🎯 Retrait déblocable dès 20,00 € (Encore {{ (20 - (walletService.wallet()?.earningsEur || 0)).toFixed(2) }} € restants)
+            </div>
+          </div>
+
+          <!-- Formulaire de Demande de Retrait (US-05) -->
+          <div *ngIf="showPayoutForm()" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 14px; padding: 1rem; margin-bottom: 0.75rem;">
+            <div style="font-weight: 800; font-size: 0.9rem; color: #10b981; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+              <span>Demande de Virement de Gains</span>
+              <button (click)="showPayoutForm.set(false)" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 1rem;">✕</button>
+            </div>
+
+            <!-- Choix Mode de Paiement -->
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.8rem;">
+              <button type="button" 
+                      (click)="payoutMethod = 'PAYPAL'" 
+                      [style.background]="payoutMethod === 'PAYPAL' ? '#2563eb' : 'rgba(255,255,255,0.08)'"
+                      style="flex: 1; border: none; color: white; padding: 0.5rem; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
+                🅿️ PayPal
+              </button>
+              <button type="button" 
+                      (click)="payoutMethod = 'IBAN'" 
+                      [style.background]="payoutMethod === 'IBAN' ? '#2563eb' : 'rgba(255,255,255,0.08)'"
+                      style="flex: 1; border: none; color: white; padding: 0.5rem; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
+                🏦 Virement IBAN
+              </button>
+            </div>
+
+            <!-- Coordonnées selon méthode -->
+            <div style="margin-bottom: 0.8rem;">
+              <label style="display: block; font-size: 0.75rem; color: #cbd5e1; margin-bottom: 0.3rem;">
+                {{ payoutMethod === 'PAYPAL' ? 'Adresse email de votre compte PayPal' : 'IBAN & Nom du bénéficiaire' }}
+              </label>
+              <input type="text" 
+                     [(ngModel)]="payoutDetails" 
+                     [placeholder]="payoutMethod === 'PAYPAL' ? 'exemple@paypal.com' : 'FR76 1234 5678 9012 3456 7890 123 - Jean Dupont'" 
+                     style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 0.5rem 0.7rem; color: white; font-size: 0.85rem;" />
+            </div>
+
+            <!-- Montant à retirer -->
+            <div style="margin-bottom: 1rem;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #cbd5e1; margin-bottom: 0.3rem;">
+                <span>Montant à retirer (€)</span>
+                <span>Max: {{ walletService.wallet()?.earningsEur || 0 }} €</span>
+              </div>
+              <input type="number" 
+                     step="0.01" 
+                     min="20" 
+                     [max]="walletService.wallet()?.earningsEur || 20" 
+                     [(ngModel)]="payoutAmount" 
+                     style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 0.5rem 0.7rem; color: white; font-size: 0.85rem;" />
+            </div>
+
+            <!-- Bouton confirmation -->
+            <div style="display: flex; gap: 0.5rem;">
+              <button (click)="submitPayout()" 
+                      [disabled]="walletService.isPayoutLoading() || !payoutDetails || payoutAmount < 20" 
+                      style="flex: 2; background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; font-weight: 700; padding: 0.6rem; border-radius: 10px; cursor: pointer; font-size: 0.85rem;">
+                {{ walletService.isPayoutLoading() ? 'Traitement...' : 'Confirmer le retrait' }}
+              </button>
+              <button (click)="showPayoutForm.set(false)" 
+                      style="flex: 1; background: rgba(255,255,255,0.1); border: none; color: #cbd5e1; font-weight: 600; padding: 0.6rem; border-radius: 10px; cursor: pointer; font-size: 0.85rem;">
+                Annuler
+              </button>
+            </div>
+          </div>
+
+          <!-- Lien Historique Retraits -->
+          <div *ngIf="walletService.payoutHistory().length > 0" style="margin-top: 0.5rem;">
+            <button (click)="togglePayoutHistory()" style="background: transparent; border: none; color: #60a5fa; font-size: 0.75rem; cursor: pointer; padding: 0; text-decoration: underline;">
+              {{ showPayoutHistory() ? 'Masquer mes retraits' : '📜 Voir mes demandes de retraits (' + walletService.payoutHistory().length + ')' }}
             </button>
+
+            <!-- Liste historique -->
+            <div *ngIf="showPayoutHistory()" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; max-height: 140px; overflow-y: auto;">
+              <div *ngFor="let p of walletService.payoutHistory()" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 0.45rem 0.65rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem;">
+                <div>
+                  <div style="font-weight: 700; color: white;">
+                    {{ p.amountEur | number:'1.2-2' }} € via {{ p.method }}
+                  </div>
+                  <div style="font-size: 0.65rem; color: #94a3b8;">
+                    {{ p.createdAt | date:'short' }}
+                  </div>
+                </div>
+                <div style="text-align: right;">
+                  <span [style.background]="getStatusBg(p.status)" [style.color]="getStatusColor(p.status)" style="padding: 0.15rem 0.45rem; border-radius: 6px; font-weight: 800; font-size: 0.65rem;">
+                    {{ getStatusLabel(p.status) }}
+                  </span>
+                  <div *ngIf="p.adminNote" style="font-size: 0.65rem; color: #fbbf24; margin-top: 0.15rem;">
+                    {{ p.adminNote }}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div style="font-size: 0.7rem; color: #94a3b8; text-align: center;">
-            🎯 Retrait des gains possible dès 20,00 € (PayPal / Virement bancaire)
-          </div>
+
         </div>
 
         <!-- Bannière Whispr PRO Club -->
@@ -163,6 +269,61 @@ export class ShopModalComponent {
   walletService = inject(WalletService);
   toastService = inject(ToastService);
 
+  showPayoutForm = signal(false);
+  showPayoutHistory = signal(false);
+
+  payoutMethod: 'PAYPAL' | 'IBAN' = 'PAYPAL';
+  payoutDetails = '';
+  payoutAmount = 20.00;
+
+  canWithdraw(): boolean {
+    const earnings = this.walletService.wallet()?.earningsEur || 0;
+    return earnings >= 20.00;
+  }
+
+  openPayoutForm(): void {
+    const earnings = this.walletService.wallet()?.earningsEur || 20.00;
+    this.payoutAmount = Number(earnings);
+    this.showPayoutForm.set(true);
+  }
+
+  togglePayoutHistory(): void {
+    this.showPayoutHistory.update(v => !v);
+  }
+
+  submitPayout(): void {
+    if (!this.payoutDetails || !this.payoutDetails.trim()) {
+      this.toastService.error('Veuillez renseigner vos coordonnées de paiement.');
+      return;
+    }
+    if (this.payoutAmount < 20.00) {
+      this.toastService.error('Le montant minimum de retrait est de 20,00 €.');
+      return;
+    }
+
+    this.walletService.requestPayout(
+      {
+        amountEur: this.payoutAmount,
+        method: this.payoutMethod,
+        payoutDetails: this.payoutDetails.trim()
+      },
+      (payout) => {
+        this.showPayoutForm.set(false);
+        this.payoutDetails = '';
+        confetti({
+          particleCount: 80,
+          spread: 60,
+          origin: { y: 0.7 }
+        });
+        this.toastService.success('Votre demande de retrait de ' + payout.amountEur + ' € a été envoyée ! 🎉');
+      },
+      (err) => {
+        const msg = err?.error?.message || 'Erreur lors de la demande de retrait.';
+        this.toastService.error(msg);
+      }
+    );
+  }
+
   copyAffiliateLink(): void {
     const code = this.walletService.wallet()?.affiliateCode || '';
     const base = window.location.origin;
@@ -190,5 +351,32 @@ export class ShopModalComponent {
         this.toastService.error("Erreur lors de la simulation d'achat");
       }
     );
+  }
+
+  getStatusBg(status: string): string {
+    switch (status) {
+      case 'PAID': return 'rgba(16, 185, 129, 0.2)';
+      case 'APPROVED': return 'rgba(59, 130, 246, 0.2)';
+      case 'REJECTED': return 'rgba(239, 68, 68, 0.2)';
+      default: return 'rgba(251, 191, 36, 0.2)';
+    }
+  }
+
+  getStatusColor(status: string): string {
+    switch (status) {
+      case 'PAID': return '#10b981';
+      case 'APPROVED': return '#60a5fa';
+      case 'REJECTED': return '#ef4444';
+      default: return '#fbbf24';
+    }
+  }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'PAID': return 'Payé ✅';
+      case 'APPROVED': return 'Approuvé ⏳';
+      case 'REJECTED': return 'Rejeté ❌';
+      default: return 'En attente 🟡';
+    }
   }
 }
