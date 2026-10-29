@@ -169,5 +169,12 @@
     "CREATE_OWN_TITLE": "Créez votre propre lien",
     "CREATE_OWN_DESC": "Vous aussi, recevez des messages anonymes de vos amis !",
     "BTN_CREATE_YOURS": "Créer mon lien gratuit"
+  },
+  "SHOP": {
+    "PAYMENT_SUCCESS": "Paiement réussi ! Vos Whispr Coins ont été crédités. 🎉",
+    "PAYMENT_CANCELLED": "Paiement annulé. Aucun montant n'a été prélevé.",
+    "PROMO_CODE": "Code promo créateur",
+    "PROMO_PLACEHOLDER": "Entrez un code promo (-10%)",
+    "PROMO_APPLIED": "Code promo appliqué !"
   }
 }

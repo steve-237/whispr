@@ -4,7 +4,9 @@ import com.whispr.backend.domain.Role;
 import com.whispr.backend.domain.Transaction;
 import com.whispr.backend.domain.User;
 import com.whispr.backend.domain.Wallet;
+import com.whispr.backend.dto.CheckoutSessionResponse;
 import com.whispr.backend.dto.CheckoutSimulationRequest;
+import com.whispr.backend.dto.CreateCheckoutSessionRequest;
 import com.whispr.backend.dto.WalletDto;
 import com.whispr.backend.repository.TransactionRepository;
 import com.whispr.backend.repository.UserRepository;
@@ -92,6 +94,141 @@ class MonetizationServiceTest {
         assertEquals(30, wallet.getCoins());
         assertFalse(wallet.isPro());
         verify(walletRepository, times(1)).save(any(Wallet.class));
+    }
+
+    @Test
+    void createCheckoutSession_ShouldReturnSimulatedUrl_WhenStripeKeyNotConfigured() {
+        when(userRepository.findByEmailIgnoreCase("monetization@whispr.com")).thenReturn(Optional.of(mockUser));
+
+        CreateCheckoutSessionRequest request = new CreateCheckoutSessionRequest("COINS_50", null);
+        CheckoutSessionResponse response = monetizationService.createCheckoutSession("monetization@whispr.com", request);
+
+        assertNotNull(response);
+        assertNotNull(response.sessionId());
+        assertTrue(response.checkoutUrl().contains("payment=success"));
+    }
+
+    @Test
+    void createCheckoutSession_ShouldThrowBadRequest_ForInvalidPack() {
+        when(userRepository.findByEmailIgnoreCase("monetization@whispr.com")).thenReturn(Optional.of(mockUser));
+
+        CreateCheckoutSessionRequest request = new CreateCheckoutSessionRequest("INVALID_PACK", null);
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+                monetizationService.createCheckoutSession("monetization@whispr.com", request)
+        );
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+    }
+
+    @Test
+    void handleWebhook_ShouldCreditCoinsAndSaveTransaction_OnCheckoutSessionCompleted() {
+        when(transactionRepository.existsByStripeEventId("evt_test_12345")).thenReturn(false);
+        when(transactionRepository.existsByStripeSessionId("cs_test_67890")).thenReturn(false);
+        when(userRepository.findByEmailIgnoreCase("monetization@whispr.com")).thenReturn(Optional.of(mockUser));
+        when(walletRepository.findByUserId(mockUser.getId())).thenReturn(Optional.of(mockWallet));
+
+        String payload = """
+            {
+              "api_version": "2024-06-20",
+              "id": "evt_test_12345",
+              "type": "checkout.session.completed",
+              "data": {
+                "object": {
+                  "id": "cs_test_67890",
+                  "amount_total": 99,
+                  "customer_email": "monetization@whispr.com",
+                  "metadata": {
+                    "packId": "COINS_50",
+                    "coins": "50",
+                    "userEmail": "monetization@whispr.com"
+                  }
+                }
+              }
+            }
+            """;
+
+        monetizationService.handleWebhook(payload, null);
+
+        assertEquals(80, mockWallet.getCoins()); // 30 + 50
+        assertEquals(new BigDecimal("0.99"), mockWallet.getTotalSpentEur());
+        verify(walletRepository, times(1)).save(mockWallet);
+        verify(transactionRepository, times(1)).save(any(Transaction.class));
+    }
+
+    @Test
+    void handleWebhook_ShouldBeIdempotent_WhenEventAlreadyProcessed() {
+        when(transactionRepository.existsByStripeEventId("evt_already_done")).thenReturn(true);
+
+        String payload = """
+            {
+              "api_version": "2024-06-20",
+              "id": "evt_already_done",
+              "type": "checkout.session.completed",
+              "data": {
+                "object": {
+                  "id": "cs_already_done"
+                }
+              }
+            }
+            """;
+
+        monetizationService.handleWebhook(payload, null);
+
+        verify(walletRepository, never()).save(any());
+        verify(transactionRepository, never()).save(any());
+    }
+
+    @Test
+    void handleWebhook_ShouldCreditAffiliateCommission_WhenReferrerPresent() {
+        UUID referrerId = UUID.randomUUID();
+        User referrerUser = User.builder()
+                .id(referrerId)
+                .email("creator@whispr.com")
+                .pseudo("creatorVIP")
+                .role(Role.USER)
+                .build();
+
+        Wallet referrerWallet = Wallet.builder()
+                .id(UUID.randomUUID())
+                .user(referrerUser)
+                .coins(100)
+                .earningsEur(BigDecimal.ZERO)
+                .referralCount(0)
+                .build();
+
+        when(transactionRepository.existsByStripeEventId("evt_affiliate_1")).thenReturn(false);
+        when(transactionRepository.existsByStripeSessionId("cs_affiliate_1")).thenReturn(false);
+        when(userRepository.findByEmailIgnoreCase("monetization@whispr.com")).thenReturn(Optional.of(mockUser));
+        when(walletRepository.findByUserId(mockUser.getId())).thenReturn(Optional.of(mockWallet));
+        when(userRepository.findById(referrerId)).thenReturn(Optional.of(referrerUser));
+        when(walletRepository.findByUserId(referrerId)).thenReturn(Optional.of(referrerWallet));
+
+        String payload = String.format("""
+            {
+              "api_version": "2024-06-20",
+              "id": "evt_affiliate_1",
+              "type": "checkout.session.completed",
+              "data": {
+                "object": {
+                  "id": "cs_affiliate_1",
+                  "amount_total": 99,
+                  "customer_email": "monetization@whispr.com",
+                  "metadata": {
+                    "packId": "COINS_50",
+                    "coins": "50",
+                    "userEmail": "monetization@whispr.com",
+                    "referrerId": "%s"
+                  }
+                }
+              }
+            }
+            """, referrerId);
+
+        monetizationService.handleWebhook(payload, null);
+
+        // Commission de 30% sur 0.99 EUR = 0.30 EUR
+        assertEquals(new BigDecimal("0.30"), referrerWallet.getEarningsEur());
+        assertEquals(1, referrerWallet.getReferralCount());
+        verify(transactionRepository, times(2)).save(any(Transaction.class)); // 1 pour l'acheteur, 1 pour la commission
     }
 
     @Test

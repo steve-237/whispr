@@ -169,5 +169,12 @@
     "CREATE_OWN_TITLE": "Create your own link",
     "CREATE_OWN_DESC": "You too can receive anonymous messages from your friends!",
     "BTN_CREATE_YOURS": "Create my free link"
+  },
+  "SHOP": {
+    "PAYMENT_SUCCESS": "Payment successful! Your Whispr Coins have been credited. 🎉",
+    "PAYMENT_CANCELLED": "Payment was cancelled. No amount was charged.",
+    "PROMO_CODE": "Creator promo code",
+    "PROMO_PLACEHOLDER": "Enter promo code (-10%)",
+    "PROMO_APPLIED": "Promo code applied!"
   }
 }

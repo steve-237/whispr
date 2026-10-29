@@ -10,6 +10,7 @@ describe('WalletService', () => {
   beforeEach(() => {
     apiServiceMock = {
       getWallet: vi.fn().mockReturnValue(of({ coins: 0, totalSpentEur: 0, isPro: false })),
+      createCheckoutSession: vi.fn().mockReturnValue(of({ sessionId: 'cs_123', checkoutUrl: 'https://checkout.stripe.com/test' })),
       simulateCheckout: vi.fn(),
       getPayoutHistory: vi.fn().mockReturnValue(of([]))
     };
@@ -45,16 +46,27 @@ describe('WalletService', () => {
     expect(service.wallet()).toEqual(mockWallet);
   });
 
-  it('devrait mettre à jour le solde lors d\'un achat réussi', () => {
+  it('devrait initialiser une session Stripe Checkout lors de buyPack', () => {
+    const onSuccess = vi.fn();
+
+    service.buyPack('COINS_50', 'PROMO10', onSuccess);
+
+    expect(apiServiceMock.createCheckoutSession).toHaveBeenCalledWith('COINS_50', 'PROMO10');
+    expect(service.isLoading()).toBe(false);
+    expect(onSuccess).toHaveBeenCalled();
+  });
+
+  it('devrait utiliser simulateCheckout en fallback lors d une erreur Stripe', () => {
     const updatedWallet: WalletDto = {
       coins: 100,
       totalSpentEur: 5.48,
       isPro: true
     };
+    apiServiceMock.createCheckoutSession.mockReturnValue(throwError(() => new Error('Stripe unavailable')));
     apiServiceMock.simulateCheckout.mockReturnValue(of(updatedWallet));
     const onSuccess = vi.fn();
 
-    service.buyPack('COINS_50', onSuccess);
+    service.buyPack('COINS_50', undefined, onSuccess);
 
     expect(apiServiceMock.simulateCheckout).toHaveBeenCalledWith('COINS_50');
     expect(service.wallet()).toEqual(updatedWallet);
@@ -62,11 +74,12 @@ describe('WalletService', () => {
     expect(onSuccess).toHaveBeenCalled();
   });
 
-  it('devrait gérer l\'échec d\'un achat', () => {
+  it('devrait gérer l\'échec complet d\'un achat', () => {
+    apiServiceMock.createCheckoutSession.mockReturnValue(throwError(() => new Error('Stripe unavailable')));
     apiServiceMock.simulateCheckout.mockReturnValue(throwError(() => new Error('Erreur réseau')));
     const onError = vi.fn();
 
-    service.buyPack('COINS_50', undefined, onError);
+    service.buyPack('COINS_50', undefined, undefined, onError);
 
     expect(service.isLoading()).toBe(false);
     expect(onError).toHaveBeenCalled();

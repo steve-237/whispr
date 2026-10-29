@@ -37,6 +37,15 @@ public class Transaction {
     @Column(nullable = false)
     private String description;
 
+    @Column(name = "stripe_session_id")
+    private String stripeSessionId;
+
+    @Column(name = "stripe_event_id")
+    private String stripeEventId;
+
+    @Column(length = 50)
+    private String status; // 'COMPLETED', 'PENDING', 'FAILED'
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private ZonedDateTime createdAt;

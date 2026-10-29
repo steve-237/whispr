@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers("/api/advertisements/**").permitAll()
                 .requestMatchers("/ws-whispr/**").permitAll()
+                .requestMatchers("/api/monetization/webhook").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )

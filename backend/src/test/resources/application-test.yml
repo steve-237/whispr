@@ -29,3 +29,9 @@ jwt:
 
 cors:
   allowed-origins: "http://localhost:4200"
+
+whispr:
+  stripe:
+    secret-key: ""
+    webhook-secret: ""
+  frontend-url: "http://localhost:4200"
