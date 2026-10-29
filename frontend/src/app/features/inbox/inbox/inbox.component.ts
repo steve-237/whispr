@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { ApiService, MessageDto, StatsDto } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import html2canvas from 'html2canvas';
 import { environment } from '../../../../environments/environment';
 import Chart from 'chart.js/auto';
@@ -104,7 +105,8 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     public translate: TranslateService,
     private toastService: ToastService,
     private titleService: Title,
-    private webSocketService: WebSocketService
+    private webSocketService: WebSocketService,
+    public notificationService: NotificationService
   ) {
     this.pseudo.set(this.authService.currentUser() || '');
   }
@@ -166,20 +168,33 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
          audio.play().catch(e => console.log('Audio non lu automatiquement', e));
       } catch(e) {}
 
-      // Notification Push du navigateur
-      if ('Notification' in window && Notification.permission === 'granted') {
-        try {
-          new Notification('Nouveau message secret sur Whispr ! 🤫', {
-            body: newMessage.content.length > 50 ? newMessage.content.substring(0, 50) + '...' : newMessage.content,
-            icon: '/favicon.ico'
-          });
-        } catch(e) {}
-      } else if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
+      // Notification Push du navigateur via NotificationService
+      this.notificationService.showWhisperNotification({
+        title: this.translate.instant('INBOX.PUSH_TITLE') || 'Nouveau message secret ! 🤫',
+        body: newMessage.content.length > 50 ? newMessage.content.substring(0, 50) + '...' : newMessage.content,
+        icon: '/favicon.ico',
+        messageId: newMessage.id,
+        onClick: () => {
+          this.highlightedMessageId.set(newMessage.id);
+          const el = document.getElementById('msg-' + newMessage.id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      });
 
       // Rafraîchir les stats
       this.loadStats();
+    });
+  }
+
+  enableNotifications(): void {
+    this.notificationService.requestPermission().then((res) => {
+      if (res === 'granted') {
+        this.toastService.success(this.translate.instant('INBOX.NOTIF_GRANTED') || 'Notifications activées avec succès !');
+      } else if (res === 'denied') {
+        this.toastService.error(this.translate.instant('INBOX.NOTIF_DENIED') || 'Notifications bloquées dans votre navigateur.');
+      }
     });
   }
 
