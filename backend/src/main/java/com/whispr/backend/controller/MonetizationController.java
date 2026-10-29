@@ -3,6 +3,7 @@ package com.whispr.backend.controller;
 import com.whispr.backend.dto.*;
 import com.whispr.backend.service.ClueService;
 import com.whispr.backend.service.MonetizationService;
+import com.whispr.backend.service.PayoutService;
 import com.whispr.backend.service.VisitorAnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ public class MonetizationController {
     private final MonetizationService monetizationService;
     private final ClueService clueService;
     private final VisitorAnalyticsService visitorAnalyticsService;
+    private final PayoutService payoutService;
 
     @GetMapping("/wallet")
     public ResponseEntity<WalletDto> getWallet(Authentication authentication) {
@@ -50,5 +52,17 @@ public class MonetizationController {
     @GetMapping("/visitor-analytics")
     public ResponseEntity<VisitorAnalyticsDto> getVisitorAnalytics(Authentication authentication) {
         return ResponseEntity.ok(visitorAnalyticsService.getVisitorAnalytics(authentication.getName()));
+    }
+
+    @PostMapping("/payout-request")
+    public ResponseEntity<PayoutResponseDto> createPayoutRequest(
+            Authentication authentication,
+            @RequestBody CreatePayoutRequest request) {
+        return ResponseEntity.ok(payoutService.createPayoutRequest(authentication.getName(), request));
+    }
+
+    @GetMapping("/payout-history")
+    public ResponseEntity<List<PayoutResponseDto>> getPayoutHistory(Authentication authentication) {
+        return ResponseEntity.ok(payoutService.getUserPayoutHistory(authentication.getName()));
     }
 }

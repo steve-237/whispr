@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService } from '../../core/services/api.service';
+import { ApiService, PayoutResponseDto } from '../../core/services/api.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import Chart from 'chart.js/auto';
 
@@ -34,6 +34,12 @@ import Chart from 'chart.js/auto';
         </button>
         <button (click)="activeTab.set('ads')" [style.color]="activeTab() === 'ads' ? '#ef4444' : 'var(--color-text)'" [style.border-bottom]="activeTab() === 'ads' ? '2px solid #ef4444' : 'none'" style="background: transparent; border: none; font-size: 1.1rem; font-weight: 600; cursor: pointer; padding: 0.5rem 1rem;">
           📢 Publicités
+        </button>
+        <button (click)="activeTab.set('payouts')" [style.color]="activeTab() === 'payouts' ? '#10b981' : 'var(--color-text)'" [style.border-bottom]="activeTab() === 'payouts' ? '2px solid #10b981' : 'none'" style="background: transparent; border: none; font-size: 1.1rem; font-weight: 600; cursor: pointer; padding: 0.5rem 1rem; position: relative;">
+          💸 Retraits Créateurs
+          <span *ngIf="pendingPayoutsCount() > 0" style="background: #ef4444; color: white; font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 10px; margin-left: 0.3rem;">
+            {{ pendingPayoutsCount() }}
+          </span>
         </button>
       </div>
 
@@ -349,6 +355,95 @@ import Chart from 'chart.js/auto';
           </div>
         </div>
 
+        <!-- ONGLET : RETRAITS CRÉATEURS (US-05) -->
+        <div [hidden]="activeTab() !== 'payouts'" class="animate-fade-in">
+          <div class="glass-panel" style="padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <h2 style="margin: 0; font-size: 1.25rem; color: #10b981; display: flex; align-items: center; gap: 0.5rem;">
+                  💸 Demandes de Retraits de Commissions
+                </h2>
+                <p style="color: var(--color-text-muted); font-size: 0.85rem; margin: 0.3rem 0 0 0;">
+                  Approuvez ou traitez les virements PayPal et IBAN des créateurs affiliés.
+                </p>
+              </div>
+              <div style="display: flex; gap: 0.5rem; font-size: 0.85rem;">
+                <span style="background: rgba(251, 191, 36, 0.2); color: #fbbf24; padding: 0.3rem 0.6rem; border-radius: 8px; font-weight: 700;">
+                  {{ pendingPayoutsCount() }} en attente
+                </span>
+                <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 0.3rem 0.6rem; border-radius: 8px; font-weight: 700;">
+                  {{ totalPaidEur() | number:'1.2-2' }} € reversés
+                </span>
+              </div>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--color-text-muted);">
+                    <th style="padding: 0.75rem;">Date</th>
+                    <th style="padding: 0.75rem;">Créateur</th>
+                    <th style="padding: 0.75rem;">Montant</th>
+                    <th style="padding: 0.75rem;">Méthode</th>
+                    <th style="padding: 0.75rem;">Coordonnées</th>
+                    <th style="padding: 0.75rem;">Statut</th>
+                    <th style="padding: 0.75rem; text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let p of payouts()" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 0.75rem; color: var(--color-text-muted); font-size: 0.8rem;">
+                      {{ p.createdAt | date:'short' }}
+                    </td>
+                    <td style="padding: 0.75rem;">
+                      <div style="font-weight: 700; color: white;">@{{ p.userPseudo }}</div>
+                      <div style="font-size: 0.75rem; color: var(--color-text-muted);">{{ p.userEmail }}</div>
+                    </td>
+                    <td style="padding: 0.75rem; font-weight: 800; color: #10b981;">
+                      {{ p.amountEur | number:'1.2-2' }} €
+                    </td>
+                    <td style="padding: 0.75rem;">
+                      <span style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem;">
+                        {{ p.method }}
+                      </span>
+                    </td>
+                    <td style="padding: 0.75rem; font-family: monospace; font-size: 0.8rem; color: #cbd5e1; max-width: 220px; word-break: break-all;">
+                      {{ p.payoutDetails }}
+                    </td>
+                    <td style="padding: 0.75rem;">
+                      <span [style.background]="getPayoutBadgeBg(p.status)" [style.color]="getPayoutBadgeColor(p.status)" style="padding: 0.25rem 0.6rem; border-radius: 12px; font-weight: 800; font-size: 0.75rem;">
+                        {{ getPayoutBadgeLabel(p.status) }}
+                      </span>
+                      <div *ngIf="p.adminNote" style="font-size: 0.7rem; color: #fbbf24; margin-top: 0.2rem;">
+                        Note: {{ p.adminNote }}
+                      </div>
+                    </td>
+                    <td style="padding: 0.75rem; text-align: right;">
+                      <div *ngIf="p.status === 'PENDING' || p.status === 'APPROVED'" style="display: flex; gap: 0.4rem; justify-content: flex-end;">
+                        <button class="btn btn-primary" (click)="setPayoutStatus(p.id, 'PAID')" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; background: #10b981;">
+                          Payer ✅
+                        </button>
+                        <button class="btn btn-danger" (click)="rejectPayout(p.id)" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">
+                          Rejeter ❌
+                        </button>
+                      </div>
+                      <div *ngIf="p.status === 'PAID'" style="color: #10b981; font-weight: 700; font-size: 0.8rem;">
+                        Terminé ✓
+                      </div>
+                      <div *ngIf="p.status === 'REJECTED'" style="color: #ef4444; font-weight: 700; font-size: 0.8rem;">
+                        Remboursé ✕
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div *ngIf="payouts().length === 0" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+              Aucune demande de retrait pour le moment.
+            </div>
+          </div>
+        </div>
       </ng-container>
     </div>
   `
@@ -364,7 +459,10 @@ export class AdminDashboardComponent implements OnInit {
       return false;
     }
   });
-  activeTab = signal<'overview' | 'users' | 'messages' | 'ads'>('overview');
+  activeTab = signal<'overview' | 'users' | 'messages' | 'ads' | 'payouts'>('overview');
+  payouts = signal<PayoutResponseDto[]>([]);
+  pendingPayoutsCount = computed(() => this.payouts().filter(p => p.status === 'PENDING').length);
+  totalPaidEur = computed(() => this.payouts().filter(p => p.status === 'PAID').reduce((acc, p) => acc + Number(p.amountEur), 0));
   searchPseudo = signal<string>('');
   
   stats = signal<any>({});
@@ -407,6 +505,7 @@ export class AdminDashboardComponent implements OnInit {
   loadData(): void {
     this.isLoading.set(true);
     this.loadAds();
+    this.loadPayouts();
     this.apiService.getAdminStats().subscribe({
       next: (s) => {
         this.stats.set(s);
@@ -443,6 +542,7 @@ export class AdminDashboardComponent implements OnInit {
         this.newAdTargetUrl = '';
         this.newAdCtaText = 'En savoir plus';
         this.loadAds();
+    this.loadPayouts();
       },
       error: (err) => {
         this.isSubmittingAd.set(false);
@@ -456,9 +556,66 @@ export class AdminDashboardComponent implements OnInit {
       next: () => {
         this.toastService.success('Statut de la publicité mis à jour.');
         this.loadAds();
+    this.loadPayouts();
       },
       error: () => this.toastService.error('Erreur lors du changement de statut.')
     });
+  }
+
+  loadPayouts(): void {
+    this.apiService.getAdminPayouts().subscribe({
+      next: (data) => this.payouts.set(data),
+      error: (err) => console.error('Erreur chargement retraits admin', err)
+    });
+  }
+
+  setPayoutStatus(id: string, status: string): void {
+    this.apiService.updateAdminPayoutStatus(id, { status }).subscribe({
+      next: () => {
+        this.toastService.success(`Demande de retrait mise à jour : ${status}`);
+        this.loadPayouts();
+      },
+      error: () => this.toastService.error('Erreur lors de la mise à jour du statut.')
+    });
+  }
+
+  rejectPayout(id: string): void {
+    const note = prompt('Motif du rejet (les gains seront automatiquement restitués au créateur) :');
+    if (note === null) return;
+    this.apiService.updateAdminPayoutStatus(id, { status: 'REJECTED', adminNote: note || 'Demande rejetée par l\'administrateur' }).subscribe({
+      next: () => {
+        this.toastService.success('Demande rejetée et créateur recrédité.');
+        this.loadPayouts();
+      },
+      error: () => this.toastService.error('Erreur lors du rejet du retrait.')
+    });
+  }
+
+  getPayoutBadgeBg(status: string): string {
+    switch (status) {
+      case 'PAID': return 'rgba(16, 185, 129, 0.2)';
+      case 'APPROVED': return 'rgba(59, 130, 246, 0.2)';
+      case 'REJECTED': return 'rgba(239, 68, 68, 0.2)';
+      default: return 'rgba(251, 191, 36, 0.2)';
+    }
+  }
+
+  getPayoutBadgeColor(status: string): string {
+    switch (status) {
+      case 'PAID': return '#10b981';
+      case 'APPROVED': return '#60a5fa';
+      case 'REJECTED': return '#ef4444';
+      default: return '#fbbf24';
+    }
+  }
+
+  getPayoutBadgeLabel(status: string): string {
+    switch (status) {
+      case 'PAID': return 'Payé ✅';
+      case 'APPROVED': return 'Approuvé ⏳';
+      case 'REJECTED': return 'Rejeté ❌';
+      default: return 'En attente 🟡';
+    }
   }
 
   deleteAd(id: string): void {
@@ -467,6 +624,7 @@ export class AdminDashboardComponent implements OnInit {
       next: () => {
         this.toastService.success('Publicité supprimée.');
         this.loadAds();
+    this.loadPayouts();
       },
       error: () => this.toastService.error('Erreur lors de la suppression.')
     });
