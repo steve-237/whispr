@@ -76,6 +76,13 @@ export interface UpdatePayoutStatusRequest {
   adminNote?: string;
 }
 
+export interface BlockedSenderDto {
+  id: string;
+  displayName: string;
+  reason: string;
+  createdAt: string;
+}
+
 export interface MessageSendRequest {
   content: string;
   type: string;
@@ -259,6 +266,19 @@ export class ApiService {
 
   updateAdminPayoutStatus(id: string, req: UpdatePayoutStatusRequest): Observable<PayoutResponseDto> {
     return this.http.put<PayoutResponseDto>(`${this.API_URL}/admin/payouts/${id}/status`, req);
+  }
+
+  // --- Shadowban & Blocage d'expéditeur (US-08) ---
+  blockSender(messageId: string): Observable<BlockedSenderDto> {
+    return this.http.post<BlockedSenderDto>(`${this.API_URL}/messages/${messageId}/block`, {});
+  }
+
+  getBlockedSenders(): Observable<BlockedSenderDto[]> {
+    return this.http.get<BlockedSenderDto[]>(`${this.API_URL}/messages/blocks`);
+  }
+
+  unblockSender(blockId: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/messages/blocks/${blockId}`);
   }
 }
 

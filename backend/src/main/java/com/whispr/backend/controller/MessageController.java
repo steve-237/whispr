@@ -1,7 +1,9 @@
 package com.whispr.backend.controller;
 
+import com.whispr.backend.dto.BlockedSenderDto;
 import com.whispr.backend.dto.MessageDto;
 import com.whispr.backend.dto.MessageSendRequest;
+import com.whispr.backend.service.BlockedSenderService;
 import com.whispr.backend.service.MessageService;
 import com.whispr.backend.util.ClientMetadata;
 import com.whispr.backend.util.ClientMetadataResolver;
@@ -20,6 +22,7 @@ import java.util.UUID;
 public class MessageController {
 
     private final MessageService messageService;
+    private final BlockedSenderService blockedSenderService;
     private final ClientMetadataResolver clientMetadataResolver;
 
     @PostMapping("/send/{slug}")
@@ -56,5 +59,28 @@ public class MessageController {
         String email = authentication.getName();
         messageService.markAsRead(id, email);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/block")
+    public ResponseEntity<BlockedSenderDto> blockSender(
+            @PathVariable UUID id,
+            Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(blockedSenderService.blockSenderFromMessage(id, email));
+    }
+
+    @GetMapping("/blocks")
+    public ResponseEntity<List<BlockedSenderDto>> getBlockedSenders(Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(blockedSenderService.getBlockedSenders(email));
+    }
+
+    @DeleteMapping("/blocks/{id}")
+    public ResponseEntity<Void> unblockSender(
+            @PathVariable UUID id,
+            Authentication authentication) {
+        String email = authentication.getName();
+        blockedSenderService.unblockSender(id, email);
+        return ResponseEntity.noContent().build();
     }
 }

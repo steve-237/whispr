@@ -34,6 +34,7 @@ public class MessageService {
     private final AiSentimentService aiSentimentService;
     private final ModerationService moderationService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final BlockedSenderService blockedSenderService;
 
     @Transactional
     public Message sendMessage(String slug, String content, String type, ClientMetadata metadata) {
@@ -61,6 +62,16 @@ public class MessageService {
 
         if (!link.getIsActive()) {
             throw new IllegalStateException("Link is currently inactive");
+        }
+
+        // Anti-Spam / Shadowban (US-08: Rejet silencieux d'expéditeur bloqué)
+        if (blockedSenderService != null && blockedSenderService.isSenderBlocked(link.getUser().getId(), hashedIp)) {
+            return Message.builder()
+                    .link(link)
+                    .content(content)
+                    .type(type)
+                    .status("DELIVERED")
+                    .build();
         }
 
         // Anti-Spam (Rate Limiting)
