@@ -9,8 +9,9 @@ describe('WalletService', () => {
 
   beforeEach(() => {
     apiServiceMock = {
-      getWallet: vi.fn(),
-      simulateCheckout: vi.fn()
+      getWallet: vi.fn().mockReturnValue(of({ coins: 0, totalSpentEur: 0, isPro: false })),
+      simulateCheckout: vi.fn(),
+      getPayoutHistory: vi.fn().mockReturnValue(of([]))
     };
 
     service = new WalletService(apiServiceMock);

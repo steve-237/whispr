@@ -147,7 +147,15 @@
     "Q5": "Quelle est votre première impression de moi ? 🧐",
     "SENTIMENT_POSITIVE": "Positif",
     "SENTIMENT_NEGATIVE": "Négatif",
-    "SENTIMENT_NEUTRAL": "Neutre"
+    "SENTIMENT_NEUTRAL": "Neutre",
+    "PUSH_TITLE": "Nouveau message secret ! 🤫",
+    "PUSH_BODY": "Quelqu'un vient de vous envoyer un message anonyme.",
+    "NOTIF_BANNER_TITLE": "Activez les notifications en direct",
+    "NOTIF_BANNER_DESC": "Recevez une alerte dès qu'un nouveau chuchotement arrive, même en arrière-plan.",
+    "NOTIF_ENABLE": "Activer",
+    "NOTIF_ACTIVE": "Notifications activées",
+    "NOTIF_GRANTED": "Notifications activées avec succès ! 🔔",
+    "NOTIF_DENIED": "Notifications refusées ou bloquées par le navigateur."
   },
   "PUBLIC_PROFILE": {
     "DEFAULT_BIO": "Envoyez-moi un message secret !",
