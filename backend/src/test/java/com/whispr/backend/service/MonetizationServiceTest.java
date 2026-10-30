@@ -16,6 +16,8 @@ import com.whispr.backend.domain.Link;
 import com.whispr.backend.domain.Message;
 import com.whispr.backend.dto.CreateTipCheckoutRequest;
 import com.whispr.backend.dto.TipCheckoutResponse;
+import com.whispr.backend.dto.CreateSuperWhisprCheckoutRequest;
+import com.whispr.backend.dto.SuperWhisprCheckoutResponse;
 import com.whispr.backend.repository.AuditLogRepository;
 import com.whispr.backend.repository.LinkRepository;
 import com.whispr.backend.repository.MessageRepository;
@@ -366,6 +368,75 @@ class MonetizationServiceTest {
         assertTrue(tipMsg.isTipPaid());
         assertEquals("UNREAD", tipMsg.getStatus());
         assertEquals(new BigDecimal("7.00"), mockWallet.getEarningsEur());
+        verify(walletRepository, times(1)).save(mockWallet);
+        verify(transactionRepository, times(1)).save(any(Transaction.class));
+    }
+
+
+    @Test
+    void createSuperWhisprCheckoutSession_ShouldSavePendingMessage_AndReturnSuperWhisprResponse() {
+        Link mockLink = Link.builder()
+                .id(UUID.randomUUID())
+                .slug("creatorSlug")
+                .isActive(true)
+                .user(mockUser)
+                .build();
+
+        when(linkRepository.findBySlug("creatorSlug")).thenReturn(Optional.of(mockLink));
+        when(clientMetadataResolver.resolve(any())).thenReturn(
+                new ClientMetadata("hIp", "rIp", "Chrome/Win", "France", "Paris", "https://instagram.com")
+        );
+        when(aiSentimentService.analyzeSentiment(any())).thenReturn("POSITIVE");
+        when(messageRepository.save(any(Message.class))).thenAnswer(inv -> {
+            Message m = inv.getArgument(0);
+            m.setId(UUID.randomUUID());
+            return m;
+        });
+
+        CreateSuperWhisprCheckoutRequest request = new CreateSuperWhisprCheckoutRequest(
+                "creatorSlug",
+                "Super Whispr secret !",
+                null,
+                null,
+                null
+        );
+
+        SuperWhisprCheckoutResponse response = monetizationService.createSuperWhisprCheckoutSession(request, mock(jakarta.servlet.http.HttpServletRequest.class));
+
+        assertNotNull(response);
+        assertNotNull(response.sessionId());
+        assertNotNull(response.checkoutUrl());
+        assertNotNull(response.messageId());
+        verify(messageRepository, atLeastOnce()).save(any(Message.class));
+        verify(auditLogRepository, times(1)).save(any(AuditLog.class));
+    }
+
+    @Test
+    void simulateSuperWhisprPayment_ShouldCreditCreatorAndMarkUnread() {
+        Link mockLink = Link.builder()
+                .id(UUID.randomUUID())
+                .slug("creatorSlug")
+                .isActive(true)
+                .user(mockUser)
+                .build();
+
+        UUID messageId = UUID.randomUUID();
+        Message swMsg = Message.builder()
+                .id(messageId)
+                .link(mockLink)
+                .content("Mon Super Whispr")
+                .type("SUPER_WHISPR")
+                .status("PENDING_PAYMENT")
+                .build();
+
+        when(messageRepository.findById(messageId)).thenReturn(Optional.of(swMsg));
+        when(walletRepository.findByUserId(mockUser.getId())).thenReturn(Optional.of(mockWallet));
+
+        monetizationService.simulateSuperWhisprPayment(messageId);
+
+        assertEquals("UNREAD", swMsg.getStatus());
+        assertEquals("SUPER_WHISPR", swMsg.getType());
+        assertEquals(new BigDecimal("0.50"), mockWallet.getEarningsEur());
         verify(walletRepository, times(1)).save(mockWallet);
         verify(transactionRepository, times(1)).save(any(Transaction.class));
     }

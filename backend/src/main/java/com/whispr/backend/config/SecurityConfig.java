@@ -51,6 +51,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/monetization/webhook").permitAll()
                 .requestMatchers("/api/monetization/create-tip-checkout").permitAll()
                 .requestMatchers("/api/monetization/simulate-tip").permitAll()
+                .requestMatchers("/api/monetization/create-super-whispr-checkout").permitAll()
+                .requestMatchers("/api/monetization/simulate-super-whispr").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )

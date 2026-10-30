@@ -44,6 +44,7 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
   // --- Visitor Tips State (US-09) ---
   selectedTipAmount = signal<number>(0);
   isTipSuccess = signal(false);
+  isSuperWhisprSuccess = signal(false);
   tipSuccessAmount = signal<number | null>(null);
 
   private recordingInterval: any = null;
@@ -68,8 +69,10 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
     this.route.queryParamMap.subscribe(params => {
       const payment = params.get('payment');
       const tip = params.get('tip');
+      const superWhispr = params.get('super_whispr');
       const amount = params.get('amount');
       const mockTipId = params.get('mockTipId');
+      const mockSuperWhisprId = params.get('mockSuperWhisprId');
 
       if (payment === 'success' && tip === 'true') {
         this.isSent.set(true);
@@ -84,6 +87,20 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
           origin: { y: 0.5 },
           colors: ['#10b981', '#fbbf24', '#8b5cf6', '#ec4899']
         });
+      } else if (payment === 'success' && superWhispr === 'true') {
+        this.isSent.set(true);
+        this.isSuperWhisprSuccess.set(true);
+        if (mockSuperWhisprId) {
+          this.apiService.simulateSuperWhispr(mockSuperWhisprId).subscribe();
+        }
+        confetti({
+          particleCount: 250,
+          spread: 110,
+          origin: { y: 0.5 },
+          colors: ['#fbbf24', '#f59e0b', '#d97706', '#8b5cf6']
+        });
+      } else if (payment === 'cancelled') {
+        this.toastService.info('Paiement annulé. Aucun message n\'a été envoyé.');
       }
     });
   }
@@ -258,6 +275,44 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
     const audioDuration = isAudio ? this.recordedDuration() || 5 : undefined;
     const filter = isAudio ? this.selectedFilter() : undefined;
 
+    // Si Super Whispr sélectionné sans pourboire -> Stripe Checkout Super Whispr (0,99 €)
+    if (this.isSuperWhispr() && this.selectedTipAmount() === 0) {
+      this.isSending.set(true);
+      this.apiService.createSuperWhisprCheckout({
+        slug: this.slug(),
+        content: content,
+        audioUrl: audioUrl,
+        audioDurationSeconds: audioDuration,
+        voiceFilter: filter
+      }).subscribe({
+        next: (res) => {
+          this.isSending.set(false);
+          if (res.checkoutUrl) {
+            window.location.href = res.checkoutUrl;
+          } else {
+            this.isSent.set(true);
+            this.isSuperWhisprSuccess.set(true);
+            this.cancelOrResetAudio();
+            confetti({
+              particleCount: 200,
+              spread: 100,
+              origin: { y: 0.5 },
+              colors: ['#fbbf24', '#f59e0b', '#d97706', '#8b5cf6']
+            });
+          }
+        },
+        error: (err) => {
+          this.isSending.set(false);
+          let errorMsg = "Erreur lors de l'initialisation du paiement Stripe Super Whispr.";
+          if (err.status === 400 && err.error && typeof err.error === 'string') {
+            errorMsg = err.error;
+          }
+          this.toastService.error(errorMsg);
+        }
+      });
+      return;
+    }
+
     // Si pourboire sélectionné -> Stripe Checkout
     if (this.selectedTipAmount() > 0) {
       this.isSending.set(true);
@@ -351,4 +406,16 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  sendAnother(): void {
+    this.isSent.set(false);
+    this.isTipSuccess.set(false);
+    this.isSuperWhisprSuccess.set(false);
+    this.tipSuccessAmount.set(null);
+    this.selectedTipAmount.set(0);
+    this.isSuperWhispr.set(false);
+    this.messageContent.set('');
+    this.cancelOrResetAudio();
+  }
+
 }

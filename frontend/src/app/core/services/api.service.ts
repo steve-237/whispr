@@ -139,6 +139,20 @@ export interface TipCheckoutResponse {
   messageId: string;
 }
 
+export interface CreateSuperWhisprCheckoutRequest {
+  slug: string;
+  content?: string;
+  audioUrl?: string;
+  audioDurationSeconds?: number;
+  voiceFilter?: string;
+}
+
+export interface SuperWhisprCheckoutResponse {
+  sessionId: string;
+  checkoutUrl: string;
+  messageId: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -172,6 +186,14 @@ export class ApiService {
 
   simulateTip(messageId: string): Observable<void> {
     return this.http.post<void>(`${this.API_URL}/monetization/simulate-tip?messageId=${messageId}`, {});
+  }
+
+    createSuperWhisprCheckout(request: CreateSuperWhisprCheckoutRequest): Observable<SuperWhisprCheckoutResponse> {
+    return this.http.post<SuperWhisprCheckoutResponse>(`${this.API_URL}/monetization/create-super-whispr-checkout`, request);
+  }
+
+  simulateSuperWhispr(messageId: string): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/monetization/simulate-super-whispr?messageId=${messageId}`, {});
   }
 
   createCheckoutSession(packId: string, promoCode?: string): Observable<{ sessionId: string, checkoutUrl: string }> {
