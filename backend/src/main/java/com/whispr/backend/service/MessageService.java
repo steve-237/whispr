@@ -118,7 +118,7 @@ public class MessageService {
                 content = "🎙️ Mémo vocal (" + filterLabel + ")";
             }
         } else if (type != null && type.equalsIgnoreCase("SUPER_WHISPR")) {
-            finalType = "SUPER_WHISPR";
+            finalType = "text";
         } else {
             finalType = "text";
         }
@@ -183,7 +183,7 @@ public class MessageService {
         return messageRepository.findByLinkIdWithAuditLogOrderByCreatedAtDesc(link.getId())
                 .stream()
                 .map(this::toDto)
-                .filter(m -> m.tipAmountEur() == null || m.isTipPaid())
+                .filter(m -> (m.tipAmountEur() == null || m.isTipPaid()) && !"PENDING_PAYMENT".equals(m.status()) && !"PENDING_TIP".equals(m.status()))
                 .collect(Collectors.toList());
     }
 

@@ -30,10 +30,10 @@
       <div *ngIf="isSent()" class="animate-fade-in" style="text-align: center; padding: 2rem 0; color: #10b981;">
         <svg style="width: 48px; height: 48px; margin: 0 auto 1rem auto;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
         <h2 style="margin-bottom: 0.5rem; color: white;">
-          {{ isTipSuccess() ? '💸 Pourboire envoyé avec succès !' : ('PUBLIC_PROFILE.SUCCESS_TITLE' | translate) }}
+          {{ isTipSuccess() ? '💸 Pourboire envoyé avec succès !' : (isSuperWhisprSuccess() ? '⭐ Super Whispr envoyé avec succès !' : ('PUBLIC_PROFILE.SUCCESS_TITLE' | translate)) }}
         </h2>
         <p style="color: var(--color-text-muted);">
-          {{ isTipSuccess() ? ('Merci beaucoup ! Votre pourboire de ' + (tipSuccessAmount() | number:'1.2-2') + ' € a été transmis à @' + p.slug + '.') : ('PUBLIC_PROFILE.SUCCESS_DESC' | translate) }}
+          {{ isTipSuccess() ? ('Merci beaucoup ! Votre pourboire de ' + (tipSuccessAmount() | number:'1.2-2') + ' € a été transmis à @' + p.slug + '.') : (isSuperWhisprSuccess() ? 'Votre message prioritaire a été épinglé en tête de l\'Inbox en bordure dorée.' : ('PUBLIC_PROFILE.SUCCESS_DESC' | translate)) }}
         </p>
         
         <div *ngIf="slug() === 'demo'" style="margin-top: 2rem; padding: 1.5rem; background: rgba(var(--color-primary-rgb), 0.1); border-radius: var(--radius-md); border: 1px solid rgba(var(--color-primary-rgb), 0.2);">
@@ -54,7 +54,7 @@
           </a>
         </div>
 
-        <button class="btn btn-glass" style="margin-top: 1.5rem; width: 100%;" (click)="isSent.set(false); isTipSuccess.set(false)">{{ 'PUBLIC_PROFILE.BTN_SEND_ANOTHER' | translate }}</button>
+        <button class="btn btn-glass" style="margin-top: 1.5rem; width: 100%;" (click)="sendAnother()">{{ 'PUBLIC_PROFILE.BTN_SEND_ANOTHER' | translate }}</button>
       </div>
 
       <div *ngIf="!isSent()">
@@ -269,7 +269,7 @@
           </div>
           <div>
             <span style="background: #fbbf24; color: #000; font-weight: 800; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 12px;">
-              {{ isSuperWhispr() ? '✓ ACTIVÉ' : '+ 0,99 € (Gratuit Démo)' }}
+              {{ isSuperWhispr() ? '✓ ACTIVÉ (0,99 €)' : '+ 0,99 €' }}
             </span>
           </div>
         </div>
@@ -282,7 +282,7 @@
           style="width: 100%; font-size: 1.1rem; padding: 1rem;" 
           (click)="sendMessage()" 
           [disabled]="isSending() || (inputMode() === 'TEXT' ? !messageContent().trim() : !processedAudioBase64())">
-          {{ isSending() ? ('PUBLIC_PROFILE.BTN_SENDING' | translate) : (selectedTipAmount() > 0 ? '💸 Envoyer avec un pourboire de ' + (selectedTipAmount() | number:'1.2-2') + ' €' : (isSuperWhispr() ? '⭐ Envoyer ce Super Whispr' : ('PUBLIC_PROFILE.BTN_SEND' | translate))) }}
+          {{ isSending() ? ('PUBLIC_PROFILE.BTN_SENDING' | translate) : (selectedTipAmount() > 0 ? '💸 Envoyer avec un pourboire de ' + (selectedTipAmount() | number:'1.2-2') + ' €' : (isSuperWhispr() ? '⭐ Envoyer ce Super Whispr (0,99 €)' : ('PUBLIC_PROFILE.BTN_SEND' | translate))) }}
         </button>
       </div>
     </div>

@@ -60,6 +60,19 @@ public class MonetizationController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/create-super-whispr-checkout")
+    public ResponseEntity<SuperWhisprCheckoutResponse> createSuperWhisprCheckout(
+            HttpServletRequest request,
+            @Valid @RequestBody CreateSuperWhisprCheckoutRequest superWhisprRequest) {
+        return ResponseEntity.ok(monetizationService.createSuperWhisprCheckoutSession(superWhisprRequest, request));
+    }
+
+    @PostMapping("/simulate-super-whispr")
+    public ResponseEntity<Void> simulateSuperWhispr(@RequestParam UUID messageId) {
+        monetizationService.simulateSuperWhisprPayment(messageId);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/checkout-simulate")
     public ResponseEntity<WalletDto> simulateCheckout(
             Authentication authentication,
