@@ -26,10 +26,15 @@
         {{ p.slug === 'demo' ? (translate.currentLang() === 'en' ? 'Do you have a secret to tell me?' : 'Avez-vous un secret à me confier ?') : (p.profileDailyQuestion || ('PUBLIC_PROFILE.DEFAULT_QUESTION' | translate)) }}
       </h3>
       
+      <!-- Écran Succès Envoi / Pourboire -->
       <div *ngIf="isSent()" class="animate-fade-in" style="text-align: center; padding: 2rem 0; color: #10b981;">
         <svg style="width: 48px; height: 48px; margin: 0 auto 1rem auto;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-        <h2 style="margin-bottom: 0.5rem; color: white;">{{ 'PUBLIC_PROFILE.SUCCESS_TITLE' | translate }}</h2>
-        <p style="color: var(--color-text-muted);">{{ 'PUBLIC_PROFILE.SUCCESS_DESC' | translate }}</p>
+        <h2 style="margin-bottom: 0.5rem; color: white;">
+          {{ isTipSuccess() ? '💸 Pourboire envoyé avec succès !' : ('PUBLIC_PROFILE.SUCCESS_TITLE' | translate) }}
+        </h2>
+        <p style="color: var(--color-text-muted);">
+          {{ isTipSuccess() ? ('Merci beaucoup ! Votre pourboire de ' + (tipSuccessAmount() | number:'1.2-2') + ' € a été transmis à @' + p.slug + '.') : ('PUBLIC_PROFILE.SUCCESS_DESC' | translate) }}
+        </p>
         
         <div *ngIf="slug() === 'demo'" style="margin-top: 2rem; padding: 1.5rem; background: rgba(var(--color-primary-rgb), 0.1); border-radius: var(--radius-md); border: 1px solid rgba(var(--color-primary-rgb), 0.2);">
           <h4 style="color: white; margin-bottom: 0.5rem;">{{ translate.currentLang() === 'fr' ? 'C\'était un message de démo !' : 'That was a demo message!' }}</h4>
@@ -49,7 +54,7 @@
           </a>
         </div>
 
-        <button class="btn btn-glass" style="margin-top: 1.5rem; width: 100%;" (click)="isSent.set(false)">{{ 'PUBLIC_PROFILE.BTN_SEND_ANOTHER' | translate }}</button>
+        <button class="btn btn-glass" style="margin-top: 1.5rem; width: 100%;" (click)="isSent.set(false); isTipSuccess.set(false)">{{ 'PUBLIC_PROFILE.BTN_SEND_ANOTHER' | translate }}</button>
       </div>
 
       <div *ngIf="!isSent()">
@@ -198,6 +203,57 @@
           </div>
         </div>
 
+        <!-- Sélecteur de Pourboire Créateur 💸 (US-09) -->
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 14px; padding: 0.9rem 1rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+            <div style="font-weight: 800; font-size: 0.9rem; color: #10b981; display: flex; align-items: center; gap: 0.4rem;">
+              <span>💸</span>
+              <span>{{ translate.currentLang() === 'fr' ? 'Laisser un pourboire à @' + p.slug : 'Leave a tip for @' + p.slug }}</span>
+            </div>
+            <span style="font-size: 0.7rem; color: #10b981; font-weight: 700; background: rgba(16,185,129,0.15); padding: 0.15rem 0.5rem; border-radius: 10px;">
+              70% reversés
+            </span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; margin-bottom: 0.5rem;">
+            <button 
+              type="button"
+              (click)="setTipAmount(0)"
+              [style.background]="selectedTipAmount() === 0 ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.04)'"
+              [style.border-color]="selectedTipAmount() === 0 ? '#fff' : 'rgba(255,255,255,0.1)'"
+              style="border: 1px solid; border-radius: 10px; padding: 0.45rem 0.2rem; text-align: center; cursor: pointer; color: white; font-size: 0.75rem; font-weight: 700; transition: all 0.2s;">
+              0 €
+            </button>
+            <button 
+              type="button"
+              (click)="setTipAmount(1)"
+              [style.background]="selectedTipAmount() === 1 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.04)'"
+              [style.border-color]="selectedTipAmount() === 1 ? '#10b981' : 'rgba(255,255,255,0.1)'"
+              style="border: 1px solid; border-radius: 10px; padding: 0.45rem 0.2rem; text-align: center; cursor: pointer; color: white; font-size: 0.75rem; font-weight: 700; transition: all 0.2s;">
+              1,00 € ☕
+            </button>
+            <button 
+              type="button"
+              (click)="setTipAmount(2)"
+              [style.background]="selectedTipAmount() === 2 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.04)'"
+              [style.border-color]="selectedTipAmount() === 2 ? '#10b981' : 'rgba(255,255,255,0.1)'"
+              style="border: 1px solid; border-radius: 10px; padding: 0.45rem 0.2rem; text-align: center; cursor: pointer; color: white; font-size: 0.75rem; font-weight: 700; transition: all 0.2s;">
+              2,00 € ⭐
+            </button>
+            <button 
+              type="button"
+              (click)="setTipAmount(5)"
+              [style.background]="selectedTipAmount() === 5 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.04)'"
+              [style.border-color]="selectedTipAmount() === 5 ? '#10b981' : 'rgba(255,255,255,0.1)'"
+              style="border: 1px solid; border-radius: 10px; padding: 0.45rem 0.2rem; text-align: center; cursor: pointer; color: white; font-size: 0.75rem; font-weight: 700; transition: all 0.2s;">
+              5,00 € 🚀
+            </button>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--color-text-muted); text-align: center;">
+            {{ selectedTipAmount() > 0 ? ('Paiement sécurisé par Stripe (Apple Pay / Carte) lors de l\'envoi') : 'Facultatif : soutenez ce créateur avec un don' }}
+          </div>
+        </div>
+
         <!-- Option Booster en Super Whispr ⭐ -->
         <div (click)="isSuperWhispr.set(!isSuperWhispr())" style="background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 14px; padding: 0.8rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s;" [style.border-color]="isSuperWhispr() ? '#fbbf24' : 'rgba(251, 191, 36, 0.3)'" [style.background]="isSuperWhispr() ? 'rgba(251, 191, 36, 0.18)' : 'rgba(251, 191, 36, 0.08)'">
           <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -220,13 +276,13 @@
 
         <button 
           class="btn btn-primary" 
-          [style.background]="isSuperWhispr() ? 'linear-gradient(135deg, #fbbf24, #d97706)' : ''"
-          [style.color]="isSuperWhispr() ? '#000' : '#fff'"
-          [style.font-weight]="isSuperWhispr() ? '800' : '700'"
+          [style.background]="selectedTipAmount() > 0 ? 'linear-gradient(135deg, #10b981, #059669)' : (isSuperWhispr() ? 'linear-gradient(135deg, #fbbf24, #d97706)' : '')"
+          [style.color]="isSuperWhispr() && selectedTipAmount() === 0 ? '#000' : '#fff'"
+          [style.font-weight]="isSuperWhispr() || selectedTipAmount() > 0 ? '800' : '700'"
           style="width: 100%; font-size: 1.1rem; padding: 1rem;" 
           (click)="sendMessage()" 
           [disabled]="isSending() || (inputMode() === 'TEXT' ? !messageContent().trim() : !processedAudioBase64())">
-          {{ isSending() ? ('PUBLIC_PROFILE.BTN_SENDING' | translate) : (isSuperWhispr() ? '⭐ Envoyer ce Super Whispr' : ('PUBLIC_PROFILE.BTN_SEND' | translate)) }}
+          {{ isSending() ? ('PUBLIC_PROFILE.BTN_SENDING' | translate) : (selectedTipAmount() > 0 ? '💸 Envoyer avec un pourboire de ' + (selectedTipAmount() | number:'1.2-2') + ' €' : (isSuperWhispr() ? '⭐ Envoyer ce Super Whispr' : ('PUBLIC_PROFILE.BTN_SEND' | translate))) }}
         </button>
       </div>
     </div>

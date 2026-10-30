@@ -104,6 +104,8 @@ export interface MessageDto {
   audioUrl?: string;
   audioDurationSeconds?: number;
   voiceFilter?: string;
+  tipAmountEur?: number;
+  isTipPaid?: boolean;
 }
 
 export interface ProfileUpdateRequest {
@@ -119,6 +121,22 @@ export interface StatsDto {
   neutralCount: number;
   negativeCount: number;
   aiSummary: string;
+}
+
+export interface CreateTipCheckoutRequest {
+  slug: string;
+  content: string;
+  type?: string;
+  tipAmountEur: number;
+  audioUrl?: string;
+  audioDurationSeconds?: number;
+  voiceFilter?: string;
+}
+
+export interface TipCheckoutResponse {
+  sessionId: string;
+  checkoutUrl: string;
+  messageId: string;
 }
 
 @Injectable({
@@ -146,6 +164,14 @@ export class ApiService {
   // --- Monétisation & Simulation Stripe ---
   getWallet(): Observable<WalletDto> {
     return this.http.get<WalletDto>(`${this.API_URL}/monetization/wallet`);
+  }
+
+  createTipCheckout(request: CreateTipCheckoutRequest): Observable<TipCheckoutResponse> {
+    return this.http.post<TipCheckoutResponse>(`${this.API_URL}/monetization/create-tip-checkout`, request);
+  }
+
+  simulateTip(messageId: string): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/monetization/simulate-tip?messageId=${messageId}`, {});
   }
 
   createCheckoutSession(packId: string, promoCode?: string): Observable<{ sessionId: string, checkoutUrl: string }> {

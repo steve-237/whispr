@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output, OnDestroy } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MessageDto, ClueResponseDto } from '../../../core/services/api.service';
@@ -7,7 +7,7 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
 @Component({
   selector: 'app-message-card',
   standalone: true,
-  imports: [CommonModule, DatePipe, FormsModule, TranslatePipe],
+  imports: [CommonModule, DatePipe, DecimalPipe, FormsModule, TranslatePipe],
   template: `
     <div class="animate-fade-in" 
          [ngStyle]="{
@@ -36,6 +36,12 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
         <button (click)="delete.emit(msg.id); $event.stopPropagation()" style="background: rgba(0,0,0,0.15); border: none; color: var(--color-text-muted); padding: 0.35rem; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Supprimer">
           <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
         </button>
+      </div>
+
+      <!-- Badge Pourboire Reçu 💸 (US-09) -->
+      <div *ngIf="msg.tipAmountEur && msg.tipAmountEur > 0" style="margin-top: 0.25rem; margin-bottom: 0.75rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1)); border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.35rem 0.8rem; border-radius: 12px; display: inline-flex; align-items: center; gap: 0.5rem; color: #10b981; font-weight: 800; font-size: 0.85rem; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);">
+        <span>💸</span>
+        <span>Pourboire reçu : +{{ msg.tipAmountEur | number:'1.2-2' }} € (dont {{ (msg.tipAmountEur * 0.7) | number:'1.2-2' }} € pour vous)</span>
       </div>
 
       <!-- Lecteur Audio (US-07 Audio Whispr) -->

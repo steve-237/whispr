@@ -34,6 +34,23 @@ describe('MessageCardComponent', () => {
     expect(comp.msg.voiceFilter).toBe('ROBOT');
   });
 
+  it('devrait accepter un message avec pourboire visiteur', () => {
+    const comp = new MessageCardComponent();
+    const mockMsg: MessageDto = {
+      id: 'tip-1',
+      content: 'Bravo pour ton contenu !',
+      createdAt: '2026-10-30T10:00:00Z',
+      isRead: false,
+      type: 'text',
+      tipAmountEur: 5.00,
+      isTipPaid: true
+    };
+    comp.msg = mockMsg;
+
+    expect(comp.msg.tipAmountEur).toBe(5.00);
+    expect(comp.msg.isTipPaid).toBe(true);
+  });
+
   it('devrait gérer la pause audio', () => {
     const comp = new MessageCardComponent();
     comp.isPlayingAudio = true;

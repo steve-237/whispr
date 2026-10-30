@@ -54,6 +54,16 @@ public class Message {
     @Column(name = "voice_filter", length = 50)
     private String voiceFilter;
 
+    @Column(name = "tip_amount_eur", precision = 10, scale = 2)
+    private BigDecimal tipAmountEur;
+
+    @Column(name = "is_tip_paid", nullable = false)
+    @Builder.Default
+    private boolean isTipPaid = false;
+
+    @Column(name = "stripe_tip_session_id")
+    private String stripeTipSessionId;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private ZonedDateTime createdAt;

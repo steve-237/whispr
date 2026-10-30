@@ -11,6 +11,17 @@ import com.whispr.backend.dto.WalletDto;
 import com.whispr.backend.repository.TransactionRepository;
 import com.whispr.backend.repository.UserRepository;
 import com.whispr.backend.repository.WalletRepository;
+import com.whispr.backend.domain.AuditLog;
+import com.whispr.backend.domain.Link;
+import com.whispr.backend.domain.Message;
+import com.whispr.backend.dto.CreateTipCheckoutRequest;
+import com.whispr.backend.dto.TipCheckoutResponse;
+import com.whispr.backend.repository.AuditLogRepository;
+import com.whispr.backend.repository.LinkRepository;
+import com.whispr.backend.repository.MessageRepository;
+import com.whispr.backend.util.ClientMetadata;
+import com.whispr.backend.util.ClientMetadataResolver;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +56,28 @@ class MonetizationServiceTest {
 
     @Mock
     private VisitorAnalyticsService visitorAnalyticsService;
+
+    @Mock
+    private LinkRepository linkRepository;
+
+    @Mock
+    private MessageRepository messageRepository;
+
+    @Mock
+    private AuditLogRepository auditLogRepository;
+
+    @Mock
+    private AiSentimentService aiSentimentService;
+
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
+
+    @Mock
+    private MessageService messageService;
+
+    @Mock
+    private ClientMetadataResolver clientMetadataResolver;
+
 
     @InjectMocks
     private MonetizationService monetizationService;
@@ -268,4 +301,73 @@ class MonetizationServiceTest {
         );
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
     }
+
+    @Test
+    void createTipCheckoutSession_ShouldSavePendingMessage_AndReturnTipResponse() {
+        Link mockLink = Link.builder()
+                .id(UUID.randomUUID())
+                .slug("creatorSlug")
+                .isActive(true)
+                .user(mockUser)
+                .build();
+        when(linkRepository.findBySlug("creatorSlug")).thenReturn(Optional.of(mockLink));
+        when(clientMetadataResolver.resolve(any())).thenReturn(new ClientMetadata("hIp", "1.2.3.4", "UA", "France", "Paris", "Instagram"));
+        when(aiSentimentService.analyzeSentiment(any())).thenReturn("POSITIVE");
+        when(messageRepository.save(any(Message.class))).thenAnswer(inv -> {
+            Message m = inv.getArgument(0);
+            m.setId(UUID.randomUUID());
+            return m;
+        });
+
+        CreateTipCheckoutRequest request = new CreateTipCheckoutRequest(
+                "creatorSlug",
+                "Super message secret !",
+                "text",
+                new BigDecimal("2.50"),
+                null,
+                null,
+                null
+        );
+
+        TipCheckoutResponse response = monetizationService.createTipCheckoutSession(request, mock(jakarta.servlet.http.HttpServletRequest.class));
+
+        assertNotNull(response);
+        assertNotNull(response.sessionId());
+        assertNotNull(response.checkoutUrl());
+        assertNotNull(response.messageId());
+        verify(messageRepository, atLeastOnce()).save(any(Message.class));
+        verify(auditLogRepository, times(1)).save(any(AuditLog.class));
+    }
+
+    @Test
+    void simulateTipPayment_ShouldCreditCreator70Percent_AndMarkTipPaid() {
+        Link mockLink = Link.builder()
+                .id(UUID.randomUUID())
+                .slug("creatorSlug")
+                .isActive(true)
+                .user(mockUser)
+                .build();
+
+        UUID messageId = UUID.randomUUID();
+        Message tipMsg = Message.builder()
+                .id(messageId)
+                .link(mockLink)
+                .content("Mon pourboire")
+                .status("PENDING_TIP")
+                .isTipPaid(false)
+                .tipAmountEur(new BigDecimal("10.00"))
+                .build();
+
+        when(messageRepository.findById(messageId)).thenReturn(Optional.of(tipMsg));
+        when(walletRepository.findByUserId(mockUser.getId())).thenReturn(Optional.of(mockWallet));
+
+        monetizationService.simulateTipPayment(messageId);
+
+        assertTrue(tipMsg.isTipPaid());
+        assertEquals("UNREAD", tipMsg.getStatus());
+        assertEquals(new BigDecimal("7.00"), mockWallet.getEarningsEur());
+        verify(walletRepository, times(1)).save(mockWallet);
+        verify(transactionRepository, times(1)).save(any(Transaction.class));
+    }
+
 }
