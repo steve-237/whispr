@@ -41,6 +41,11 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
   isPlayingPreview = signal(false);
   isProcessingFilter = signal(false);
 
+  // --- Visitor Tips State (US-09) ---
+  selectedTipAmount = signal<number>(0);
+  isTipSuccess = signal(false);
+  tipSuccessAmount = signal<number | null>(null);
+
   private recordingInterval: any = null;
   private previewAudio: HTMLAudioElement | null = null;
 
@@ -57,6 +62,28 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
       this.slug.set(slugParam);
       if (slugParam) {
         this.loadProfile();
+      }
+    });
+
+    this.route.queryParamMap.subscribe(params => {
+      const payment = params.get('payment');
+      const tip = params.get('tip');
+      const amount = params.get('amount');
+      const mockTipId = params.get('mockTipId');
+
+      if (payment === 'success' && tip === 'true') {
+        this.isSent.set(true);
+        this.isTipSuccess.set(true);
+        this.tipSuccessAmount.set(amount ? parseFloat(amount) : null);
+        if (mockTipId) {
+          this.apiService.simulateTip(mockTipId).subscribe();
+        }
+        confetti({
+          particleCount: 200,
+          spread: 100,
+          origin: { y: 0.5 },
+          colors: ['#10b981', '#fbbf24', '#8b5cf6', '#ec4899']
+        });
       }
     });
   }
@@ -81,6 +108,10 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
     if (mode === 'TEXT') {
       this.cancelOrResetAudio();
     }
+  }
+
+  setTipAmount(amount: number): void {
+    this.selectedTipAmount.set(amount);
   }
 
   async startAudioRecording(): Promise<void> {
@@ -218,7 +249,6 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
     if (!isAudio && !this.messageContent().trim()) return;
     if (isAudio && !this.processedAudioBase64()) return;
 
-    this.isSending.set(true);
     const messageType = this.isSuperWhispr() ? 'SUPER_WHISPR' : (isAudio ? 'AUDIO' : 'text');
     const content = isAudio
       ? `🎙️ Mémo vocal (${this.selectedFilter()})`
@@ -228,6 +258,48 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
     const audioDuration = isAudio ? this.recordedDuration() || 5 : undefined;
     const filter = isAudio ? this.selectedFilter() : undefined;
 
+    // Si pourboire sélectionné -> Stripe Checkout
+    if (this.selectedTipAmount() > 0) {
+      this.isSending.set(true);
+      this.apiService.createTipCheckout({
+        slug: this.slug(),
+        content: content,
+        type: messageType,
+        tipAmountEur: this.selectedTipAmount(),
+        audioUrl: audioUrl,
+        audioDurationSeconds: audioDuration,
+        voiceFilter: filter
+      }).subscribe({
+        next: (res) => {
+          this.isSending.set(false);
+          if (res.checkoutUrl) {
+            window.location.href = res.checkoutUrl;
+          } else {
+            this.isSent.set(true);
+            this.isTipSuccess.set(true);
+            this.tipSuccessAmount.set(this.selectedTipAmount());
+            this.cancelOrResetAudio();
+            confetti({
+              particleCount: 150,
+              spread: 80,
+              origin: { y: 0.6 },
+              colors: ['#10b981', '#fbbf24', '#8b5cf6']
+            });
+          }
+        },
+        error: (err) => {
+          this.isSending.set(false);
+          let errorMsg = "Erreur lors de l'initialisation du paiement Stripe.";
+          if (err.status === 400 && err.error && typeof err.error === 'string') {
+            errorMsg = err.error;
+          }
+          this.toastService.error(errorMsg);
+        }
+      });
+      return;
+    }
+
+    this.isSending.set(true);
     this.apiService.sendMessage(
       this.slug(),
       content,
@@ -239,6 +311,7 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
       next: () => {
         this.isSending.set(false);
         this.isSent.set(true);
+        this.isTipSuccess.set(false);
         this.messageContent.set('');
         this.cancelOrResetAudio();
         this.error.set('');

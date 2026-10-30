@@ -1,5 +1,7 @@
 package com.whispr.backend.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.whispr.backend.dto.*;
 import com.whispr.backend.service.ClueService;
 import com.whispr.backend.service.MonetizationService;
@@ -42,6 +44,20 @@ public class MonetizationController {
             @RequestHeader(value = "Stripe-Signature", required = false) String sigHeader) {
         monetizationService.handleWebhook(payload, sigHeader);
         return ResponseEntity.ok("Webhook handled successfully");
+    }
+
+    
+    @PostMapping("/create-tip-checkout")
+    public ResponseEntity<TipCheckoutResponse> createTipCheckout(
+            HttpServletRequest request,
+            @Valid @RequestBody CreateTipCheckoutRequest tipRequest) {
+        return ResponseEntity.ok(monetizationService.createTipCheckoutSession(tipRequest, request));
+    }
+
+    @PostMapping("/simulate-tip")
+    public ResponseEntity<Void> simulateTipPayment(@RequestParam UUID messageId) {
+        monetizationService.simulateTipPayment(messageId);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/checkout-simulate")

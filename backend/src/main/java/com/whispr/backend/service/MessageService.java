@@ -183,6 +183,7 @@ public class MessageService {
         return messageRepository.findByLinkIdWithAuditLogOrderByCreatedAtDesc(link.getId())
                 .stream()
                 .map(this::toDto)
+                .filter(m -> m.tipAmountEur() == null || m.isTipPaid())
                 .collect(Collectors.toList());
     }
 

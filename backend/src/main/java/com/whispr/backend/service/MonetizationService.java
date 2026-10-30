@@ -1,5 +1,18 @@
 package com.whispr.backend.service;
 
+import jakarta.servlet.http.HttpServletRequest;
+import com.whispr.backend.domain.AuditLog;
+import com.whispr.backend.domain.Link;
+import com.whispr.backend.domain.Message;
+import com.whispr.backend.dto.CreateTipCheckoutRequest;
+import com.whispr.backend.dto.TipCheckoutResponse;
+import com.whispr.backend.repository.AuditLogRepository;
+import com.whispr.backend.repository.LinkRepository;
+import com.whispr.backend.repository.MessageRepository;
+import com.whispr.backend.util.ClientMetadata;
+import com.whispr.backend.util.ClientMetadataResolver;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
@@ -43,6 +56,14 @@ public class MonetizationService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final LinkRepository linkRepository;
+    private final MessageRepository messageRepository;
+    private final AuditLogRepository auditLogRepository;
+    private final AiSentimentService aiSentimentService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final MessageService messageService;
+    private final ClientMetadataResolver clientMetadataResolver;
+
 
     @Value("${whispr.stripe.secret-key:}")
     private String stripeSecretKey;
@@ -281,7 +302,13 @@ public class MonetizationService {
             return;
         }
 
-        Map<String, String> metadata = session.getMetadata();
+                Map<String, String> metadata = session.getMetadata();
+        String sessionType = metadata != null ? metadata.get("type") : null;
+        if ("CREATOR_TIP".equalsIgnoreCase(sessionType)) {
+            processCreatorTipCompleted(session, event);
+            return;
+        }
+
         String userIdStr = metadata != null ? metadata.get("userId") : null;
         String userEmail = metadata != null ? metadata.get("userEmail") : session.getCustomerEmail();
         String packId = metadata != null ? metadata.get("packId") : "COINS_50";
@@ -459,4 +486,218 @@ public class MonetizationService {
                 affiliateCode
         );
     }
+
+    @Transactional
+    public TipCheckoutResponse createTipCheckoutSession(CreateTipCheckoutRequest request, HttpServletRequest servletRequest) {
+        Link link = linkRepository.findBySlug(request.slug())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profil introuvable pour @" + request.slug()));
+
+        if (Boolean.FALSE.equals(link.getIsActive())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce lien Whispr est actuellement inactif.");
+        }
+
+        BigDecimal tipAmount = request.tipAmountEur();
+        if (tipAmount == null || tipAmount.compareTo(BigDecimal.valueOf(0.50)) < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le montant minimum de pourboire est de 0.50 €.");
+        }
+
+        ClientMetadata metadata = clientMetadataResolver.resolve(servletRequest);
+
+        String content = request.content();
+        String sentiment = aiSentimentService != null ? aiSentimentService.analyzeSentiment(content) : "NEUTRAL";
+
+        String finalType;
+        if ((request.audioUrl() != null && !request.audioUrl().isBlank()) || "AUDIO".equalsIgnoreCase(request.type())) {
+            finalType = "AUDIO";
+            if (content == null || content.isBlank()) {
+                String filterLabel = (request.voiceFilter() != null) ? request.voiceFilter() : "NORMAL";
+                content = "🎙️ Mémo vocal (" + filterLabel + ")";
+            }
+        } else {
+            finalType = "text";
+        }
+
+        Message message = Message.builder()
+                .link(link)
+                .content(content)
+                .type(finalType)
+                .status("PENDING_TIP")
+                .isTipPaid(false)
+                .tipAmountEur(tipAmount)
+                .aiCategory(sentiment)
+                .audioUrl(request.audioUrl())
+                .audioDurationSeconds(request.audioDurationSeconds())
+                .voiceFilter(request.voiceFilter())
+                .build();
+        message = messageRepository.save(message);
+
+        AuditLog auditLog = AuditLog.builder()
+                .message(message)
+                .hashedIp(metadata.hashedIp())
+                .rawIp(metadata.rawIp())
+                .userAgent(metadata.userAgent())
+                .country(metadata.country())
+                .city(metadata.city())
+                .referrer(metadata.referrer())
+                .build();
+        auditLogRepository.save(auditLog);
+        message.setAuditLog(auditLog);
+
+        long amountCents = tipAmount.multiply(BigDecimal.valueOf(100)).longValue();
+        User creator = link.getUser();
+
+        if (stripeSecretKey != null && !stripeSecretKey.isBlank() && !stripeSecretKey.startsWith("mock")) {
+            Stripe.apiKey = stripeSecretKey;
+            try {
+                SessionCreateParams params = SessionCreateParams.builder()
+                        .setMode(SessionCreateParams.Mode.PAYMENT)
+                        .setSuccessUrl(frontendUrl + "/@" + link.getSlug() + "?payment=success&tip=true&amount=" + tipAmount)
+                        .setCancelUrl(frontendUrl + "/@" + link.getSlug() + "?payment=cancelled")
+                        .addLineItem(
+                                SessionCreateParams.LineItem.builder()
+                                        .setQuantity(1L)
+                                        .setPriceData(
+                                                SessionCreateParams.LineItem.PriceData.builder()
+                                                        .setCurrency("eur")
+                                                        .setUnitAmount(amountCents)
+                                                        .setProductData(
+                                                                SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                        .setName("Pourboire Whispr pour @" + creator.getPseudo())
+                                                                        .setDescription("Pourboire direct joint au message anonyme (70% reversés au créateur)")
+                                                                        .build()
+                                                        )
+                                                        .build()
+                                        )
+                                        .build()
+                        )
+                        .putMetadata("type", "CREATOR_TIP")
+                        .putMetadata("messageId", message.getId().toString())
+                        .putMetadata("creatorId", creator.getId().toString())
+                        .putMetadata("creatorEmail", creator.getEmail())
+                        .putMetadata("tipAmountEur", tipAmount.toString())
+                        .build();
+
+                Session session = Session.create(params);
+                message.setStripeTipSessionId(session.getId());
+                messageRepository.save(message);
+
+                log.info("Session Stripe créée pour pourboire: session={} messageId={} montant={} EUR", session.getId(), message.getId(), tipAmount);
+                return new TipCheckoutResponse(session.getId(), session.getUrl(), message.getId());
+            } catch (StripeException e) {
+                log.error("Erreur création session Stripe pourboire: {}", e.getMessage(), e);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur Stripe: " + e.getMessage());
+            }
+        }
+
+        String mockSessionId = "mock_tip_" + UUID.randomUUID();
+        message.setStripeTipSessionId(mockSessionId);
+        messageRepository.save(message);
+
+        String mockCheckoutUrl = frontendUrl + "/@" + link.getSlug() + "?payment=success&tip=true&amount=" + tipAmount + "&mockTipId=" + message.getId();
+        log.info("Stripe non configuré, retour session pourboire simulée: {}", mockSessionId);
+        return new TipCheckoutResponse(mockSessionId, mockCheckoutUrl, message.getId());
+    }
+
+    @Transactional
+    public void processCreatorTipCompleted(Session session, Event event) {
+        Map<String, String> metadata = session.getMetadata();
+        String messageIdStr = metadata != null ? metadata.get("messageId") : null;
+        String creatorIdStr = metadata != null ? metadata.get("creatorId") : null;
+
+        if (messageIdStr == null || messageIdStr.isBlank()) {
+            log.error("messageId manquant pour la session pourboire Stripe {}", session.getId());
+            return;
+        }
+
+        UUID messageId = UUID.fromString(messageIdStr);
+        Message message = messageRepository.findById(messageId).orElse(null);
+        if (message == null) {
+            log.error("Message introuvable pour le pourboire messageId={}", messageId);
+            return;
+        }
+
+        if (message.isTipPaid()) {
+            log.info("Pourboire déjà payé pour messageId={}", messageId);
+            return;
+        }
+
+        message.setTipPaid(true);
+        message.setStatus("UNREAD");
+        messageRepository.save(message);
+
+        User creator = null;
+        if (creatorIdStr != null && !creatorIdStr.isBlank()) {
+            creator = userRepository.findById(UUID.fromString(creatorIdStr)).orElse(null);
+        }
+        if (creator == null) {
+            creator = message.getLink().getUser();
+        }
+
+        BigDecimal tipAmount = message.getTipAmountEur();
+        BigDecimal creatorShare = tipAmount.multiply(BigDecimal.valueOf(0.70)).setScale(2, RoundingMode.HALF_UP);
+
+        Wallet creatorWallet = getOrCreateWallet(creator);
+        creatorWallet.setEarningsEur(creatorWallet.getEarningsEur().add(creatorShare));
+        walletRepository.save(creatorWallet);
+
+        Transaction tipTx = Transaction.builder()
+                .user(creator)
+                .type("CREATOR_TIP")
+                .amountEur(creatorShare)
+                .coinsDelta(0)
+                .description("Pourboire reçu de " + tipAmount + " € (+ " + creatorShare + " € pour vous)")
+                .stripeSessionId(session.getId())
+                .stripeEventId(event != null ? event.getId() : "mock_evt_" + UUID.randomUUID())
+                .status("COMPLETED")
+                .build();
+        transactionRepository.save(tipTx);
+
+        log.info("Pourboire de {} EUR validé ! {} EUR crédités à {}", tipAmount, creatorShare, creator.getPseudo());
+
+        if (messagingTemplate != null && messageService != null) {
+            try {
+                messagingTemplate.convertAndSend("/topic/user/" + creator.getEmail() + "/messages", messageService.toDto(message));
+            } catch (Exception e) {
+                log.warn("Impossible d'envoyer la notification WebSocket pour le pourboire: {}", e.getMessage());
+            }
+        }
+    }
+
+    @Transactional
+    public void simulateTipPayment(UUID messageId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message introuvable"));
+
+        if (message.isTipPaid()) return;
+
+        message.setTipPaid(true);
+        message.setStatus("UNREAD");
+        messageRepository.save(message);
+
+        User creator = message.getLink().getUser();
+        BigDecimal tipAmount = message.getTipAmountEur() != null ? message.getTipAmountEur() : BigDecimal.valueOf(2.00);
+        BigDecimal creatorShare = tipAmount.multiply(BigDecimal.valueOf(0.70)).setScale(2, RoundingMode.HALF_UP);
+
+        Wallet creatorWallet = getOrCreateWallet(creator);
+        creatorWallet.setEarningsEur(creatorWallet.getEarningsEur().add(creatorShare));
+        walletRepository.save(creatorWallet);
+
+        Transaction tipTx = Transaction.builder()
+                .user(creator)
+                .type("CREATOR_TIP")
+                .amountEur(creatorShare)
+                .coinsDelta(0)
+                .description("Pourboire simulé de " + tipAmount + " € (+ " + creatorShare + " €)")
+                .stripeSessionId(message.getStripeTipSessionId() != null ? message.getStripeTipSessionId() : "sim_" + UUID.randomUUID())
+                .status("COMPLETED")
+                .build();
+        transactionRepository.save(tipTx);
+
+        if (messagingTemplate != null && messageService != null) {
+            try {
+                messagingTemplate.convertAndSend("/topic/user/" + creator.getEmail() + "/messages", messageService.toDto(message));
+            } catch (Exception ignored) {}
+        }
+    }
+
 }
