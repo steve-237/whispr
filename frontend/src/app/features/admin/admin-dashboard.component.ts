@@ -24,10 +24,10 @@ import Chart from 'chart.js/auto';
       <!-- Navigation Tabs -->
       <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; overflow-x: auto;">
         <button (click)="activeTab.set('overview')" [style.color]="activeTab() === 'overview' ? '#ef4444' : 'var(--color-text)'" [style.border-bottom]="activeTab() === 'overview' ? '2px solid #ef4444' : 'none'" style="background: transparent; border: none; font-size: 1.1rem; font-weight: 600; cursor: pointer; padding: 0.5rem 1rem;">
-          ðŸ“Š Vue Globale
+          📊 Vue Globale
         </button>
         <button (click)="activeTab.set('users')" [style.color]="activeTab() === 'users' ? '#ef4444' : 'var(--color-text)'" [style.border-bottom]="activeTab() === 'users' ? '2px solid #ef4444' : 'none'" style="background: transparent; border: none; font-size: 1.1rem; font-weight: 600; cursor: pointer; padding: 0.5rem 1rem;">
-          ðŸ‘¥ Utilisateurs
+          👥 Utilisateurs
         </button>
         <button (click)="activeTab.set('messages')" [style.color]="activeTab() === 'messages' ? '#ef4444' : 'var(--color-text)'" [style.border-bottom]="activeTab() === 'messages' ? '2px solid #ef4444' : 'none'" style="background: transparent; border: none; font-size: 1.1rem; font-weight: 600; cursor: pointer; padding: 0.5rem 1rem;">
           💬 Messages

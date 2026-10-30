@@ -43,10 +43,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/links/**").permitAll()
+                .requestMatchers("/api/links", "/api/links/**").permitAll()
                 .requestMatchers("/api/messages/send/**").permitAll()
                 .requestMatchers("/api/health").permitAll()
-                .requestMatchers("/api/advertisements/**").permitAll()
+                .requestMatchers("/api/advertisements", "/api/advertisements/**").permitAll()
                 .requestMatchers("/ws-whispr/**").permitAll()
                 .requestMatchers("/api/monetization/webhook").permitAll()
                 .requestMatchers("/api/monetization/create-tip-checkout").permitAll()

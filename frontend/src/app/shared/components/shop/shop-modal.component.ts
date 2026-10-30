@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WalletService } from './wallet.service';
@@ -9,7 +10,7 @@ import confetti from 'canvas-confetti';
 @Component({
   selector: 'app-shop-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   template: `
     <div *ngIf="walletService.showShopModal()" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem;">
       <div class="glass-panel animate-fade-in custom-scrollbar" style="max-width: 550px; width: 100%; max-height: 88vh; overflow-y: auto; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; padding: 2rem 1.75rem; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent;">
@@ -23,19 +24,19 @@ import confetti from 'canvas-confetti';
         <div style="text-align: center; margin-bottom: 1.75rem;">
           <div style="font-size: 2.2rem; margin-bottom: 0.25rem;">🪙</div>
           <h2 style="font-size: 1.7rem; font-weight: 800; margin-bottom: 0.25rem; background: linear-gradient(135deg, #fff, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            Boutique Whispr
+            {{ 'SHOP.TITLE' | translate }}
           </h2>
           <p style="color: var(--color-text-muted); font-size: 0.9rem;">
-            Débloquez des indices secrets ou devenez membre PRO !
+            {{ 'SHOP.SUBTITLE' | translate }}
           </p>
 
           <!-- Solde actuel & Total dépensé -->
           <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 0.75rem; flex-wrap: wrap;">
             <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 20px; padding: 0.35rem 0.9rem; color: #fbbf24; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem;">
-              <span>🪙</span> {{ walletService.wallet()?.coins || 0 }} pièces
+              <span>🪙</span> {{ walletService.wallet()?.coins || 0 }} {{ 'SHOP.COINS' | translate }}
             </div>
             <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 0.35rem 0.9rem; color: #10b981; font-weight: 700; font-size: 0.85rem;">
-              💳 {{ walletService.wallet()?.totalSpentEur || 0 }} € dépensés
+              💳 {{ walletService.wallet()?.totalSpentEur || 0 }} € {{ 'SHOP.SPENT' | translate }}
             </div>
           </div>
         </div>
@@ -45,47 +46,47 @@ import confetti from 'canvas-confetti';
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
             <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 800; font-size: 0.95rem; color: #60a5fa;">
               <span>📣</span>
-              <span>Programme Créateurs & Influenceurs</span>
+              <span>{{ 'SHOP.CREATOR_PROGRAM' | translate }}</span>
             </div>
             <span style="background: #2563eb; color: white; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 10px;">
-              30% COMMISSION
+              {{ 'SHOP.CREATOR_COMMISSION' | translate }}
             </span>
           </div>
           <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0.75rem; line-height: 1.4;">
-            Partagez votre lien de profil sur Instagram, TikTok ou Snapchat. Chaque fois que vos abonnés débloquent des indices ou achètent des pièces sur vos messages, vous gagnez <strong>30% de commission</strong> !
+            {{ 'SHOP.CREATOR_DESC' | translate }}
           </p>
 
           <!-- Solde gains & Actions -->
           <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 0.75rem 0.9rem; margin-bottom: 0.75rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
               <div>
-                <div style="font-size: 0.7rem; color: var(--color-text-muted);">Vos gains disponibles</div>
+                <div style="font-size: 0.7rem; color: var(--color-text-muted);">{{ 'SHOP.AVAILABLE_EARNINGS' | translate }}</div>
                 <div style="font-size: 1.25rem; font-weight: 800; color: #10b981;">
                   {{ walletService.wallet()?.earningsEur || '0.00' }} €
                 </div>
               </div>
               <div style="display: flex; gap: 0.5rem;">
                 <button (click)="copyAffiliateLink()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.4rem 0.75rem; border-radius: 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-                  📋 Copier le lien
+                  {{ 'SHOP.COPY_LINK' | translate }}
                 </button>
                 <button *ngIf="canWithdraw() && !showPayoutForm()" 
                         (click)="openPayoutForm()" 
                         style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; padding: 0.4rem 0.85rem; border-radius: 10px; font-size: 0.75rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">
-                  💸 Retirer mes gains
+                  {{ 'SHOP.WITHDRAW_EARNINGS' | translate }}
                 </button>
               </div>
             </div>
 
             <!-- Progression si solde < 20€ -->
             <div *ngIf="!canWithdraw()" style="font-size: 0.75rem; color: #94a3b8; text-align: center; padding-top: 0.25rem; border-top: 1px dashed rgba(255,255,255,0.1);">
-              🎯 Retrait déblocable dès 20,00 € (Encore {{ (20 - (walletService.wallet()?.earningsEur || 0)).toFixed(2) }} € restants)
+              {{ 'SHOP.WITHDRAW_MIN_NOTE_1' | translate }}{{ (20 - (walletService.wallet()?.earningsEur || 0)).toFixed(2) }}{{ 'SHOP.WITHDRAW_MIN_NOTE_2' | translate }}
             </div>
           </div>
 
           <!-- Formulaire de Demande de Retrait (US-05) -->
           <div *ngIf="showPayoutForm()" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 14px; padding: 1rem; margin-bottom: 0.75rem;">
             <div style="font-weight: 800; font-size: 0.9rem; color: #10b981; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
-              <span>Demande de Virement de Gains</span>
+              <span>{{ 'SHOP.PAYOUT_TITLE' | translate }}</span>
               <button (click)="showPayoutForm.set(false)" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 1rem;">✕</button>
             </div>
 
@@ -95,20 +96,20 @@ import confetti from 'canvas-confetti';
                       (click)="payoutMethod = 'PAYPAL'" 
                       [style.background]="payoutMethod === 'PAYPAL' ? '#2563eb' : 'rgba(255,255,255,0.08)'"
                       style="flex: 1; border: none; color: white; padding: 0.5rem; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
-                🅿️ PayPal
+                {{ 'SHOP.METHOD_PAYPAL' | translate }}
               </button>
               <button type="button" 
                       (click)="payoutMethod = 'IBAN'" 
                       [style.background]="payoutMethod === 'IBAN' ? '#2563eb' : 'rgba(255,255,255,0.08)'"
                       style="flex: 1; border: none; color: white; padding: 0.5rem; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
-                🏦 Virement IBAN
+                {{ 'SHOP.METHOD_IBAN' | translate }}
               </button>
             </div>
 
             <!-- Coordonnées selon méthode -->
             <div style="margin-bottom: 0.8rem;">
               <label style="display: block; font-size: 0.75rem; color: #cbd5e1; margin-bottom: 0.3rem;">
-                {{ payoutMethod === 'PAYPAL' ? 'Adresse email de votre compte PayPal' : 'IBAN & Nom du bénéficiaire' }}
+                {{ payoutMethod === 'PAYPAL' ? ('SHOP.PAYPAL_EMAIL_LABEL' | translate) : ('SHOP.IBAN_LABEL' | translate) }}
               </label>
               <input type="text" 
                      [(ngModel)]="payoutDetails" 
@@ -119,8 +120,8 @@ import confetti from 'canvas-confetti';
             <!-- Montant à retirer -->
             <div style="margin-bottom: 1rem;">
               <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #cbd5e1; margin-bottom: 0.3rem;">
-                <span>Montant à retirer (€)</span>
-                <span>Max: {{ walletService.wallet()?.earningsEur || 0 }} €</span>
+                <span>{{ 'SHOP.AMOUNT_TO_WITHDRAW' | translate }}</span>
+                <span>{{ 'SHOP.MAX' | translate }} {{ walletService.wallet()?.earningsEur || 0 }} €</span>
               </div>
               <input type="number" 
                      step="0.01" 
@@ -135,7 +136,7 @@ import confetti from 'canvas-confetti';
               <button (click)="submitPayout()" 
                       [disabled]="walletService.isPayoutLoading() || !payoutDetails || payoutAmount < 20" 
                       style="flex: 2; background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; font-weight: 700; padding: 0.6rem; border-radius: 10px; cursor: pointer; font-size: 0.85rem;">
-                {{ walletService.isPayoutLoading() ? 'Traitement...' : 'Confirmer le retrait' }}
+                {{ walletService.isPayoutLoading() ? ('SHOP.PROCESSING' | translate) : ('SHOP.CONFIRM_PAYOUT' | translate) }}
               </button>
               <button (click)="showPayoutForm.set(false)" 
                       style="flex: 1; background: rgba(255,255,255,0.1); border: none; color: #cbd5e1; font-weight: 600; padding: 0.6rem; border-radius: 10px; cursor: pointer; font-size: 0.85rem;">
@@ -147,7 +148,7 @@ import confetti from 'canvas-confetti';
           <!-- Lien Historique Retraits -->
           <div *ngIf="walletService.payoutHistory().length > 0" style="margin-top: 0.5rem;">
             <button (click)="togglePayoutHistory()" style="background: transparent; border: none; color: #60a5fa; font-size: 0.75rem; cursor: pointer; padding: 0; text-decoration: underline;">
-              {{ showPayoutHistory() ? 'Masquer mes retraits' : '📜 Voir mes demandes de retraits (' + walletService.payoutHistory().length + ')' }}
+              {{ showPayoutHistory() ? ('SHOP.HIDE_PAYOUTS' | translate) : (('SHOP.SHOW_PAYOUTS_1' | translate) + walletService.payoutHistory().length + ('SHOP.SHOW_PAYOUTS_2' | translate)) }}
             </button>
 
             <!-- Liste historique -->
@@ -180,36 +181,36 @@ import confetti from 'canvas-confetti';
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
             <div>
               <div style="display: inline-block; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; font-weight: 800; font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem;">
-                👑 Whispr PRO Club
+                {{ 'SHOP.PRO_CLUB_TITLE' | translate }}
               </div>
-              <h3 style="font-size: 1.2rem; font-weight: 800; color: white; margin: 0;">Indices Illimités & Gratuit</h3>
+              <h3 style="font-size: 1.2rem; font-weight: 800; color: white; margin: 0;">{{ 'SHOP.PRO_UNLIMITED_CLUES' | translate }}</h3>
             </div>
             <div style="text-align: right;">
               <span style="font-size: 1.4rem; font-weight: 800; color: #ec4899;">4,99 €</span>
-              <span style="font-size: 0.8rem; color: var(--color-text-muted);">/mois</span>
+              <span style="font-size: 0.8rem; color: var(--color-text-muted);">{{ 'SHOP.PER_MONTH' | translate }}</span>
             </div>
           </div>
           <ul style="margin: 0 0 1rem 0; padding-left: 1.2rem; font-size: 0.85rem; color: #cbd5e1; line-height: 1.5;">
-            <li>🔓 Tous les indices de tous vos messages débloqués sans pièces</li>
-            <li>✨ Thèmes VIP dorés & badges exclusifs</li>
-            <li>🎁 50 pièces offertes chaque mois</li>
+            <li>{{ 'SHOP.PRO_PERK_1' | translate }}</li>
+            <li>{{ 'SHOP.PRO_PERK_2' | translate }}</li>
+            <li>{{ 'SHOP.PRO_PERK_3' | translate }}</li>
           </ul>
           
           <button *ngIf="!walletService.wallet()?.isPro" 
-                  (click)="buy('PRO_MONTHLY', 'Abonnement Whispr PRO Club activé ! 👑')" 
+                  (click)="buy('PRO_MONTHLY', translate.instant('SHOP.PRO_SUB_ACTIVATED') || 'Abonnement Whispr PRO Club activé ! 👑')" 
                   [disabled]="walletService.isLoading()"
                   class="btn" style="width: 100%; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; font-weight: 700; padding: 0.8rem; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);">
-            {{ walletService.isLoading() ? 'Validation du paiement...' : 'Passer PRO (Stripe - 4,99 €)' }}
+            {{ walletService.isLoading() ? ('SHOP.VALIDATING_PAYMENT' | translate) : ('SHOP.GO_PRO_BTN' | translate) }}
           </button>
           
           <div *ngIf="walletService.wallet()?.isPro" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 0.85rem 1rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
               <span style="color: #10b981; font-weight: 800; font-size: 0.9rem; display: flex; align-items: center; gap: 0.35rem;">
                 <span>👑</span>
-                <span>Abonnement PRO Club Actif</span>
+                <span>{{ 'SHOP.PRO_ACTIVE' | translate }}</span>
               </span>
               <span style="font-size: 0.75rem; color: #cbd5e1; background: rgba(255,255,255,0.06); padding: 0.15rem 0.5rem; border-radius: 8px;">
-                Valide jusqu'au {{ walletService.wallet()?.proExpiresAt | date:'shortDate' }}
+                {{ 'SHOP.PRO_VALID_UNTIL' | translate }} {{ walletService.wallet()?.proExpiresAt | date:'shortDate' }}
               </span>
             </div>
             <div style="display: flex; justify-content: flex-end; margin-top: 0.6rem; padding-top: 0.5rem; border-top: 1px dashed rgba(255,255,255,0.1);">
@@ -218,7 +219,7 @@ import confetti from 'canvas-confetti';
                 (click)="cancelSubscription()" 
                 [disabled]="isCancellingSubscription()"
                 style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #ef4444; font-weight: 700; font-size: 0.75rem; padding: 0.35rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
-                {{ isCancellingSubscription() ? 'Résiliation en cours...' : 'Résilier l\'abonnement' }}
+                {{ isCancellingSubscription() ? ('SHOP.PRO_CANCELLING' | translate) : ('SHOP.PRO_CANCEL' | translate) }}
               </button>
             </div>
           </div>
@@ -227,12 +228,12 @@ import confetti from 'canvas-confetti';
                 <!-- Code Promo Créateur -->
         <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); border-radius: 14px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.75rem;">
           <span style="font-size: 1.2rem;">🎟️</span>
-          <input type="text" [ngModel]="promoCodeInput()" (ngModelChange)="promoCodeInput.set($event)" placeholder="Code promo influenceur (-10%)..." style="flex: 1; background: transparent; border: none; color: white; font-size: 0.85rem; outline: none; font-weight: 600;" />
-          <span *ngIf="promoCodeInput().trim()" style="font-size: 0.75rem; color: #10b981; font-weight: 700;">-10% appliqué</span>
+          <input type="text" [ngModel]="promoCodeInput()" (ngModelChange)="promoCodeInput.set($event)" [placeholder]="'SHOP.PROMO_PLACEHOLDER' | translate" style="flex: 1; background: transparent; border: none; color: white; font-size: 0.85rem; outline: none; font-weight: 600;" />
+          <span *ngIf="promoCodeInput().trim()" style="font-size: 0.75rem; color: #10b981; font-weight: 700;">{{ 'SHOP.PROMO_APPLIED' | translate }}</span>
         </div>
 
         <!-- Section Packs de Pièces -->
-        <h4 style="font-size: 1rem; font-weight: 700; color: white; margin-bottom: 0.8rem;">Recharger en Pièces Virtuelles</h4>
+        <h4 style="font-size: 1rem; font-weight: 700; color: white; margin-bottom: 0.8rem;">{{ 'SHOP.PACKS_TITLE' | translate }}</h4>
         <div style="display: flex; flex-direction: column; gap: 0.8rem;">
           
           <!-- Pack 1 -->
@@ -240,11 +241,11 @@ import confetti from 'canvas-confetti';
             <div style="display: flex; align-items: center; gap: 0.8rem;">
               <span style="font-size: 1.8rem;">🪙</span>
               <div>
-                <div style="font-weight: 700; color: white; font-size: 1rem;">Pack Découverte</div>
-                <div style="font-size: 0.8rem; color: #fbbf24; font-weight: 600;">+50 pièces (3 indices)</div>
+                <div style="font-weight: 700; color: white; font-size: 1rem;">{{ 'SHOP.PACK_1_TITLE' | translate }}</div>
+                <div style="font-size: 0.8rem; color: #fbbf24; font-weight: 600;">{{ 'SHOP.PACK_1_DESC' | translate }}</div>
               </div>
             </div>
-            <button (click)="buy('COINS_50', '+50 pièces ajoutées ! 🪙')" [disabled]="walletService.isLoading()" class="btn btn-primary" style="padding: 0.6rem 1rem; font-size: 0.9rem; font-weight: 700;">
+            <button (click)="buy('COINS_50', translate.instant('SHOP.PACK_1_SUCCESS') || '+50 pièces ajoutées ! 🪙')" [disabled]="walletService.isLoading()" class="btn btn-primary" style="padding: 0.6rem 1rem; font-size: 0.9rem; font-weight: 700;">
               0,99 €
             </button>
           </div>
@@ -252,16 +253,16 @@ import confetti from 'canvas-confetti';
           <!-- Pack 2 (Populaire) -->
           <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 16px; padding: 1rem; display: flex; justify-content: space-between; align-items: center; position: relative;">
             <div style="position: absolute; top: -8px; right: 20px; background: #8b5cf6; color: white; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.6rem; border-radius: 20px; text-transform: uppercase;">
-              ⭐ Populaire
+              {{ 'SHOP.POPULAR' | translate }}
             </div>
             <div style="display: flex; align-items: center; gap: 0.8rem;">
               <span style="font-size: 1.8rem;">💰</span>
               <div>
-                <div style="font-weight: 700; color: white; font-size: 1rem;">Pack Enquêteur</div>
-                <div style="font-size: 0.8rem; color: #fbbf24; font-weight: 600;">+150 pièces (10 indices)</div>
+                <div style="font-weight: 700; color: white; font-size: 1rem;">{{ 'SHOP.PACK_2_TITLE' | translate }}</div>
+                <div style="font-size: 0.8rem; color: #fbbf24; font-weight: 600;">{{ 'SHOP.PACK_2_DESC' | translate }}</div>
               </div>
             </div>
-            <button (click)="buy('COINS_150', '+150 pièces ajoutées ! 💰')" [disabled]="walletService.isLoading()" class="btn btn-primary" style="padding: 0.6rem 1rem; font-size: 0.9rem; font-weight: 700; background: linear-gradient(135deg, #8b5cf6, #ec4899);">
+            <button (click)="buy('COINS_150', translate.instant('SHOP.PACK_2_SUCCESS') || '+150 pièces ajoutées ! 💰')" [disabled]="walletService.isLoading()" class="btn btn-primary" style="padding: 0.6rem 1rem; font-size: 0.9rem; font-weight: 700; background: linear-gradient(135deg, #8b5cf6, #ec4899);">
               2,49 €
             </button>
           </div>
@@ -271,11 +272,11 @@ import confetti from 'canvas-confetti';
             <div style="display: flex; align-items: center; gap: 0.8rem;">
               <span style="font-size: 1.8rem;">🏆</span>
               <div>
-                <div style="font-weight: 700; color: white; font-size: 1rem;">Pack Coffre-Fort</div>
-                <div style="font-size: 0.8rem; color: #fbbf24; font-weight: 600;">+500 pièces (33 indices)</div>
+                <div style="font-weight: 700; color: white; font-size: 1rem;">{{ 'SHOP.PACK_3_TITLE' | translate }}</div>
+                <div style="font-size: 0.8rem; color: #fbbf24; font-weight: 600;">{{ 'SHOP.PACK_3_DESC' | translate }}</div>
               </div>
             </div>
-            <button (click)="buy('COINS_500', '+500 pièces ajoutées ! 🏆')" [disabled]="walletService.isLoading()" class="btn btn-primary" style="padding: 0.6rem 1rem; font-size: 0.9rem; font-weight: 700;">
+            <button (click)="buy('COINS_500', translate.instant('SHOP.PACK_3_SUCCESS') || '+500 pièces ajoutées ! 🏆')" [disabled]="walletService.isLoading()" class="btn btn-primary" style="padding: 0.6rem 1rem; font-size: 0.9rem; font-weight: 700;">
               5,99 €
             </button>
           </div>
@@ -283,7 +284,7 @@ import confetti from 'canvas-confetti';
         </div>
 
         <div style="text-align: center; margin-top: 1.5rem; font-size: 0.75rem; color: var(--color-text-muted);">
-          🔒 Simulation de paiement sécurisé Stripe • Les soldes et dépenses sont comptabilisés en temps réel.
+          {{ 'SHOP.SECURE_STRIPE_NOTE' | translate }}
         </div>
 
       </div>
@@ -293,6 +294,7 @@ import confetti from 'canvas-confetti';
 export class ShopModalComponent {
   walletService = inject(WalletService);
   toastService = inject(ToastService);
+  translate = inject(TranslateService);
   apiService = inject(ApiService);
   isCancellingSubscription = signal(false);
   promoCodeInput = signal<string>("");
@@ -411,17 +413,17 @@ export class ShopModalComponent {
   }
 
   cancelSubscription(): void {
-    if (!confirm('Êtes-vous sûr de vouloir résilier votre abonnement Whispr PRO Club ?')) return;
+    if (!confirm(this.translate.instant('SHOP.PRO_CANCEL_CONFIRM') || 'Êtes-vous sûr de vouloir résilier votre abonnement Whispr PRO Club ?')) return;
     this.isCancellingSubscription.set(true);
     this.apiService.cancelSubscription().subscribe({
       next: (updatedWallet: any) => {
         this.isCancellingSubscription.set(false);
         this.walletService.wallet.set(updatedWallet);
-        this.toastService.info('Votre abonnement a été résilié avec succès.');
+        this.toastService.info(this.translate.instant('SHOP.PRO_CANCEL_SUCCESS') || 'Votre abonnement a été résilié avec succès.');
       },
       error: (err: any) => {
         this.isCancellingSubscription.set(false);
-        this.toastService.error(err?.error?.message || "Erreur lors de la résiliation de l'abonnement.");
+        this.toastService.error(err?.error?.message || this.translate.instant('SHOP.PRO_CANCEL_ERROR') || "Erreur lors de la résiliation de l'abonnement.");
       }
     });
   }

@@ -20,7 +20,7 @@ import { WalletService } from '../shop/wallet.service';
           
           <!-- Badge Pièces & Boutique (si connecté) -->
           <ng-container *ngIf="authService.isAuthenticated()">
-            <button (click)="walletService.openShop()" style="background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); color: #fbbf24; padding: 0.4rem 0.75rem; border-radius: 20px; font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <button (click)="walletService.openShop()" [title]="'HEADER.COINS_TOOLTIP' | translate" style="background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); color: #fbbf24; padding: 0.4rem 0.75rem; border-radius: 20px; font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
               <span>🪙</span>
               <span>{{ walletService.wallet()?.coins || 0 }}</span>
               <span *ngIf="walletService.wallet()?.isPro" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 8px; margin-left: 0.2rem;">PRO</span>
@@ -38,7 +38,7 @@ import { WalletService } from '../shop/wallet.service';
 
           <ng-container *ngIf="authService.isAuthenticated()">
             <a *ngIf="authService.isAdmin()" routerLink="/admin" style="text-decoration: none; color: #ef4444; font-size: 0.9rem; font-weight: 600; padding: 0.5rem 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 20px;">
-              Admin
+              {{ 'HEADER.ADMIN' | translate }}
             </a>
             <a *ngIf="!isInboxRoute()" routerLink="/inbox" style="text-decoration: none; color: white; font-size: 0.9rem; font-weight: 600; padding: 0.5rem 1rem; background: var(--color-primary); border-radius: 20px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">
               {{ 'HEADER.WORKSPACE' | translate }}
