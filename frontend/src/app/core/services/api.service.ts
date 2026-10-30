@@ -21,6 +21,8 @@ export interface WalletDto {
   earningsEur?: number;
   referralCount?: number;
   affiliateCode?: string;
+  stripeSubscriptionId?: string;
+  subscriptionStatus?: string;
 }
 
 export interface ClueResponseDto {
@@ -202,6 +204,10 @@ export class ApiService {
 
   simulateExpressClueUnlock(messageId: string): Observable<void> {
     return this.http.post<void>(`${this.API_URL}/monetization/simulate-clue-unlock?messageId=${messageId}`, {});
+  }
+
+    cancelSubscription(): Observable<WalletDto> {
+    return this.http.post<WalletDto>(`${this.API_URL}/monetization/cancel-subscription`, {});
   }
 
   createCheckoutSession(packId: string, promoCode?: string): Observable<{ sessionId: string, checkoutUrl: string }> {

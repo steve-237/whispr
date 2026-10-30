@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface WalletRepository extends JpaRepository<Wallet, UUID> {
     Optional<Wallet> findByUserId(UUID userId);
     Optional<Wallet> findByAffiliateCodeIgnoreCase(String affiliateCode);
+    Optional<Wallet> findByStripeSubscriptionId(String stripeSubscriptionId);
+    Optional<Wallet> findByStripeCustomerId(String stripeCustomerId);
 }

@@ -493,4 +493,22 @@ class MonetizationServiceTest {
         verify(transactionRepository, times(1)).save(any(Transaction.class));
     }
 
+
+    @Test
+    void cancelSubscription_ShouldSetSubscriptionStatusCanceled_AndRevokePro() {
+        mockWallet.setPro(true);
+        mockWallet.setSubscriptionStatus("ACTIVE");
+        mockWallet.setStripeSubscriptionId("sub_123");
+
+        when(userRepository.findByEmailIgnoreCase(mockUser.getEmail())).thenReturn(Optional.of(mockUser));
+        when(walletRepository.findByUserId(mockUser.getId())).thenReturn(Optional.of(mockWallet));
+
+        WalletDto result = monetizationService.cancelSubscription(mockUser.getEmail());
+
+        assertFalse(result.isPro());
+        assertEquals("CANCELED", result.subscriptionStatus());
+        verify(walletRepository, times(1)).save(mockWallet);
+        verify(transactionRepository, times(1)).save(any(Transaction.class));
+    }
+
 }

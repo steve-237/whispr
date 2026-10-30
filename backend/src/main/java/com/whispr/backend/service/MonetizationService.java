@@ -27,6 +27,8 @@ import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
+import com.stripe.model.Invoice;
+import com.stripe.model.Subscription;
 import com.whispr.backend.domain.Transaction;
 import com.whispr.backend.domain.User;
 import com.whispr.backend.domain.Wallet;
@@ -112,7 +114,9 @@ public class MonetizationService {
                 wallet.getProExpiresAt(),
                 wallet.getEarningsEur(),
                 wallet.getReferralCount(),
-                affiliateCode
+                affiliateCode,
+                wallet.getStripeSubscriptionId(),
+                wallet.getSubscriptionStatus()
         );
     }
 
@@ -185,32 +189,61 @@ public class MonetizationService {
         if (stripeSecretKey != null && !stripeSecretKey.isBlank() && !stripeSecretKey.startsWith("mock")) {
             Stripe.apiKey = stripeSecretKey;
 
+            boolean isSubscription = "PRO_MONTHLY".equalsIgnoreCase(request.packId());
+
             SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
-                    .setMode(SessionCreateParams.Mode.PAYMENT)
                     .setSuccessUrl(frontendUrl + "/inbox?payment=success&session_id={CHECKOUT_SESSION_ID}")
                     .setCancelUrl(frontendUrl + "/inbox?payment=cancelled")
                     .setCustomerEmail(user.getEmail())
                     .putMetadata("userId", user.getId().toString())
                     .putMetadata("userEmail", user.getEmail())
                     .putMetadata("packId", request.packId())
-                    .putMetadata("coins", String.valueOf(coinsToAdd))
-                    .addLineItem(
-                            SessionCreateParams.LineItem.builder()
-                                    .setQuantity(1L)
-                                    .setPriceData(
-                                            SessionCreateParams.LineItem.PriceData.builder()
-                                                    .setCurrency("eur")
-                                                    .setUnitAmount(finalAmountCents)
-                                                    .setProductData(
-                                                            SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                    .setName(packTitle)
-                                                                    .setDescription(packDesc)
-                                                                    .build()
-                                                    )
-                                                    .build()
-                                    )
-                                    .build()
-                    );
+                    .putMetadata("coins", String.valueOf(coinsToAdd));
+
+            if (isSubscription) {
+                paramsBuilder.setMode(SessionCreateParams.Mode.SUBSCRIPTION);
+                paramsBuilder.addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("eur")
+                                                .setUnitAmount(finalAmountCents)
+                                                .setRecurring(
+                                                        SessionCreateParams.LineItem.PriceData.Recurring.builder()
+                                                                .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.MONTH)
+                                                                .build()
+                                                )
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName(packTitle)
+                                                                .setDescription(packDesc)
+                                                                .build()
+                                                )
+                                                .build()
+                                )
+                                .build()
+                );
+            } else {
+                paramsBuilder.setMode(SessionCreateParams.Mode.PAYMENT);
+                paramsBuilder.addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("eur")
+                                                .setUnitAmount(finalAmountCents)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName(packTitle)
+                                                                .setDescription(packDesc)
+                                                                .build()
+                                                )
+                                                .build()
+                                )
+                                .build()
+                );
+            }
 
             if (referrer != null) {
                 paramsBuilder.putMetadata("promoCode", promoCode);
@@ -264,6 +297,10 @@ public class MonetizationService {
 
         if ("checkout.session.completed".equals(event.getType())) {
             processCheckoutSessionCompleted(event);
+        } else if ("invoice.payment_succeeded".equals(event.getType())) {
+            processInvoicePaymentSucceeded(event);
+        } else if ("customer.subscription.deleted".equals(event.getType())) {
+            processCustomerSubscriptionDeleted(event);
         } else if ("payment_intent.payment_failed".equals(event.getType()) || "checkout.session.expired".equals(event.getType())) {
             log.warn("Paiement Stripe annulé ou expiré: id={}, type={}", event.getId(), event.getType());
         }
@@ -365,6 +402,13 @@ public class MonetizationService {
         if ("PRO_MONTHLY".equalsIgnoreCase(packId)) {
             wallet.setPro(true);
             wallet.setProExpiresAt(ZonedDateTime.now().plusMonths(1));
+            wallet.setSubscriptionStatus("ACTIVE");
+            if (session.getSubscription() != null) {
+                wallet.setStripeSubscriptionId(session.getSubscription());
+            }
+            if (session.getCustomer() != null) {
+                wallet.setStripeCustomerId(session.getCustomer());
+            }
         }
         walletRepository.save(wallet);
 
@@ -470,6 +514,8 @@ public class MonetizationService {
                 desc = "Abonnement Whispr PRO Club (1 mois)";
                 type = "PRO_SUBSCRIPTION";
                 wallet.setPro(true);
+                wallet.setSubscriptionStatus("ACTIVE");
+                wallet.setStripeSubscriptionId("sim_sub_" + UUID.randomUUID());
                 wallet.setProExpiresAt(ZonedDateTime.now().plusMonths(1));
             }
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pack inconnu: " + request.packId());
@@ -1079,6 +1125,145 @@ public class MonetizationService {
                 unlockedClueRepository.save(clue);
             }
         }
+    }
+
+
+    @Transactional
+    public void processInvoicePaymentSucceeded(Event event) {
+        EventDataObjectDeserializer dataObjectDeserializer = event.getDataObjectDeserializer();
+        Invoice invoice = null;
+        try {
+            if (dataObjectDeserializer.getObject().isPresent() && dataObjectDeserializer.getObject().get() instanceof Invoice inv) {
+                invoice = inv;
+            } else if (dataObjectDeserializer.getRawJson() != null) {
+                invoice = Event.GSON.fromJson(dataObjectDeserializer.getRawJson(), Invoice.class);
+            }
+        } catch (Exception ignored) {}
+
+        if (invoice == null) {
+            log.warn("Invoice null pour l'événement {}", event.getId());
+            return;
+        }
+
+        String subscriptionId = invoice.getSubscription();
+        String customerId = invoice.getCustomer();
+
+        Wallet wallet = null;
+        if (subscriptionId != null) {
+            wallet = walletRepository.findByStripeSubscriptionId(subscriptionId).orElse(null);
+        }
+        if (wallet == null && customerId != null) {
+            wallet = walletRepository.findByStripeCustomerId(customerId).orElse(null);
+        }
+
+        if (wallet == null) {
+            log.warn("Aucun wallet trouvé pour renouvellement subId={} custId={}", subscriptionId, customerId);
+            return;
+        }
+
+        wallet.setPro(true);
+        wallet.setSubscriptionStatus("ACTIVE");
+        wallet.setProExpiresAt(ZonedDateTime.now().plusMonths(1));
+        if (subscriptionId != null) {
+            wallet.setStripeSubscriptionId(subscriptionId);
+        }
+        walletRepository.save(wallet);
+
+        Transaction renewalTx = Transaction.builder()
+                .user(wallet.getUser())
+                .type("PRO_SUBSCRIPTION_RENEWAL")
+                .amountEur(new BigDecimal("4.99"))
+                .coinsDelta(0)
+                .description("Renouvellement mensuel Whispr PRO Club")
+                .stripeEventId(event.getId())
+                .status("COMPLETED")
+                .build();
+        transactionRepository.save(renewalTx);
+
+        log.info("Abonnement PRO renouvelé pour user={} jusqu'au {}", wallet.getUser().getEmail(), wallet.getProExpiresAt());
+    }
+
+    @Transactional
+    public void processCustomerSubscriptionDeleted(Event event) {
+        EventDataObjectDeserializer dataObjectDeserializer = event.getDataObjectDeserializer();
+        Subscription subscription = null;
+        try {
+            if (dataObjectDeserializer.getObject().isPresent() && dataObjectDeserializer.getObject().get() instanceof Subscription sub) {
+                subscription = sub;
+            } else if (dataObjectDeserializer.getRawJson() != null) {
+                subscription = Event.GSON.fromJson(dataObjectDeserializer.getRawJson(), Subscription.class);
+            }
+        } catch (Exception ignored) {}
+
+        String subId = subscription != null ? subscription.getId() : null;
+        if (subId == null) {
+            log.warn("Subscription null pour l'événement {}", event.getId());
+            return;
+        }
+
+        Wallet wallet = walletRepository.findByStripeSubscriptionId(subId).orElse(null);
+        if (wallet == null) {
+            log.warn("Aucun wallet trouvé pour résiliation subId={}", subId);
+            return;
+        }
+
+        wallet.setPro(false);
+        wallet.setSubscriptionStatus("CANCELED");
+        wallet.setProExpiresAt(null);
+        walletRepository.save(wallet);
+
+        Transaction cancelTx = Transaction.builder()
+                .user(wallet.getUser())
+                .type("PRO_SUBSCRIPTION_CANCELED")
+                .amountEur(BigDecimal.ZERO)
+                .coinsDelta(0)
+                .description("Résiliation de l'abonnement Whispr PRO Club")
+                .stripeEventId(event.getId())
+                .status("COMPLETED")
+                .build();
+        transactionRepository.save(cancelTx);
+
+        log.info("Abonnement PRO résilié pour user={}", wallet.getUser().getEmail());
+    }
+
+    @Transactional
+    public WalletDto cancelSubscription(String userEmail) {
+        User user = userRepository.findByEmailIgnoreCase(userEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
+        Wallet wallet = getOrCreateWallet(user);
+
+        if (!wallet.isPro() && (wallet.getSubscriptionStatus() == null || "CANCELED".equalsIgnoreCase(wallet.getSubscriptionStatus()))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vous n'avez aucun abonnement actif à annuler.");
+        }
+
+        String subId = wallet.getStripeSubscriptionId();
+        if (subId != null && stripeSecretKey != null && !stripeSecretKey.isBlank() && !stripeSecretKey.startsWith("mock")) {
+            Stripe.apiKey = stripeSecretKey;
+            try {
+                Subscription sub = Subscription.retrieve(subId);
+                sub.cancel();
+                log.info("Abonnement Stripe {} annulé avec succès.", subId);
+            } catch (StripeException e) {
+                log.warn("Impossible d'annuler l'abonnement sur Stripe (déjà annulé ou expiré): {}", e.getMessage());
+            }
+        }
+
+        wallet.setSubscriptionStatus("CANCELED");
+        wallet.setPro(false);
+        wallet.setProExpiresAt(null);
+        walletRepository.save(wallet);
+
+        Transaction cancelTx = Transaction.builder()
+                .user(user)
+                .type("PRO_SUBSCRIPTION_CANCELED")
+                .amountEur(BigDecimal.ZERO)
+                .coinsDelta(0)
+                .description("Annulation manuelle de l'abonnement Whispr PRO Club")
+                .status("COMPLETED")
+                .build();
+        transactionRepository.save(cancelTx);
+
+        return getWalletDto(userEmail);
     }
 
 }

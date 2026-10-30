@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WalletService } from './wallet.service';
 import { ToastService } from '../toast/toast.service';
+import { ApiService } from '../../../core/services/api.service';
 import confetti from 'canvas-confetti';
 
 @Component({
@@ -201,8 +202,25 @@ import confetti from 'canvas-confetti';
             {{ walletService.isLoading() ? 'Validation du paiement...' : 'Passer PRO (Stripe - 4,99 €)' }}
           </button>
           
-          <div *ngIf="walletService.wallet()?.isPro" style="text-align: center; color: #10b981; font-weight: 700; font-size: 0.9rem; padding: 0.5rem; background: rgba(16, 185, 129, 0.15); border-radius: 10px;">
-            ✓ Vous êtes déjà membre PRO ! (Actif jusqu'au {{ walletService.wallet()?.proExpiresAt | date:'shortDate' }})
+          <div *ngIf="walletService.wallet()?.isPro" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 0.85rem 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="color: #10b981; font-weight: 800; font-size: 0.9rem; display: flex; align-items: center; gap: 0.35rem;">
+                <span>👑</span>
+                <span>Abonnement PRO Club Actif</span>
+              </span>
+              <span style="font-size: 0.75rem; color: #cbd5e1; background: rgba(255,255,255,0.06); padding: 0.15rem 0.5rem; border-radius: 8px;">
+                Valide jusqu'au {{ walletService.wallet()?.proExpiresAt | date:'shortDate' }}
+              </span>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 0.6rem; padding-top: 0.5rem; border-top: 1px dashed rgba(255,255,255,0.1);">
+              <button 
+                type="button"
+                (click)="cancelSubscription()" 
+                [disabled]="isCancellingSubscription()"
+                style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #ef4444; font-weight: 700; font-size: 0.75rem; padding: 0.35rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                {{ isCancellingSubscription() ? 'Résiliation en cours...' : 'Résilier l\'abonnement' }}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -275,6 +293,8 @@ import confetti from 'canvas-confetti';
 export class ShopModalComponent {
   walletService = inject(WalletService);
   toastService = inject(ToastService);
+  apiService = inject(ApiService);
+  isCancellingSubscription = signal(false);
   promoCodeInput = signal<string>("");
 
   showPayoutForm = signal(false);
@@ -389,4 +409,21 @@ export class ShopModalComponent {
       default: return 'En attente 🟡';
     }
   }
+
+  cancelSubscription(): void {
+    if (!confirm('Êtes-vous sûr de vouloir résilier votre abonnement Whispr PRO Club ?')) return;
+    this.isCancellingSubscription.set(true);
+    this.apiService.cancelSubscription().subscribe({
+      next: (updatedWallet: any) => {
+        this.isCancellingSubscription.set(false);
+        this.walletService.wallet.set(updatedWallet);
+        this.toastService.info('Votre abonnement a été résilié avec succès.');
+      },
+      error: (err: any) => {
+        this.isCancellingSubscription.set(false);
+        this.toastService.error(err?.error?.message || "Erreur lors de la résiliation de l'abonnement.");
+      }
+    });
+  }
+
 }

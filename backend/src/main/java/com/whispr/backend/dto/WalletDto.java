@@ -10,6 +10,11 @@ public record WalletDto(
         ZonedDateTime proExpiresAt,
         BigDecimal earningsEur,
         int referralCount,
-        String affiliateCode
+        String affiliateCode,
+        String stripeSubscriptionId,
+        String subscriptionStatus
 ) {
+    public WalletDto(int coins, BigDecimal totalSpentEur, boolean isPro, ZonedDateTime proExpiresAt, BigDecimal earningsEur, int referralCount, String affiliateCode) {
+        this(coins, totalSpentEur, isPro, proExpiresAt, earningsEur, referralCount, affiliateCode, null, null);
+    }
 }

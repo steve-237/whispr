@@ -88,6 +88,11 @@ public class MonetizationController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/cancel-subscription")
+    public ResponseEntity<WalletDto> cancelSubscription(Authentication authentication) {
+        return ResponseEntity.ok(monetizationService.cancelSubscription(authentication.getName()));
+    }
+
     @PostMapping("/checkout-simulate")
     public ResponseEntity<WalletDto> simulateCheckout(
             Authentication authentication,
