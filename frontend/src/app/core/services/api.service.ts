@@ -196,6 +196,14 @@ export class ApiService {
     return this.http.post<void>(`${this.API_URL}/monetization/simulate-super-whispr?messageId=${messageId}`, {});
   }
 
+    createExpressClueCheckout(messageId: string): Observable<{ sessionId: string, checkoutUrl: string }> {
+    return this.http.post<{ sessionId: string, checkoutUrl: string }>(`${this.API_URL}/monetization/create-clue-checkout`, { messageId });
+  }
+
+  simulateExpressClueUnlock(messageId: string): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/monetization/simulate-clue-unlock?messageId=${messageId}`, {});
+  }
+
   createCheckoutSession(packId: string, promoCode?: string): Observable<{ sessionId: string, checkoutUrl: string }> {
     return this.http.post<{ sessionId: string, checkoutUrl: string }>(`${this.API_URL}/monetization/create-checkout-session`, { packId, promoCode });
   }

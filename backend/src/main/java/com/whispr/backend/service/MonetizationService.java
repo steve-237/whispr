@@ -9,6 +9,9 @@ import com.whispr.backend.dto.TipCheckoutResponse;
 import com.whispr.backend.dto.CreateSuperWhisprCheckoutRequest;
 import com.whispr.backend.dto.SuperWhisprCheckoutResponse;
 import com.whispr.backend.repository.AuditLogRepository;
+import com.whispr.backend.domain.UnlockedClue;
+import com.whispr.backend.repository.UnlockedClueRepository;
+import java.util.LinkedHashMap;
 import com.whispr.backend.repository.LinkRepository;
 import com.whispr.backend.repository.MessageRepository;
 import com.whispr.backend.util.ClientMetadata;
@@ -61,6 +64,7 @@ public class MonetizationService {
     private final LinkRepository linkRepository;
     private final MessageRepository messageRepository;
     private final AuditLogRepository auditLogRepository;
+    private final UnlockedClueRepository unlockedClueRepository;
     private final AiSentimentService aiSentimentService;
     private final SimpMessagingTemplate messagingTemplate;
     private final MessageService messageService;
@@ -312,6 +316,10 @@ public class MonetizationService {
         }
         if ("SUPER_WHISPR".equalsIgnoreCase(sessionType)) {
             processSuperWhisprCompleted(session, event);
+            return;
+        }
+        if ("EXPRESS_CLUE_UNLOCK".equalsIgnoreCase(sessionType)) {
+            processExpressClueUnlockCompleted(session, event);
             return;
         }
 
@@ -896,6 +904,180 @@ public class MonetizationService {
             try {
                 messagingTemplate.convertAndSend("/topic/user/" + creator.getEmail() + "/messages", messageService.toDto(message));
             } catch (Exception ignored) {}
+        }
+    }
+
+
+    @Transactional
+    public CheckoutSessionResponse createExpressClueCheckoutSession(String userEmail, UUID messageId) {
+        User user = userRepository.findByEmailIgnoreCase(userEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
+
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message introuvable"));
+
+        if (!message.getLink().getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accès refusé");
+        }
+
+        long amountCents = 149L;
+
+        if (stripeSecretKey != null && !stripeSecretKey.isBlank() && !stripeSecretKey.startsWith("mock")) {
+            Stripe.apiKey = stripeSecretKey;
+            try {
+                SessionCreateParams params = SessionCreateParams.builder()
+                        .setMode(SessionCreateParams.Mode.PAYMENT)
+                        .setSuccessUrl(frontendUrl + "/inbox?payment=success&clue_unlock=true&messageId=" + message.getId())
+                        .setCancelUrl(frontendUrl + "/inbox?payment=cancelled")
+                        .addLineItem(
+                                SessionCreateParams.LineItem.builder()
+                                        .setQuantity(1L)
+                                        .setPriceData(
+                                                SessionCreateParams.LineItem.PriceData.builder()
+                                                        .setCurrency("eur")
+                                                        .setUnitAmount(amountCents)
+                                                        .setProductData(
+                                                                SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                        .setName("⚡ Démasquage Express des Indices (1 message)")
+                                                                        .setDescription("Révélation immédiate des 3 indices secrets (Ville, Appareil, Réseau)")
+                                                                        .build()
+                                                        )
+                                                        .build()
+                                        )
+                                        .build()
+                        )
+                        .putMetadata("type", "EXPRESS_CLUE_UNLOCK")
+                        .putMetadata("userId", user.getId().toString())
+                        .putMetadata("userEmail", user.getEmail())
+                        .putMetadata("messageId", message.getId().toString())
+                        .build();
+
+                Session session = Session.create(params);
+                log.info("Session Stripe créée pour Démasquage Express: session={} user={} messageId={}", session.getId(), user.getEmail(), message.getId());
+                return new CheckoutSessionResponse(session.getId(), session.getUrl());
+            } catch (StripeException e) {
+                log.error("Erreur création session Stripe Express Clue: {}", e.getMessage(), e);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur Stripe: " + e.getMessage());
+            }
+        }
+
+        String mockSessionId = "mock_clue_" + UUID.randomUUID();
+        String mockCheckoutUrl = frontendUrl + "/inbox?payment=success&clue_unlock=true&messageId=" + message.getId() + "&mockClueMessageId=" + message.getId();
+        log.info("Stripe non configuré, retour session Démasquage Express simulée: {}", mockSessionId);
+        return new CheckoutSessionResponse(mockSessionId, mockCheckoutUrl);
+    }
+
+    @Transactional
+    public void processExpressClueUnlockCompleted(Session session, Event event) {
+        Map<String, String> metadata = session.getMetadata();
+        String messageIdStr = metadata != null ? metadata.get("messageId") : null;
+        String userIdStr = metadata != null ? metadata.get("userId") : null;
+
+        if (messageIdStr == null || userIdStr == null) {
+            log.error("Données manquantes pour session Express Clue: session={}", session.getId());
+            return;
+        }
+
+        UUID messageId = UUID.fromString(messageIdStr);
+        UUID userId = UUID.fromString(userIdStr);
+
+        User user = userRepository.findById(userId).orElse(null);
+        Message message = messageRepository.findById(messageId).orElse(null);
+
+        if (user == null || message == null) {
+            log.error("User ou Message introuvable pour Express Clue messageId={}", messageId);
+            return;
+        }
+
+        unlockAllCluesInternal(user, message);
+
+        BigDecimal priceEur = new BigDecimal("1.49");
+        Wallet wallet = getOrCreateWallet(user);
+        wallet.setTotalSpentEur(wallet.getTotalSpentEur().add(priceEur));
+        walletRepository.save(wallet);
+
+        Transaction clueTx = Transaction.builder()
+                .user(user)
+                .type("EXPRESS_CLUE_PURCHASE")
+                .amountEur(priceEur)
+                .coinsDelta(0)
+                .description("⚡ Démasquage Express 1-clic de tous les indices")
+                .stripeSessionId(session.getId())
+                .stripeEventId(event != null ? event.getId() : "mock_clue_evt_" + UUID.randomUUID())
+                .status("COMPLETED")
+                .build();
+        transactionRepository.save(clueTx);
+
+        log.info("Démasquage Express validé via Stripe pour user={} messageId={}", user.getEmail(), messageId);
+
+        if (messagingTemplate != null) {
+            try {
+                messagingTemplate.convertAndSend("/topic/user/" + user.getEmail() + "/clues-unlocked", (Object) message.getId().toString());
+            } catch (Exception e) {
+                log.warn("Erreur WebSocket Express Clue: {}", e.getMessage());
+            }
+        }
+    }
+
+    @Transactional
+    public void simulateExpressClueUnlock(String userEmail, UUID messageId) {
+        User user = userRepository.findByEmailIgnoreCase(userEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message introuvable"));
+
+        unlockAllCluesInternal(user, message);
+
+        BigDecimal priceEur = new BigDecimal("1.49");
+        Wallet wallet = getOrCreateWallet(user);
+        wallet.setTotalSpentEur(wallet.getTotalSpentEur().add(priceEur));
+        walletRepository.save(wallet);
+
+        Transaction clueTx = Transaction.builder()
+                .user(user)
+                .type("EXPRESS_CLUE_PURCHASE")
+                .amountEur(priceEur)
+                .coinsDelta(0)
+                .description("⚡ Démasquage Express simulé (1,49 €)")
+                .stripeSessionId("sim_clue_" + UUID.randomUUID())
+                .status("COMPLETED")
+                .build();
+        transactionRepository.save(clueTx);
+    }
+
+    private void unlockAllCluesInternal(User user, Message message) {
+        AuditLog audit = message.getAuditLog() != null ? message.getAuditLog() : auditLogRepository.findByMessageId(message.getId()).orElse(null);
+        Map<String, String> clues = new LinkedHashMap<>();
+
+        if (audit != null) {
+            String city = audit.getCity() != null && !audit.getCity().isBlank() ? audit.getCity() : null;
+            String country = audit.getCountry() != null && !audit.getCountry().isBlank() ? audit.getCountry() : "France";
+            clues.put("LOCATION", city != null ? city + " (" + country + ")" : country + " (Rayon < 15km)");
+
+            String ua = audit.getUserAgent() != null ? audit.getUserAgent().toLowerCase() : "";
+            if (ua.contains("iphone")) clues.put("DEVICE", "Apple iPhone (iOS Safari)");
+            else if (ua.contains("android")) clues.put("DEVICE", "Smartphone Android");
+            else clues.put("DEVICE", "Navigateur Web");
+
+            int hash = Math.abs(audit.getHashedIp() != null ? audit.getHashedIp().hashCode() : (int) System.currentTimeMillis());
+            String[] operators = {"Orange Mobile (4G/5G)", "SFR Fibre / 5G", "Bouygues Telecom", "Free Mobile", "Wi-Fi Haut Débit"};
+            clues.put("NETWORK", operators[hash % operators.length]);
+        } else {
+            clues.put("LOCATION", "France (Rayon < 15km)");
+            clues.put("DEVICE", "Smartphone inconnu");
+            clues.put("NETWORK", "Opérateur mobile / 4G");
+        }
+
+        for (Map.Entry<String, String> entry : clues.entrySet()) {
+            if (unlockedClueRepository.findByUserIdAndMessageIdAndClueType(user.getId(), message.getId(), entry.getKey()).isEmpty()) {
+                UnlockedClue clue = UnlockedClue.builder()
+                        .user(user)
+                        .message(message)
+                        .clueType(entry.getKey())
+                        .clueValue(entry.getValue())
+                        .build();
+                unlockedClueRepository.save(clue);
+            }
         }
     }
 

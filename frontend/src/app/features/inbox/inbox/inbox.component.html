@@ -224,11 +224,13 @@
         [replyText]="getReplyText(msg.id)"
         [isCapturing]="isCapturing() && messageToCapture()?.id === msg.id"
         [isPro]="walletService.wallet()?.isPro || false"
+        [isExpressUnlocking]="isExpressUnlocking()[msg.id] || false"
         (markRead)="markAsRead($event)"
         (delete)="openDeleteModal($event)"
         (block)="openBlockModal($event)"
         (toggleClues)="toggleClues($event)"
         (unlock)="unlockClue($event.msgId, $event.clueType)"
+        (unlockAllExpress)="handleExpressClueUnlock($event)"
         (replyChange)="updateReplyText(msg.id, $event)"
         (capture)="captureStory($event)">
       </app-message-card>

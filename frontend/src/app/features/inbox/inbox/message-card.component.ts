@@ -134,6 +134,20 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
           <div *ngIf="clues.length === 0" style="text-align: center; color: var(--color-text-muted); font-size: 0.8rem; padding: 0.5rem;">
             Chargement des indices...
           </div>
+
+          <!-- Bouton Démasquage Express 1-clic (1,49 €) US-15 -->
+          <div *ngIf="hasLockedClues()" style="margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed rgba(255,255,255,0.1); text-align: center;">
+            <button 
+              type="button"
+              (click)="unlockAllExpress.emit(msg.id); $event.stopPropagation()"
+              [disabled]="isExpressUnlocking"
+              style="width: 100%; background: linear-gradient(135deg, #f59e0b, #ec4899); border: none; color: white; font-weight: 800; font-size: 0.8rem; padding: 0.55rem 0.8rem; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3); transition: transform 0.15s ease;">
+              <span>⚡ Démasquer d'un coup (1,49 €)</span>
+            </button>
+            <div style="font-size: 0.68rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+              Débloque instantanément Ville, Appareil et Réseau via Stripe
+            </div>
+          </div>
         </div>
       </div>
 
@@ -167,6 +181,7 @@ export class MessageCardComponent implements OnDestroy {
   @Input() replyText = '';
   @Input() isCapturing = false;
   @Input() isPro = false;
+  @Input() isExpressUnlocking = false;
 
   @Output() markRead = new EventEmitter<MessageDto>();
   @Output() delete = new EventEmitter<string>();
@@ -175,9 +190,15 @@ export class MessageCardComponent implements OnDestroy {
   @Output() unlock = new EventEmitter<{ msgId: string; clueType: string }>();
   @Output() replyChange = new EventEmitter<string>();
   @Output() capture = new EventEmitter<MessageDto>();
+  @Output() unlockAllExpress = new EventEmitter<string>();
 
   isPlayingAudio = false;
   private audioInstance: HTMLAudioElement | null = null;
+
+  hasLockedClues(): boolean {
+    if (this.isPro) return false;
+    return !!(this.clues && this.clues.some(c => !c.isUnlocked));
+  }
 
   ngOnDestroy(): void {
     this.stopAudio();
