@@ -144,9 +144,9 @@
         </div>
 
         <div *ngIf="!walletService.wallet()?.isPro" (click)="walletService.openShop(); $event.stopPropagation()" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(139, 92, 246, 0.1)); border: 1px dashed rgba(236, 72, 153, 0.3); padding: 0.85rem; border-radius: 12px; text-align: center; cursor: pointer;">
-          <div style="font-size: 0.85rem; font-weight: 700; color: white; margin-bottom: 0.2rem;">🔒 Débloquez les statistiques de vos visiteurs</div>
-          <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.6rem;">Découvrez combien de personnes ont cliqué sur votre lien depuis Instagram, TikTok ou Snapchat.</div>
-          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 800; background: linear-gradient(135deg, #ec4899, #8b5cf6);">Débloquer avec Whispr PRO (4,99 €)</button>
+          <div style="font-size: 0.85rem; font-weight: 700; color: white; margin-bottom: 0.2rem;">{{ 'INBOX.STATS_PRO_TITLE' | translate }}</div>
+          <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.6rem;">{{ 'INBOX.STATS_PRO_DESC' | translate }}</div>
+          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 800; background: linear-gradient(135deg, #ec4899, #8b5cf6);">{{ 'INBOX.STATS_PRO_BTN' | translate }}</button>
         </div>
       </div>
     </div>
@@ -177,7 +177,7 @@
           </div>
         </div>
 
-        <button class="btn btn-glass" style="flex-shrink: 0; padding: 0.45rem 0.9rem; font-size: 0.8rem; font-weight: 700; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); color: white; display: flex; align-items: center; gap: 0.3rem;">
+        <button type="button" (click)="onAdClick(currentAd()!); $event.stopPropagation()" class="btn btn-glass" style="flex-shrink: 0; padding: 0.45rem 0.9rem; font-size: 0.8rem; font-weight: 700; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); color: white; display: flex; align-items: center; gap: 0.3rem; cursor: pointer;">
           {{ currentAd()!.ctaText }}
           <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
         </button>
@@ -186,7 +186,7 @@
       <!-- Mention pour masquer les pubs -->
       <div style="text-align: right; margin-top: 0.3rem; padding-right: 0.5rem;">
         <span (click)="walletService.openShop(); $event.stopPropagation()" style="font-size: 0.68rem; color: rgba(255, 255, 255, 0.35); text-decoration: underline; cursor: pointer;">
-          Supprimer les pubs avec Whispr PRO 👑
+          {{ 'INBOX.REMOVE_ADS' | translate }}
         </span>
       </div>
     </div>
@@ -198,7 +198,7 @@
         <button *ngIf="blockedSenders().length > 0" 
                 (click)="toggleBlockedModal()" 
                 style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
-          🛡️ {{ blockedSenders().length }} bloqué(s)
+          🛡️ {{ blockedSenders().length }} {{ 'INBOX.BLOCKED_BUTTON' | translate }}
         </button>
         <span style="background: rgba(255,255,255,0.08); padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: var(--color-text-muted);">{{ messages().length }}</span>
       </div>
@@ -237,6 +237,77 @@
     </div>
   </ng-container>
 
+
+  <!-- MODAL CLARTÉ & EXPLICATION DES NOTIFICATIONS PUSH -->
+  <div *ngIf="showNotifModal()" class="animate-fade-in" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 1rem;" (click)="showNotifModal.set(false)">
+    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.12); max-width: 440px; width: 100%; padding: 2rem 1.75rem; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); position: relative; text-align: center;" (click)="$event.stopPropagation()">
+      <button (click)="showNotifModal.set(false)" style="position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.08); border: none; color: white; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">✕</button>
+
+      <div style="width: 56px; height: 56px; background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto; font-size: 1.8rem; border: 1px solid rgba(139, 92, 246, 0.3);">
+        🔔
+      </div>
+
+      <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem; font-weight: 800; color: white;">
+        {{ 'INBOX.NOTIF_MODAL_TITLE' | translate }}
+      </h3>
+      <p style="color: var(--color-text-muted); font-size: 0.88rem; line-height: 1.5; margin: 0 0 1.5rem 0;">
+        {{ 'INBOX.NOTIF_MODAL_DESC' | translate }}
+      </p>
+
+      <!-- Statut Actuel -->
+      <div style="background: rgba(0,0,0,0.25); border-radius: 14px; padding: 1rem; margin-bottom: 1.5rem; text-align: left;">
+        <div style="font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 0.4rem;">
+          État des autorisations :
+        </div>
+        
+        <div *ngIf="notificationService.permission() === 'granted'" style="color: #10b981; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>🟢</span>
+          <span>{{ 'INBOX.NOTIF_STATUS_ACTIVE' | translate }}</span>
+        </div>
+
+        <div *ngIf="notificationService.permission() === 'default'" style="color: #f59e0b; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>⚪</span>
+          <span>{{ 'INBOX.NOTIF_STATUS_INACTIVE' | translate }}</span>
+        </div>
+
+        <div *ngIf="notificationService.permission() === 'denied'" style="color: #ef4444; font-weight: 700; font-size: 0.9rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
+            <span>🔴</span>
+            <span>{{ 'INBOX.NOTIF_STATUS_BLOCKED' | translate }}</span>
+          </div>
+          <p style="font-size: 0.78rem; font-weight: 400; color: #fca5a5; margin: 0; line-height: 1.4;">
+            {{ 'INBOX.NOTIF_STATUS_BLOCKED_DESC' | translate }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Boutons d'action -->
+      <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+        <button 
+          *ngIf="notificationService.permission() === 'granted'" 
+          (click)="testPushNotification()" 
+          class="btn btn-primary" 
+          style="width: 100%; padding: 0.85rem; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+          {{ 'INBOX.NOTIF_TEST_BTN' | translate }}
+        </button>
+
+        <button 
+          *ngIf="notificationService.permission() === 'default'" 
+          (click)="requestNotificationPermission()" 
+          class="btn btn-primary" 
+          style="width: 100%; padding: 0.85rem; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+          {{ 'INBOX.NOTIF_ENABLE_BTN' | translate }}
+        </button>
+
+        <button 
+          (click)="showNotifModal.set(false)" 
+          style="width: 100%; border-radius: 12px; padding: 0.75rem; font-weight: 600; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: white; cursor: pointer; font-size: 0.9rem;">
+          {{ 'INBOX.NOTIF_CLOSE_BTN' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL SUPPRESSION -->
   <div *ngIf="messageToDelete()" class="animate-fade-in" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 1rem;" (click)="cancelDelete()">
     <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1); max-width: 340px; width: 100%; padding: 2rem 1.5rem; text-align: center; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);" (click)="$event.stopPropagation()">
@@ -258,16 +329,16 @@
       <div style="width: 52px; height: 52px; background: rgba(239, 68, 68, 0.15); color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto; font-size: 1.5rem;">
         🚫
       </div>
-      <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 800; color: white;">Bloquer cet expéditeur ?</h3>
+      <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 800; color: white;">{{ 'INBOX.BLOCK_MODAL_TITLE' | translate }}</h3>
       <p style="color: var(--color-text-muted); font-size: 0.85rem; line-height: 1.5; margin: 0 0 1.5rem 0;">
-        Cet expéditeur sera placé en <strong>Shadowban</strong> : ses futurs messages seront silencieusement ignorés sans qu'il ne s'en aperçoive. Le message actuel sera également retiré.
+        {{ 'INBOX.BLOCK_MODAL_DESC' | translate }}
       </p>
       <div style="display: flex; flex-direction: column; gap: 0.6rem;">
         <button (click)="confirmBlock()" [disabled]="isBlocking()" style="width: 100%; background: #ef4444; border: none; border-radius: 12px; padding: 0.85rem; font-weight: 700; color: white; cursor: pointer; font-size: 0.95rem;">
-          {{ isBlocking() ? 'Blocage en cours...' : 'Confirmer le blocage 🛡️' }}
+          {{ isBlocking() ? ('INBOX.BLOCK_LOADING' | translate) : ('INBOX.BLOCK_CONFIRM_BTN' | translate) }}
         </button>
         <button (click)="cancelBlock()" [disabled]="isBlocking()" style="width: 100%; border-radius: 12px; padding: 0.85rem; font-weight: 600; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: white; cursor: pointer; font-size: 0.95rem;">
-          Annuler
+          {{ 'INBOX.BLOCK_CANCEL_BTN' | translate }}
         </button>
       </div>
     </div>
@@ -278,12 +349,12 @@
     <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1); max-width: 420px; width: 100%; padding: 1.75rem; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);" (click)="$event.stopPropagation()">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
         <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 0.4rem;">
-          <span>🛡️</span> Expéditeurs bloqués
+          <span>🛡️</span> {{ 'INBOX.BLOCKED_MODAL_TITLE' | translate }}
         </h3>
         <button (click)="showBlockedModal.set(false)" style="background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">✕</button>
       </div>
       <p style="color: var(--color-text-muted); font-size: 0.8rem; margin-bottom: 1rem;">
-        Ces expéditeurs ne peuvent plus vous contacter. Vous pouvez les débloquer à tout moment.
+        {{ 'INBOX.BLOCKED_MODAL_DESC' | translate }}
       </p>
 
       <div style="display: flex; flex-direction: column; gap: 0.6rem; max-height: 240px; overflow-y: auto;">
@@ -293,12 +364,12 @@
             <div style="color: var(--color-text-muted); font-size: 0.7rem;">{{ b.createdAt | date:'shortDate' }}</div>
           </div>
           <button (click)="unblock(b.id)" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; font-size: 0.75rem; font-weight: 700; padding: 0.35rem 0.65rem; border-radius: 8px; cursor: pointer;">
-            Débloquer
+            {{ 'INBOX.BLOCKED_UNBLOCK_BTN' | translate }}
           </button>
         </div>
 
         <div *ngIf="blockedSenders().length === 0" style="text-align: center; color: var(--color-text-muted); font-size: 0.85rem; padding: 1.5rem;">
-          Aucun expéditeur bloqué pour le moment.
+          {{ 'INBOX.BLOCKED_EMPTY' | translate }}
         </div>
       </div>
     </div>
@@ -319,7 +390,7 @@
 
       <!-- Carte réponse personnalisée si saisie -->
       <div *ngIf="messageToCapture() && getReplyText(messageToCapture()!.id)" style="width: 100%; max-width: 850px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(20px); border: 2px solid rgba(255, 255, 255, 0.15); border-radius: 2rem; padding: 2.5rem 3rem; z-index: 10; text-align: left; box-shadow: 0 20px 40px rgba(0,0,0,0.5); margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
-        <span style="color: rgba(255,255,255,0.6); font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">💬 Ma réponse :</span>
+        <span style="color: rgba(255,255,255,0.6); font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">{{ 'INBOX.STORY_REPLY_HEADER' | translate }}</span>
         <p style="color: #e2e8f0; font-size: 2.6rem; font-weight: 600; line-height: 1.4; margin: 0; white-space: pre-wrap; word-break: break-word;">{{ getReplyText(messageToCapture()!.id) }}</p>
       </div>
 

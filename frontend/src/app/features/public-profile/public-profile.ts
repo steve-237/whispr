@@ -268,7 +268,7 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
 
     const messageType = this.isSuperWhispr() ? 'SUPER_WHISPR' : (isAudio ? 'AUDIO' : 'text');
     const content = isAudio
-      ? `🎙️ Mémo vocal (${this.selectedFilter()})`
+      ? ('🎙️ ' + (this.translate.instant('INBOX.VOICE_NOTE_TITLE') || 'Mémo vocal') + ' (' + this.selectedFilter() + ')')
       : this.messageContent();
 
     const audioUrl = isAudio ? this.processedAudioBase64() || undefined : undefined;
@@ -303,7 +303,7 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.isSending.set(false);
-          let errorMsg = "Erreur lors de l'initialisation du paiement Stripe Super Whispr.";
+          let errorMsg = this.translate.instant('PUBLIC_PROFILE.STRIPE_SUPER_ERROR') || "Erreur lors de l'initialisation du paiement Stripe Super Whispr.";
           if (err.status === 400 && err.error && typeof err.error === 'string') {
             errorMsg = err.error;
           }
@@ -344,7 +344,7 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.isSending.set(false);
-          let errorMsg = "Erreur lors de l'initialisation du paiement Stripe.";
+          let errorMsg = this.translate.instant('PUBLIC_PROFILE.STRIPE_TIP_ERROR') || "Erreur lors de l'initialisation du paiement Stripe.";
           if (err.status === 400 && err.error && typeof err.error === 'string') {
             errorMsg = err.error;
           }
@@ -381,11 +381,11 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.isSending.set(false);
-        let errorMsg = "Erreur lors de l'envoi du message.";
+        let errorMsg = this.translate.instant('PUBLIC_PROFILE.ERROR_SEND') || "Erreur lors de l'envoi du message.";
         if (err.status === 400 && err.error && typeof err.error === 'string') {
           errorMsg = err.error;
         } else if (err.status === 429) {
-          errorMsg = "Trop de messages envoyés. Veuillez patienter.";
+          errorMsg = this.translate.instant('PUBLIC_PROFILE.ERROR_RATE_LIMIT') || "Trop de messages envoyés. Veuillez patienter.";
         }
         this.error.set(errorMsg);
         this.toastService.error(errorMsg);

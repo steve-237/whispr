@@ -20,7 +20,7 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
       
       <!-- Badge SUPER WHISPR -->
       <div *ngIf="msg.type === 'SUPER_WHISPR'" style="position: absolute; top: -10px; right: 80px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #000; padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4); display: flex; align-items: center; gap: 0.3rem;">
-        ⭐ SUPER WHISPR
+        {{ 'INBOX.SUPER_WHISPR_BADGE' | translate }}
       </div>
 
       <!-- Badge Nouveau -->
@@ -30,10 +30,10 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
 
       <!-- Actions: Bloquer & Supprimer -->
       <div style="position: absolute; top: 0.75rem; right: 0.75rem; display: flex; gap: 0.4rem; align-items: center;">
-        <button (click)="block.emit(msg.id); $event.stopPropagation()" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 0.8rem;" title="Bloquer cet expéditeur (Shadowban)">
+        <button (click)="block.emit(msg.id); $event.stopPropagation()" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 0.8rem;" [title]="'INBOX.BLOCK_TOOLTIP' | translate">
           🚫
         </button>
-        <button (click)="delete.emit(msg.id); $event.stopPropagation()" style="background: rgba(0,0,0,0.15); border: none; color: var(--color-text-muted); padding: 0.35rem; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Supprimer">
+        <button (click)="delete.emit(msg.id); $event.stopPropagation()" style="background: rgba(0,0,0,0.15); border: none; color: var(--color-text-muted); padding: 0.35rem; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" [title]="'INBOX.DELETE_TOOLTIP' | translate">
           <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
         </button>
       </div>
@@ -41,7 +41,7 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
       <!-- Badge Pourboire Reçu 💸 (US-09) -->
       <div *ngIf="msg.tipAmountEur && msg.tipAmountEur > 0" style="margin-top: 0.25rem; margin-bottom: 0.75rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1)); border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.35rem 0.8rem; border-radius: 12px; display: inline-flex; align-items: center; gap: 0.5rem; color: #10b981; font-weight: 800; font-size: 0.85rem; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);">
         <span>💸</span>
-        <span>Pourboire reçu : +{{ msg.tipAmountEur | number:'1.2-2' }} € (dont {{ (msg.tipAmountEur * 0.7) | number:'1.2-2' }} € pour vous)</span>
+        <span>{{ 'INBOX.TIP_RECEIVED' | translate }} +{{ msg.tipAmountEur | number:'1.2-2' }} € ({{ 'INBOX.TIP_CREATOR_SHARE' | translate }} {{ (msg.tipAmountEur * 0.7) | number:'1.2-2' }} € {{ 'INBOX.TIP_FOR_YOU' | translate }})</span>
       </div>
 
       <!-- Lecteur Audio (US-07 Audio Whispr) -->
@@ -57,14 +57,14 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
 
           <div>
             <div style="font-weight: 700; font-size: 0.9rem; color: white; display: flex; align-items: center; gap: 0.4rem;">
-              <span>🎙️ Mémo vocal anonyme</span>
+              <span>{{ 'INBOX.VOICE_NOTE_TITLE' | translate }}</span>
               <span *ngIf="msg.voiceFilter" style="background: rgba(255,255,255,0.08); font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 8px; color: #fbbf24;">
                 {{ msg.voiceFilter === 'ROBOT' ? '🤖 Robot' : (msg.voiceFilter === 'HELIUM' ? '🎈 Hélium' : (msg.voiceFilter === 'DEEP' ? '👹 Grave' : '🎙️ Normal')) }}
               </span>
             </div>
             <div style="font-size: 0.75rem; color: var(--color-text-muted); display: flex; align-items: center; gap: 0.4rem;">
               <span>⏱️ {{ (msg.audioDurationSeconds || 5) }}s</span>
-              <span *ngIf="isPlayingAudio" style="color: #10b981;">• En cours de lecture...</span>
+              <span *ngIf="isPlayingAudio" style="color: #10b981;">{{ 'INBOX.VOICE_PLAYING' | translate }}</span>
             </div>
           </div>
         </div>
@@ -106,10 +106,10 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
         <div (click)="toggleClues.emit(msg.id); $event.stopPropagation()" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
           <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.85rem; color: #fbbf24;">
             <span>🕵️</span>
-            <span>Démasquer l'expéditeur (Indices Secrets)</span>
+            <span>{{ 'INBOX.UNMASK_TITLE' | translate }}</span>
           </div>
           <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span *ngIf="isPro" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 10px;">PRO GRATUIT</span>
+            <span *ngIf="isPro" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 10px;">{{ 'INBOX.PRO_FREE' | translate }}</span>
             <span style="color: var(--color-text-muted); font-size: 0.8rem;">{{ isOpenedClues ? '▲' : '▼' }}</span>
           </div>
         </div>
@@ -118,21 +118,21 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
         <div *ngIf="isOpenedClues" class="animate-fade-in" style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.75rem;">
           <div *ngFor="let clue of clues" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 0.5rem 0.75rem; border-radius: 10px; font-size: 0.8rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span>{{ clue.clueType === 'LOCATION' ? '📍 Ville exacte' : (clue.clueType === 'DEVICE' ? '📱 Modèle téléphone' : '📡 Opérateur / 5G') }}</span>
+              <span>{{ clue.clueType === 'LOCATION' ? ('INBOX.CLUE_LOCATION' | translate) : (clue.clueType === 'DEVICE' ? ('INBOX.CLUE_DEVICE' | translate) : ('INBOX.CLUE_NETWORK' | translate)) }}</span>
             </div>
             <div>
               <span *ngIf="clue.isUnlocked" style="color: #10b981; font-weight: 700; background: rgba(16,185,129,0.15); padding: 0.2rem 0.6rem; border-radius: 8px;">
                 {{ clue.clueValue }}
               </span>
               <button *ngIf="!clue.isUnlocked" (click)="unlock.emit({ msgId: msg.id, clueType: clue.clueType }); $event.stopPropagation()" [disabled]="isUnlockingClue" style="background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); color: #fbbf24; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 8px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
-                <span>🔒 Débloquer</span>
+                <span>{{ 'INBOX.CLUE_UNLOCK' | translate }}</span>
                 <span>({{ isPro ? '0 🪙' : '15 🪙' }})</span>
               </button>
             </div>
           </div>
 
           <div *ngIf="clues.length === 0" style="text-align: center; color: var(--color-text-muted); font-size: 0.8rem; padding: 0.5rem;">
-            Chargement des indices...
+            {{ 'INBOX.CLUES_LOADING' | translate }}
           </div>
 
           <!-- Bouton Démasquage Express 1-clic (1,49 €) US-15 -->
@@ -142,10 +142,10 @@ import { MessageDto, ClueResponseDto } from '../../../core/services/api.service'
               (click)="unlockAllExpress.emit(msg.id); $event.stopPropagation()"
               [disabled]="isExpressUnlocking"
               style="width: 100%; background: linear-gradient(135deg, #f59e0b, #ec4899); border: none; color: white; font-weight: 800; font-size: 0.8rem; padding: 0.55rem 0.8rem; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3); transition: transform 0.15s ease;">
-              <span>⚡ Démasquer d'un coup (1,49 €)</span>
+              <span>{{ 'INBOX.EXPRESS_UNLOCK_BTN' | translate }}</span>
             </button>
             <div style="font-size: 0.68rem; color: var(--color-text-muted); margin-top: 0.25rem;">
-              Débloque instantanément Ville, Appareil et Réseau via Stripe
+              {{ 'INBOX.EXPRESS_UNLOCK_DESC' | translate }}
             </div>
           </div>
         </div>

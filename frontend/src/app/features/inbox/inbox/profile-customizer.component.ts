@@ -73,7 +73,7 @@ export class ProfileCustomizerComponent {
     { id: 'sunset', color: '#f97316', key: 'INBOX.THEME_SUNSET', proOnly: false },
     { id: 'emerald', color: '#10b981', key: 'INBOX.THEME_EMERALD', proOnly: false },
     { id: 'dark', color: '#94a3b8', key: 'INBOX.THEME_DARK', proOnly: false },
-    { id: 'gold', color: '#eab308', key: '👑 Gold VIP (PRO)', proOnly: true }
+    { id: 'gold', color: '#eab308', key: 'INBOX.THEME_GOLD', proOnly: true }
   ];
 
   onThemeSelected(theme: any): void {

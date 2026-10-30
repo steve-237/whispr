@@ -16,32 +16,32 @@
       </div>
       <h1 style="margin-bottom: 0.5rem;">@{{ p.slug }}</h1>
       <p style="color: var(--color-text-muted);">
-        {{ p.slug === 'demo' ? (translate.currentLang() === 'en' ? 'Welcome to my test profile! Leave me an anonymous message.' : 'Bienvenue sur mon profil de test ! Laissez-moi un message anonyme.') : (p.profileBio || ('PUBLIC_PROFILE.DEFAULT_BIO' | translate)) }}
+        {{ p.slug === 'demo' ? ('PUBLIC_PROFILE.DEMO_BIO' | translate) : (p.profileBio || ('PUBLIC_PROFILE.DEFAULT_BIO' | translate)) }}
       </p>
     </div>
 
     <!-- Zone de Message (Glassmorphism) -->
     <div class="glass-panel" style="padding: 1.25rem; text-align: left;">
       <h3 style="margin-bottom: 1rem; font-weight: 600; text-align: center;">
-        {{ p.slug === 'demo' ? (translate.currentLang() === 'en' ? 'Do you have a secret to tell me?' : 'Avez-vous un secret à me confier ?') : (p.profileDailyQuestion || ('PUBLIC_PROFILE.DEFAULT_QUESTION' | translate)) }}
+        {{ p.slug === 'demo' ? ('PUBLIC_PROFILE.DEMO_QUESTION' | translate) : (p.profileDailyQuestion || ('PUBLIC_PROFILE.DEFAULT_QUESTION' | translate)) }}
       </h3>
       
       <!-- Écran Succès Envoi / Pourboire -->
       <div *ngIf="isSent()" class="animate-fade-in" style="text-align: center; padding: 2rem 0; color: #10b981;">
         <svg style="width: 48px; height: 48px; margin: 0 auto 1rem auto;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
         <h2 style="margin-bottom: 0.5rem; color: white;">
-          {{ isTipSuccess() ? '💸 Pourboire envoyé avec succès !' : (isSuperWhisprSuccess() ? '⭐ Super Whispr envoyé avec succès !' : ('PUBLIC_PROFILE.SUCCESS_TITLE' | translate)) }}
+          {{ isTipSuccess() ? ('PUBLIC_PROFILE.SUCCESS_TIP_TITLE' | translate) : (isSuperWhisprSuccess() ? ('PUBLIC_PROFILE.SUCCESS_SUPER_TITLE' | translate) : ('PUBLIC_PROFILE.SUCCESS_TITLE' | translate)) }}
         </h2>
         <p style="color: var(--color-text-muted);">
-          {{ isTipSuccess() ? ('Merci beaucoup ! Votre pourboire de ' + (tipSuccessAmount() | number:'1.2-2') + ' € a été transmis à @' + p.slug + '.') : (isSuperWhisprSuccess() ? 'Votre message prioritaire a été épinglé en tête de l\'Inbox en bordure dorée.' : ('PUBLIC_PROFILE.SUCCESS_DESC' | translate)) }}
+          {{ isTipSuccess() ? (('PUBLIC_PROFILE.SUCCESS_TIP_DESC_1' | translate) + (tipSuccessAmount() | number:'1.2-2') + ('PUBLIC_PROFILE.SUCCESS_TIP_DESC_2' | translate) + p.slug + '.') : (isSuperWhisprSuccess() ? ('PUBLIC_PROFILE.SUCCESS_SUPER_DESC' | translate) : ('PUBLIC_PROFILE.SUCCESS_DESC' | translate)) }}
         </p>
         
         <div *ngIf="slug() === 'demo'" style="margin-top: 2rem; padding: 1.5rem; background: rgba(var(--color-primary-rgb), 0.1); border-radius: var(--radius-md); border: 1px solid rgba(var(--color-primary-rgb), 0.2);">
-          <h4 style="color: white; margin-bottom: 0.5rem;">{{ translate.currentLang() === 'fr' ? 'C\'était un message de démo !' : 'That was a demo message!' }}</h4>
-          <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">{{ translate.currentLang() === 'fr' ? 'Voulez-vous voir à quoi ressemble la boîte de réception et comment votre message y apparaît ?' : 'Do you want to see what the inbox looks like and how your message appears there?' }}</p>
+          <h4 style="color: white; margin-bottom: 0.5rem;">{{ 'PUBLIC_PROFILE.DEMO_MESSAGE_TITLE' | translate }}</h4>
+          <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">{{ 'PUBLIC_PROFILE.DEMO_MESSAGE_DESC' | translate }}</p>
           <button class="btn btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem;" (click)="loginToDemo()" [disabled]="isLoggingIn()">
             <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-            {{ isLoggingIn() ? (translate.currentLang() === 'fr' ? 'Connexion en cours...' : 'Logging in...') : (translate.currentLang() === 'fr' ? 'Ouvrir l\'Inbox de Démo' : 'Open Demo Inbox') }}
+            {{ isLoggingIn() ? ('PUBLIC_PROFILE.DEMO_LOGGING_IN' | translate) : ('PUBLIC_PROFILE.DEMO_LOGIN_BTN' | translate) }}
           </button>
         </div>
 
@@ -67,7 +67,7 @@
             [style.color]="inputMode() === 'TEXT' ? '#fff' : 'var(--color-text-muted)'"
             style="flex: 1; border: none; padding: 0.5rem; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
             <span>✍️</span>
-            <span>{{ translate.currentLang() === 'fr' ? 'Message Texte' : 'Text Message' }}</span>
+            <span>{{ 'PUBLIC_PROFILE.TAB_TEXT' | translate }}</span>
           </button>
           <button 
             type="button"
@@ -76,7 +76,7 @@
             [style.color]="inputMode() === 'AUDIO' ? '#fff' : 'var(--color-text-muted)'"
             style="flex: 1; border: none; padding: 0.5rem; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
             <span>🎙️</span>
-            <span>{{ translate.currentLang() === 'fr' ? 'Mémo Vocal Déformé' : 'Distorted Voice Note' }}</span>
+            <span>{{ 'PUBLIC_PROFILE.TAB_AUDIO' | translate }}</span>
           </button>
         </div>
 
@@ -93,7 +93,7 @@
             onblur="this.style.borderColor='var(--color-border)'"></textarea>
           
           <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem;">
-            <span>{{ translate.currentLang() === 'fr' ? '🔒 100% Anonyme • Protégé par IA' : '🔒 100% Anonymous • AI Protected' }}</span>
+            <span>{{ 'PUBLIC_PROFILE.SAFE_AI_HINT' | translate }}</span>
             <span>{{ messageContent().length }}/500</span>
           </div>
         </div>
@@ -103,7 +103,7 @@
           <!-- Sélecteur de filtres de voix -->
           <div style="margin-bottom: 1rem;">
             <label style="font-size: 0.8rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.5rem;">
-              {{ translate.currentLang() === 'fr' ? '🎭 Choisissez votre voix anonyme :' : '🎭 Choose your anonymous voice:' }}
+              {{ 'PUBLIC_PROFILE.CHOOSE_VOICE' | translate }}
             </label>
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem;">
               <button 
@@ -113,7 +113,7 @@
                 [style.border-color]="selectedFilter() === 'ROBOT' ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)'"
                 style="border: 1px solid; border-radius: 10px; padding: 0.5rem 0.25rem; text-align: center; cursor: pointer; color: white; transition: all 0.2s;">
                 <div style="font-size: 1.2rem;">🤖</div>
-                <div style="font-size: 0.7rem; font-weight: 700;">Robot</div>
+                <div style="font-size: 0.7rem; font-weight: 700;">{{ 'PUBLIC_PROFILE.FILTER_ROBOT' | translate }}</div>
               </button>
               <button 
                 type="button"
@@ -122,7 +122,7 @@
                 [style.border-color]="selectedFilter() === 'HELIUM' ? '#ec4899' : 'rgba(255,255,255,0.1)'"
                 style="border: 1px solid; border-radius: 10px; padding: 0.5rem 0.25rem; text-align: center; cursor: pointer; color: white; transition: all 0.2s;">
                 <div style="font-size: 1.2rem;">🎈</div>
-                <div style="font-size: 0.7rem; font-weight: 700;">Hélium</div>
+                <div style="font-size: 0.7rem; font-weight: 700;">{{ 'PUBLIC_PROFILE.FILTER_HELIUM' | translate }}</div>
               </button>
               <button 
                 type="button"
@@ -131,7 +131,7 @@
                 [style.border-color]="selectedFilter() === 'DEEP' ? '#10b981' : 'rgba(255,255,255,0.1)'"
                 style="border: 1px solid; border-radius: 10px; padding: 0.5rem 0.25rem; text-align: center; cursor: pointer; color: white; transition: all 0.2s;">
                 <div style="font-size: 1.2rem;">👹</div>
-                <div style="font-size: 0.7rem; font-weight: 700;">Grave</div>
+                <div style="font-size: 0.7rem; font-weight: 700;">{{ 'PUBLIC_PROFILE.FILTER_DEEP' | translate }}</div>
               </button>
               <button 
                 type="button"
@@ -140,7 +140,7 @@
                 [style.border-color]="selectedFilter() === 'NORMAL' ? '#fbbf24' : 'rgba(255,255,255,0.1)'"
                 style="border: 1px solid; border-radius: 10px; padding: 0.5rem 0.25rem; text-align: center; cursor: pointer; color: white; transition: all 0.2s;">
                 <div style="font-size: 1.2rem;">🎙️</div>
-                <div style="font-size: 0.7rem; font-weight: 700;">Normal</div>
+                <div style="font-size: 0.7rem; font-weight: 700;">{{ 'PUBLIC_PROFILE.FILTER_NORMAL' | translate }}</div>
               </button>
             </div>
           </div>
@@ -164,7 +164,7 @@
               <span>0:{{ recordingSeconds() < 10 ? '0' + recordingSeconds() : recordingSeconds() }} / 0:10</span>
             </div>
             <div *ngIf="!isRecording()" style="font-size: 0.85rem; color: var(--color-text-muted);">
-              {{ translate.currentLang() === 'fr' ? 'Appuyez sur le micro pour enregistrer (10s max)' : 'Tap microphone to record (10s max)' }}
+              {{ 'PUBLIC_PROFILE.RECORD_HINT' | translate }}
             </div>
           </div>
 
@@ -176,14 +176,14 @@
                   {{ selectedFilter() === 'ROBOT' ? '🤖' : (selectedFilter() === 'HELIUM' ? '🎈' : (selectedFilter() === 'DEEP' ? '👹' : '🎙️')) }}
                 </span>
                 <span style="font-weight: 700; font-size: 0.9rem; color: white;">
-                  {{ translate.currentLang() === 'fr' ? 'Mémo prêt (' + recordedDuration() + 's)' : 'Audio note ready (' + recordedDuration() + 's)' }}
+                  {{ 'PUBLIC_PROFILE.NOTE_READY' | translate }} ({{ recordedDuration() }}s)
                 </span>
               </div>
               <button 
                 type="button"
                 (click)="cancelOrResetAudio()" 
                 style="background: transparent; border: none; color: #ef4444; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
-                ✕ {{ translate.currentLang() === 'fr' ? 'Recommencer' : 'Retake' }}
+                ✕ {{ 'PUBLIC_PROFILE.RETAKE' | translate }}
               </button>
             </div>
 
@@ -193,12 +193,12 @@
               (click)="togglePreviewAudio()" 
               [disabled]="isProcessingFilter()"
               style="width: 100%; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.4); color: white; padding: 0.7rem; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-              <span *ngIf="!isPlayingPreview()">▶️ {{ translate.currentLang() === 'fr' ? 'Écouter la voix déformée' : 'Play distorted preview' }}</span>
-              <span *ngIf="isPlayingPreview()">⏸️ {{ translate.currentLang() === 'fr' ? 'Pause' : 'Pause' }}</span>
+              <span *ngIf="!isPlayingPreview()">{{ 'PUBLIC_PROFILE.PLAY_PREVIEW' | translate }}</span>
+              <span *ngIf="isPlayingPreview()">{{ 'PUBLIC_PROFILE.PAUSE' | translate }}</span>
             </button>
             
             <div style="font-size: 0.75rem; color: #10b981; text-align: center;">
-              ✓ {{ translate.currentLang() === 'fr' ? 'Voix anonymisée avec succès !' : 'Voice successfully anonymized!' }}
+              {{ 'PUBLIC_PROFILE.VOICE_SUCCESS' | translate }}
             </div>
           </div>
         </div>
@@ -208,10 +208,10 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
             <div style="font-weight: 800; font-size: 0.9rem; color: #10b981; display: flex; align-items: center; gap: 0.4rem;">
               <span>💸</span>
-              <span>{{ translate.currentLang() === 'fr' ? 'Laisser un pourboire à @' + p.slug : 'Leave a tip for @' + p.slug }}</span>
+              <span>{{ 'PUBLIC_PROFILE.TIP_LEAVE' | translate }}{{ p.slug }}</span>
             </div>
             <span style="font-size: 0.7rem; color: #10b981; font-weight: 700; background: rgba(16,185,129,0.15); padding: 0.15rem 0.5rem; border-radius: 10px;">
-              70% reversés
+              {{ 'PUBLIC_PROFILE.TIP_REVERSED' | translate }}
             </span>
           </div>
 
@@ -250,7 +250,7 @@
             </button>
           </div>
           <div style="font-size: 0.75rem; color: var(--color-text-muted); text-align: center;">
-            {{ selectedTipAmount() > 0 ? ('Paiement sécurisé par Stripe (Apple Pay / Carte) lors de l\'envoi') : 'Facultatif : soutenez ce créateur avec un don' }}
+            {{ selectedTipAmount() > 0 ? ('PUBLIC_PROFILE.TIP_SECURE_NOTE' | translate) : ('PUBLIC_PROFILE.TIP_OPTIONAL_NOTE' | translate) }}
           </div>
         </div>
 
@@ -260,16 +260,16 @@
             <span style="font-size: 1.5rem;">⭐</span>
             <div>
               <div style="font-weight: 800; font-size: 0.9rem; color: #fbbf24;">
-                Super Whispr (Prioritaire & Doré)
+                {{ 'PUBLIC_PROFILE.SUPER_WHISPR_TITLE' | translate }}
               </div>
               <div style="font-size: 0.75rem; color: var(--color-text-muted);">
-                Votre message brillera en haut de son Inbox
+                {{ 'PUBLIC_PROFILE.SUPER_WHISPR_DESC' | translate }}
               </div>
             </div>
           </div>
           <div>
             <span style="background: #fbbf24; color: #000; font-weight: 800; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 12px;">
-              {{ isSuperWhispr() ? '✓ ACTIVÉ (0,99 €)' : '+ 0,99 €' }}
+              {{ isSuperWhispr() ? ('PUBLIC_PROFILE.SUPER_WHISPR_ACTIVE' | translate) : '+ 0,99 €' }}
             </span>
           </div>
         </div>
@@ -282,7 +282,7 @@
           style="width: 100%; font-size: 1.1rem; padding: 1rem;" 
           (click)="sendMessage()" 
           [disabled]="isSending() || (inputMode() === 'TEXT' ? !messageContent().trim() : !processedAudioBase64())">
-          {{ isSending() ? ('PUBLIC_PROFILE.BTN_SENDING' | translate) : (selectedTipAmount() > 0 ? '💸 Envoyer avec un pourboire de ' + (selectedTipAmount() | number:'1.2-2') + ' €' : (isSuperWhispr() ? '⭐ Envoyer ce Super Whispr (0,99 €)' : ('PUBLIC_PROFILE.BTN_SEND' | translate))) }}
+          {{ isSending() ? ('PUBLIC_PROFILE.BTN_SENDING' | translate) : (selectedTipAmount() > 0 ? (('PUBLIC_PROFILE.BTN_SEND_TIP' | translate) + ' ' + (selectedTipAmount() | number:'1.2-2') + ' €') : (isSuperWhispr() ? ('PUBLIC_PROFILE.BTN_SEND_SUPER' | translate) : ('PUBLIC_PROFILE.BTN_SEND' | translate))) }}
         </button>
       </div>
     </div>

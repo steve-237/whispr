@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, OnDestroy, AfterViewInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -34,7 +35,7 @@ import { ClueResponseDto, AdvertisementDto, VisitorAnalyticsDto, BlockedSenderDt
   templateUrl: './inbox.component.html'
 })
 export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
-  walletService = inject(WalletService);
+  walletService = inject(WalletService, { optional: true })!;
   showOnboarding = signal(false);
   messages = signal<MessageDto[]>([]);
   isLoading = signal(true);
@@ -47,6 +48,8 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   showBlockedModal = signal(false);
   isDeleting = signal(false);
   isCopied = signal(false);
+  showNotifModal = signal(false);
+  private router = inject(Router, { optional: true })!;
 
   // Vraies Analytics Visiteurs & Provenance
   visitorAnalytics = signal<VisitorAnalyticsDto | null>(null);
@@ -108,8 +111,12 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     private toastService: ToastService,
     private titleService: Title,
     private webSocketService: WebSocketService,
-    public notificationService: NotificationService
+    public notificationService: NotificationService,
+    walletService?: WalletService,
+    router?: Router
   ) {
+    if (walletService) this.walletService = walletService;
+    if (router) this.router = router;
     this.pseudo.set(this.authService.currentUser() || '');
   }
 
@@ -245,7 +252,15 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  toggleNotifModal(): void {
+    this.showNotifModal.update(v => !v);
+  }
+
   enableNotifications(): void {
+    this.toggleNotifModal();
+  }
+
+  requestNotificationPermission(): void {
     this.notificationService.requestPermission().then((res) => {
       if (res === 'granted') {
         this.toastService.success(this.translate.instant('INBOX.NOTIF_GRANTED') || 'Notifications activées avec succès !');
@@ -253,6 +268,19 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
         this.toastService.error(this.translate.instant('INBOX.NOTIF_DENIED') || 'Notifications bloquées dans votre navigateur.');
       }
     });
+  }
+
+  testPushNotification(): void {
+    if (this.notificationService.hasPermission()) {
+      this.notificationService.showWhisperNotification({
+        title: this.translate.instant('INBOX.PUSH_TITLE') || 'Nouveau message secret ! 🤫',
+        body: this.translate.instant('INBOX.PUSH_BODY') || 'Quelqu\'un vient de vous envoyer un message anonyme.',
+        force: true
+      });
+      this.toastService.success(this.translate.instant('INBOX.NOTIF_TEST_SUCCESS') || '🔔 Alerte test envoyée ! Votre navigateur fonctionne parfaitement.');
+    } else {
+      this.requestNotificationPermission();
+    }
   }
 
   updateTitleBadge(): void {
@@ -352,7 +380,17 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onAdClick(ad: AdvertisementDto): void {
     this.apiService.recordAdClick(ad.id).subscribe();
-    window.open(ad.targetUrl, '_blank');
+    const url = (ad.targetUrl || '').trim();
+    const isProAd = (ad.title || '').toLowerCase().includes('pro') || url === '/shop' || url === '/inbox';
+    if (isProAd) {
+      this.walletService.openShop();
+    } else if (url.startsWith('http://') || url.startsWith('https://')) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else if (url.startsWith('/')) {
+      this.router.navigateByUrl(url);
+    } else {
+      this.walletService.openShop();
+    }
   }
 
   toggleStats(): void {
