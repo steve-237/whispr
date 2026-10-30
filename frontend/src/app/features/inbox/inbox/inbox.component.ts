@@ -61,6 +61,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   openedCluesMessageId = signal<string | null>(null);
   messageClues = signal<{ [msgId: string]: ClueResponseDto[] }>({});
   isUnlockingClue = signal(false);
+  isExpressUnlocking = signal<{ [msgId: string]: boolean }>({});
 
   // Customization
   showCustomization = signal(false);
@@ -194,6 +195,38 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     if (typeof window === 'undefined') return;
     const urlParams = new URLSearchParams(window.location.search);
     const payment = urlParams.get('payment');
+    const clueUnlock = urlParams.get('clue_unlock');
+    const messageId = urlParams.get('messageId');
+    const mockClueMessageId = urlParams.get('mockClueMessageId');
+
+    if (payment === 'success' && clueUnlock === 'true' && messageId) {
+      if (mockClueMessageId) {
+        this.apiService.simulateExpressClueUnlock(mockClueMessageId).subscribe({
+          next: () => {
+            this.apiService.getCluesForMessage(mockClueMessageId).subscribe(clues => {
+              this.messageClues.update(m => ({ ...m, [mockClueMessageId]: clues }));
+            });
+          }
+        });
+      } else {
+        this.apiService.getCluesForMessage(messageId).subscribe(clues => {
+          this.messageClues.update(m => ({ ...m, [messageId]: clues }));
+        });
+      }
+      this.toastService.success('⚡ Tous les indices ont été démasqués avec succès ! 🎉');
+      this.walletService.loadWallet();
+      try {
+        confetti({
+          particleCount: 200,
+          spread: 100,
+          origin: { y: 0.5 },
+          colors: ['#f59e0b', '#ec4899', '#8b5cf6', '#10b981']
+        });
+      } catch (e) {}
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+
     if (payment === 'success') {
       try {
         confetti({
@@ -554,6 +587,22 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
         error: (err) => console.error('Erreur chargement indices', err)
       });
     }
+  }
+
+  handleExpressClueUnlock(msgId: string): void {
+    this.isExpressUnlocking.update(m => ({ ...m, [msgId]: true }));
+    this.apiService.createExpressClueCheckout(msgId).subscribe({
+      next: (res) => {
+        this.isExpressUnlocking.update(m => ({ ...m, [msgId]: false }));
+        if (res.checkoutUrl) {
+          window.location.href = res.checkoutUrl;
+        }
+      },
+      error: (err) => {
+        this.isExpressUnlocking.update(m => ({ ...m, [msgId]: false }));
+        this.toastService.error(err?.error?.message || "Erreur lors de l'initialisation du démasquage express.");
+      }
+    });
   }
 
   unlockClue(msgId: string, clueType: string): void {

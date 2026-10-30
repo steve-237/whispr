@@ -19,6 +19,8 @@ import com.whispr.backend.dto.TipCheckoutResponse;
 import com.whispr.backend.dto.CreateSuperWhisprCheckoutRequest;
 import com.whispr.backend.dto.SuperWhisprCheckoutResponse;
 import com.whispr.backend.repository.AuditLogRepository;
+import com.whispr.backend.repository.UnlockedClueRepository;
+import com.whispr.backend.domain.UnlockedClue;
 import com.whispr.backend.repository.LinkRepository;
 import com.whispr.backend.repository.MessageRepository;
 import com.whispr.backend.util.ClientMetadata;
@@ -67,6 +69,9 @@ class MonetizationServiceTest {
 
     @Mock
     private AuditLogRepository auditLogRepository;
+
+    @Mock
+    private UnlockedClueRepository unlockedClueRepository;
 
     @Mock
     private AiSentimentService aiSentimentService;
@@ -437,6 +442,53 @@ class MonetizationServiceTest {
         assertEquals("UNREAD", swMsg.getStatus());
         assertEquals("SUPER_WHISPR", swMsg.getType());
         assertEquals(new BigDecimal("0.50"), mockWallet.getEarningsEur());
+        verify(walletRepository, times(1)).save(mockWallet);
+        verify(transactionRepository, times(1)).save(any(Transaction.class));
+    }
+
+
+    @Test
+    void createExpressClueCheckoutSession_ShouldReturnCheckoutResponse() {
+        UUID msgId = UUID.randomUUID();
+        Link mockLink = Link.builder()
+                .id(UUID.randomUUID())
+                .user(mockUser)
+                .build();
+        Message msg = Message.builder()
+                .id(msgId)
+                .link(mockLink)
+                .build();
+
+        when(userRepository.findByEmailIgnoreCase(mockUser.getEmail())).thenReturn(Optional.of(mockUser));
+        when(messageRepository.findById(msgId)).thenReturn(Optional.of(msg));
+
+        CheckoutSessionResponse response = monetizationService.createExpressClueCheckoutSession(mockUser.getEmail(), msgId);
+
+        assertNotNull(response);
+        assertNotNull(response.sessionId());
+        assertNotNull(response.checkoutUrl());
+        assertTrue(response.checkoutUrl().contains("clue_unlock=true"));
+    }
+
+    @Test
+    void simulateExpressClueUnlock_ShouldUnlockAllClues_AndCreateTransaction() {
+        UUID msgId = UUID.randomUUID();
+        Link mockLink = Link.builder()
+                .id(UUID.randomUUID())
+                .user(mockUser)
+                .build();
+        Message msg = Message.builder()
+                .id(msgId)
+                .link(mockLink)
+                .build();
+
+        when(userRepository.findByEmailIgnoreCase(mockUser.getEmail())).thenReturn(Optional.of(mockUser));
+        when(messageRepository.findById(msgId)).thenReturn(Optional.of(msg));
+        when(walletRepository.findByUserId(mockUser.getId())).thenReturn(Optional.of(mockWallet));
+
+        monetizationService.simulateExpressClueUnlock(mockUser.getEmail(), msgId);
+
+        verify(unlockedClueRepository, atLeast(1)).save(any(UnlockedClue.class));
         verify(walletRepository, times(1)).save(mockWallet);
         verify(transactionRepository, times(1)).save(any(Transaction.class));
     }

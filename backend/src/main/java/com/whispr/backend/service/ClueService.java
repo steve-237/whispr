@@ -169,4 +169,27 @@ public class ClueService {
 
         return clues;
     }
+
+    @Transactional
+    public List<ClueResponseDto> unlockAllCluesForMessage(User user, Message message) {
+        AuditLog audit = auditLogRepository.findByMessageId(message.getId()).orElse(null);
+        Map<String, String> rawClues = generateRawClues(audit);
+
+        for (Map.Entry<String, String> entry : rawClues.entrySet()) {
+            String type = entry.getKey();
+            String val = entry.getValue();
+            if (unlockedClueRepository.findByUserIdAndMessageIdAndClueType(user.getId(), message.getId(), type).isEmpty()) {
+                UnlockedClue clue = UnlockedClue.builder()
+                        .user(user)
+                        .message(message)
+                        .clueType(type)
+                        .clueValue(val)
+                        .build();
+                unlockedClueRepository.save(clue);
+            }
+        }
+
+        return getCluesForMessage(user.getEmail(), message.getId());
+    }
+
 }

@@ -73,6 +73,21 @@ public class MonetizationController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/create-clue-checkout")
+    public ResponseEntity<CheckoutSessionResponse> createExpressClueCheckout(
+            Authentication authentication,
+            @Valid @RequestBody CreateExpressClueCheckoutRequest request) {
+        return ResponseEntity.ok(monetizationService.createExpressClueCheckoutSession(authentication.getName(), request.messageId()));
+    }
+
+    @PostMapping("/simulate-clue-unlock")
+    public ResponseEntity<Void> simulateExpressClueUnlock(
+            Authentication authentication,
+            @RequestParam UUID messageId) {
+        monetizationService.simulateExpressClueUnlock(authentication.getName(), messageId);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/checkout-simulate")
     public ResponseEntity<WalletDto> simulateCheckout(
             Authentication authentication,
