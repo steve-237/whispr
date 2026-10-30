@@ -52,6 +52,15 @@ public class Wallet {
     @Column(name = "affiliate_code", length = 50)
     private String affiliateCode;
 
+    @Column(name = "stripe_customer_id", length = 100)
+    private String stripeCustomerId;
+
+    @Column(name = "stripe_subscription_id", length = 100)
+    private String stripeSubscriptionId;
+
+    @Column(name = "subscription_status", length = 50)
+    private String subscriptionStatus;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private ZonedDateTime createdAt;
