@@ -24,13 +24,16 @@ describe('InboxComponent Ad & Notification UX', () => {
       getProfile: vi.fn().mockReturnValue(of({ slug: 'testuser' })),
       getStats: vi.fn().mockReturnValue(of({ positive: 0, neutral: 0, negative: 0, total: 0 })),
       getVisitorAnalytics: vi.fn().mockReturnValue(of({ totalVisits: 0 })),
-      getBlockedSenders: vi.fn().mockReturnValue(of([]))
+      getBlockedSenders: vi.fn().mockReturnValue(of([])),
+      confirmCheckoutSession: vi.fn().mockReturnValue(of({ coins: 50, isPro: true }))
     };
 
     mockWalletService = {
       loadWallet: vi.fn(),
       openShop: vi.fn(),
-      wallet: vi.fn().mockReturnValue({ coins: 100, isPro: false })
+      wallet: Object.assign(vi.fn().mockReturnValue({ coins: 100, isPro: false }), {
+        set: vi.fn()
+      })
     };
 
     mockNotificationService = {
@@ -125,5 +128,19 @@ describe('InboxComponent Ad & Notification UX', () => {
       force: true
     });
     expect(mockToastService.success).toHaveBeenCalled();
+  });
+
+  it('devrait confirmer la session et activer le statut PRO lors de la redirection de paiement avec session_id', () => {
+    (globalThis as any).window = {
+      location: { search: '?payment=success&session_id=cs_test_pro_123', pathname: '/inbox' },
+      history: { replaceState: vi.fn() }
+    };
+
+    component.checkPaymentRedirect();
+
+    expect(mockApiService.confirmCheckoutSession).toHaveBeenCalledWith('cs_test_pro_123');
+    expect(mockWalletService.wallet.set).toHaveBeenCalledWith({ coins: 50, isPro: true });
+    expect(mockToastService.success).toHaveBeenCalledWith(expect.stringContaining('Whispr PRO Club'));
+    expect((globalThis as any).window.history.replaceState).toHaveBeenCalled();
   });
 });

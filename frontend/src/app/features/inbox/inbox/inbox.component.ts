@@ -243,8 +243,27 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
           colors: ['#fbbf24', '#8b5cf6', '#ec4899', '#10b981']
         });
       } catch (e) {}
-      this.toastService.success(this.translate.instant('SHOP.PAYMENT_SUCCESS') || 'Paiement réussi ! Vos Whispr Coins ont été crédités. 🎉');
-      this.walletService.loadWallet();
+
+      const sessionId = urlParams.get('session_id');
+      if (sessionId) {
+        this.apiService.confirmCheckoutSession(sessionId).subscribe({
+          next: (wallet) => {
+            this.walletService.wallet.set(wallet);
+            if (wallet && wallet.isPro) {
+              this.toastService.success('👑 Félicitations ! Votre abonnement Whispr PRO Club est actif ! 🎉');
+            } else {
+              this.toastService.success(this.translate.instant('SHOP.PAYMENT_SUCCESS') || 'Paiement réussi ! Vos Whispr Coins ont été crédités. 🎉');
+            }
+          },
+          error: () => {
+            this.walletService.loadWallet();
+            this.toastService.success(this.translate.instant('SHOP.PAYMENT_SUCCESS') || 'Paiement réussi ! Vos Whispr Coins ont été crédités. 🎉');
+          }
+        });
+      } else {
+        this.toastService.success(this.translate.instant('SHOP.PAYMENT_SUCCESS') || 'Paiement réussi ! Vos Whispr Coins ont été crédités. 🎉');
+        this.walletService.loadWallet();
+      }
       window.history.replaceState({}, '', window.location.pathname);
     } else if (payment === 'cancelled') {
       this.toastService.error(this.translate.instant('SHOP.PAYMENT_CANCELLED') || 'Paiement annulé. Aucun montant n\'a été débité.');
