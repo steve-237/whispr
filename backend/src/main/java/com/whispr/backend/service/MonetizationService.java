@@ -614,7 +614,9 @@ public class MonetizationService {
 
     @Transactional
     public TipCheckoutResponse createTipCheckoutSession(CreateTipCheckoutRequest request, HttpServletRequest servletRequest) {
-        Link link = linkRepository.findBySlug(request.slug())
+        String cleanSlug = request.slug() != null ? (request.slug().startsWith("@") ? request.slug().substring(1) : request.slug()).trim() : "";
+        Link link = linkRepository.findBySlug(cleanSlug)
+                .or(() -> linkRepository.findBySlugIgnoreCase(cleanSlug))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profil introuvable pour @" + request.slug()));
 
         if (Boolean.FALSE.equals(link.getIsActive())) {
@@ -828,7 +830,9 @@ public class MonetizationService {
 
     @Transactional
     public SuperWhisprCheckoutResponse createSuperWhisprCheckoutSession(CreateSuperWhisprCheckoutRequest request, HttpServletRequest servletRequest) {
-        Link link = linkRepository.findBySlug(request.slug())
+        String cleanSlug = request.slug() != null ? (request.slug().startsWith("@") ? request.slug().substring(1) : request.slug()).trim() : "";
+        Link link = linkRepository.findBySlug(cleanSlug)
+                .or(() -> linkRepository.findBySlugIgnoreCase(cleanSlug))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profil introuvable pour @" + request.slug()));
 
         if (Boolean.FALSE.equals(link.getIsActive())) {

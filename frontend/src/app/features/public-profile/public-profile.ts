@@ -59,9 +59,10 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
-      const slugParam = params.get('slug') || '';
-      this.slug.set(slugParam);
-      if (slugParam) {
+      const rawSlug = params.get('slug') || '';
+      const cleanSlug = rawSlug.startsWith('@') ? rawSlug.substring(1) : rawSlug;
+      this.slug.set(cleanSlug);
+      if (cleanSlug) {
         this.loadProfile();
       }
     });

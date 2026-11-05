@@ -11,9 +11,8 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    @Value("${cors.allowed-origins}")
+    @Value("${cors.allowed-origins:http://localhost:4200,https://whispr-theta-smoky.vercel.app}")
     private String allowedOrigins;
-
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -25,9 +24,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        String[] origins = java.util.Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+
         // Point d'entrée WebSocket pour le client frontend
-        registry.addEndpoint("/ws-whispr").setAllowedOrigins(allowedOrigins.split(","));
-        registry.addEndpoint("/ws-whispr").setAllowedOrigins(allowedOrigins.split(",")).withSockJS(); // Fallback si WebSocket n'est pas supporté (et utilisé par StompJs dans certains cas)
+        registry.addEndpoint("/ws-whispr")
+                .setAllowedOrigins(origins)
+                .setAllowedOriginPatterns("http://localhost:[*]", "https://*.vercel.app");
+        registry.addEndpoint("/ws-whispr")
+                .setAllowedOrigins(origins)
+                .setAllowedOriginPatterns("http://localhost:[*]", "https://*.vercel.app")
+                .withSockJS(); // Fallback si WebSocket n'est pas supporté (et utilisé par StompJs dans certains cas)
     }
 }
 

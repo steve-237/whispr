@@ -10,6 +10,8 @@ import java.util.UUID;
 @Repository
 public interface LinkRepository extends JpaRepository<Link, UUID> {
     Optional<Link> findBySlug(String slug);
+    Optional<Link> findBySlugIgnoreCase(String slug);
     Optional<Link> findByUserId(UUID userId);
     boolean existsBySlug(String slug);
+    boolean existsBySlugIgnoreCase(String slug);
 }

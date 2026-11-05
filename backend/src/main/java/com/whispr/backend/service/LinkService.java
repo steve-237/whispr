@@ -17,7 +17,9 @@ public class LinkService {
 
     @Transactional(readOnly = true)
     public Optional<Link> getLinkBySlug(String slug) {
-        return linkRepository.findBySlug(slug);
+        if (slug == null || slug.isBlank()) return Optional.empty();
+        String cleanSlug = (slug.startsWith("@") ? slug.substring(1) : slug).trim();
+        return linkRepository.findBySlugIgnoreCase(cleanSlug);
     }
 
     @Transactional
