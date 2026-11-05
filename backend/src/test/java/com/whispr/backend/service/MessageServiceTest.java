@@ -260,4 +260,55 @@ class MessageServiceTest {
         assertTrue(result.getContent().contains("ROBOT"));
         verify(messageRepository, times(1)).save(any(Message.class));
     }
+
+    @Test
+    void toDto_ShouldMapAudioAndTipFieldsCorrectly() {
+        UUID messageId = UUID.randomUUID();
+        Message message = Message.builder()
+                .id(messageId)
+                .link(mockLink)
+                .content("Tip whisper")
+                .type("AUDIO")
+                .status("DELIVERED")
+                .isRead(false)
+                .aiCategory("POSITIVE")
+                .audioUrl("https://storage.whispr.com/audio.webm")
+                .audioDurationSeconds(12)
+                .voiceFilter("HELIUM")
+                .tipAmountEur(new java.math.BigDecimal("5.00"))
+                .isTipPaid(true)
+                .createdAt(ZonedDateTime.now())
+                .build();
+
+        MessageDto dto = messageService.toDto(message);
+
+        assertNotNull(dto);
+        assertEquals(messageId, dto.id());
+        assertEquals("Tip whisper", dto.content());
+        assertEquals("AUDIO", dto.type());
+        assertEquals("https://storage.whispr.com/audio.webm", dto.audioUrl());
+        assertEquals(12, dto.audioDurationSeconds());
+        assertEquals("HELIUM", dto.voiceFilter());
+        assertEquals(new java.math.BigDecimal("5.00"), dto.tipAmountEur());
+        assertTrue(dto.isTipPaid());
+    }
+
+    @Test
+    void sendMessage_WithAtSlugPrefix_ShouldStripPrefixAndResolveLink() {
+        when(linkRepository.findBySlug("tester-slug")).thenReturn(Optional.of(mockLink));
+        when(messageRepository.save(any(Message.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        com.whispr.backend.dto.MessageSendRequest req = new com.whispr.backend.dto.MessageSendRequest(
+                "Hello via @ prefix", "TEXT", null, null, null
+        );
+        com.whispr.backend.util.ClientMetadata metadata = new com.whispr.backend.util.ClientMetadata(
+                "hash123", "192.168.1.1", "Mozilla", "France", "Paris", "direct"
+        );
+
+        Message result = messageService.sendMessage("@tester-slug", req, metadata);
+
+        assertNotNull(result);
+        assertEquals("Hello via @ prefix", result.getContent());
+        verify(linkRepository, atLeastOnce()).findBySlug("tester-slug");
+    }
 }

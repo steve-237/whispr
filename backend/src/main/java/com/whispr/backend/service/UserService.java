@@ -17,6 +17,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final java.util.Set<String> RESERVED_PSEUDOS = java.util.Set.of(
+            "admin", "administrator", "root", "inbox", "login", "register",
+            "signup", "signin", "logout", "auth", "api", "shop", "settings",
+            "profile", "profiles", "whispr", "terms", "privacy", "help",
+            "support", "null", "undefined", "dashboard"
+    );
+
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final LinkRepository linkRepository;
@@ -34,6 +41,10 @@ public class UserService {
 
         if (cleanPseudo.length() < 3 || cleanPseudo.length() > 30) {
             throw new IllegalArgumentException("Le pseudo doit contenir entre 3 et 30 caractères.");
+        }
+
+        if (RESERVED_PSEUDOS.contains(cleanPseudo)) {
+            throw new IllegalArgumentException("Ce pseudo est réservé par le système.");
         }
 
         if (userRepository.existsByEmail(cleanEmail)) {

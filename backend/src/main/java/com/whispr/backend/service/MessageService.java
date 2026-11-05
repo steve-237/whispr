@@ -81,7 +81,9 @@ public class MessageService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Votre message enfreint nos règles de bienveillance et a été bloqué.");
         }
 
-        Link link = linkRepository.findBySlug(slug)
+        String cleanSlug = slug != null ? (slug.startsWith("@") ? slug.substring(1) : slug).trim() : "";
+        Link link = linkRepository.findBySlug(cleanSlug)
+                .or(() -> linkRepository.findBySlugIgnoreCase(cleanSlug))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Link not found"));
 
         if (!link.getIsActive()) {
@@ -150,20 +152,7 @@ public class MessageService {
 
         // 4. Push WebSocket vers l'utilisateur (propriétaire du lien)
         String userEmail = link.getUser().getEmail();
-        String deviceHint = DeviceUtil.parseDeviceHint(userAgent);
-        String finalCountry = country != null ? country : "Inconnu 🌍";
-
-        MessageDto dto = new MessageDto(
-                message.getId(),
-                message.getContent(),
-                message.getType(),
-                message.getStatus(),
-                message.getCreatedAt(),
-                finalCountry,
-                deviceHint,
-                message.isRead(),
-                message.getAiCategory()
-        );
+        MessageDto dto = toDto(message);
 
         if (messagingTemplate != null) {
             messagingTemplate.convertAndSend("/topic/user/" + userEmail + "/messages", dto);
@@ -200,7 +189,12 @@ public class MessageService {
                 country,
                 deviceHint,
                 message.isRead(),
-                message.getAiCategory()
+                message.getAiCategory(),
+                message.getAudioUrl(),
+                message.getAudioDurationSeconds(),
+                message.getVoiceFilter(),
+                message.getTipAmountEur(),
+                message.isTipPaid()
         );
     }
 
