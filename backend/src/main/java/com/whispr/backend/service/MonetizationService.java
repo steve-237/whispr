@@ -107,10 +107,14 @@ public class MonetizationService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         Wallet wallet = getOrCreateWallet(user);
         String affiliateCode = wallet.getAffiliateCode() != null ? wallet.getAffiliateCode() : user.getPseudo();
+        boolean isProActive = wallet.isPro();
+        if (isProActive && wallet.getProExpiresAt() != null && wallet.getProExpiresAt().isBefore(ZonedDateTime.now())) {
+            isProActive = false;
+        }
         return new WalletDto(
                 wallet.getCoins(),
                 wallet.getTotalSpentEur(),
-                wallet.isPro(),
+                isProActive,
                 wallet.getProExpiresAt(),
                 wallet.getEarningsEur(),
                 wallet.getReferralCount(),
@@ -260,7 +264,7 @@ public class MonetizationService {
         }
 
         // Fallback simulation / mode développement
-        String mockSessionId = "mock_cs_" + UUID.randomUUID();
+        String mockSessionId = "mock_cs_" + request.packId() + "_" + UUID.randomUUID();
         String mockCheckoutUrl = frontendUrl + "/inbox?payment=success&session_id=" + mockSessionId;
         log.info("Stripe non configuré, retour session simulée: {}", mockSessionId);
         return new CheckoutSessionResponse(mockSessionId, mockCheckoutUrl);
@@ -338,25 +342,32 @@ public class MonetizationService {
             return;
         }
 
+        fulfillCheckoutSession(session, event.getId());
+    }
+
+    @Transactional
+    public void fulfillCheckoutSession(Session session, String eventId) {
+        if (session == null || session.getId() == null) return;
+
         // Idempotence : vérifier si l'événement ou la session a déjà été traité(e)
-        if (transactionRepository.existsByStripeEventId(event.getId()) ||
-                (session.getId() != null && transactionRepository.existsByStripeSessionId(session.getId()))) {
-            log.info("Transaction Stripe déjà traitée pour session={} event={}", session.getId(), event.getId());
+        if ((eventId != null && transactionRepository.existsByStripeEventId(eventId)) ||
+                transactionRepository.existsByStripeSessionId(session.getId())) {
+            log.info("Transaction Stripe déjà traitée pour session={} event={}", session.getId(), eventId);
             return;
         }
 
-                Map<String, String> metadata = session.getMetadata();
+        Map<String, String> metadata = session.getMetadata();
         String sessionType = metadata != null ? metadata.get("type") : null;
         if ("CREATOR_TIP".equalsIgnoreCase(sessionType)) {
-            processCreatorTipCompleted(session, event);
+            processCreatorTipCompleted(session, null);
             return;
         }
         if ("SUPER_WHISPR".equalsIgnoreCase(sessionType)) {
-            processSuperWhisprCompleted(session, event);
+            processSuperWhisprCompleted(session, null);
             return;
         }
         if ("EXPRESS_CLUE_UNLOCK".equalsIgnoreCase(sessionType)) {
-            processExpressClueUnlockCompleted(session, event);
+            processExpressClueUnlockCompleted(session, null);
             return;
         }
 
@@ -429,7 +440,7 @@ public class MonetizationService {
                             .amountEur(commission)
                             .coinsDelta(0)
                             .description("Commission affiliation (30%) - Achat par @" + buyer.getPseudo())
-                            .stripeEventId(event.getId() + "_ref")
+                            .stripeEventId(eventId != null ? eventId + "_ref" : "ref_" + UUID.randomUUID())
                             .status("COMPLETED")
                             .build();
                     transactionRepository.save(refTx);
@@ -448,13 +459,13 @@ public class MonetizationService {
                 .coinsDelta(coinsToAdd)
                 .description("Achat Stripe: " + getPackTitle(packId))
                 .stripeSessionId(session.getId())
-                .stripeEventId(event.getId())
+                .stripeEventId(eventId)
                 .status("COMPLETED")
                 .build();
         transactionRepository.save(transaction);
 
-        log.info("Transaction Stripe auditée et validée: user={}, montant={} EUR, pièces={}, eventId={}",
-                user.getEmail(), amountEur, coinsToAdd, event.getId());
+        log.info("Transaction Stripe auditée et validée: user={}, montant={} EUR, pièces={}, eventId={}, sessionId={}",
+                user.getEmail(), amountEur, coinsToAdd, eventId, session.getId());
     }
 
     private BigDecimal getPackDefaultPrice(String packId) {
@@ -476,12 +487,64 @@ public class MonetizationService {
     }
 
     /**
-     * Méthode de simulation pour développement local et tests sans Stripe.
+     * Confirme et valide immédiatement une session de checkout Stripe ou simulation après redirection.
+     * Garantit le déblocage instantané du statut PRO sans dépendre uniquement des délais d'acheminement des webhooks.
      */
     @Transactional
-    public WalletDto simulateCheckout(String email, CheckoutSimulationRequest request) {
+    public WalletDto confirmCheckoutSession(String email, String sessionId) {
+        if (sessionId == null || sessionId.isBlank()) {
+            return getWalletDto(email);
+        }
+
         User user = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
+
+        // Vérifier si la session a déjà été validée
+        if (transactionRepository.existsByStripeSessionId(sessionId)) {
+            log.info("Session déjà confirmée ou validée par webhook: {}", sessionId);
+            return getWalletDto(email);
+        }
+
+        // Cas 1 : Session simulée / mock
+        if (sessionId.startsWith("mock_cs_")) {
+            String packId = "PRO_MONTHLY";
+            if (sessionId.contains("COINS_500")) {
+                packId = "COINS_500";
+            } else if (sessionId.contains("COINS_150")) {
+                packId = "COINS_150";
+            } else if (sessionId.contains("COINS_50")) {
+                packId = "COINS_50";
+            } else if (sessionId.contains("PRO_MONTHLY")) {
+                packId = "PRO_MONTHLY";
+            }
+
+            simulateCheckoutInternal(user, packId, sessionId);
+            return getWalletDto(email);
+        }
+
+        // Cas 2 : Session Stripe réelle
+        if (stripeSecretKey != null && !stripeSecretKey.isBlank() && !stripeSecretKey.startsWith("mock")) {
+            Stripe.apiKey = stripeSecretKey;
+            try {
+                Session session = Session.retrieve(sessionId);
+                if (session != null) {
+                    String paymentStatus = session.getPaymentStatus();
+                    String status = session.getStatus();
+                    if ("paid".equalsIgnoreCase(paymentStatus) || "complete".equalsIgnoreCase(status)) {
+                        fulfillCheckoutSession(session, "confirm_" + sessionId);
+                    } else {
+                        log.warn("Session Stripe {} non confirmée: status={}, paymentStatus={}", sessionId, status, paymentStatus);
+                    }
+                }
+            } catch (StripeException e) {
+                log.error("Erreur confirmation session Stripe {}: {}", sessionId, e.getMessage());
+            }
+        }
+
+        return getWalletDto(email);
+    }
+
+    private void simulateCheckoutInternal(User user, String packId, String sessionId) {
         Wallet wallet = getOrCreateWallet(user);
 
         BigDecimal amountEur;
@@ -489,7 +552,7 @@ public class MonetizationService {
         String desc;
         String type;
 
-        switch (request.packId()) {
+        switch (packId) {
             case "COINS_50" -> {
                 amountEur = new BigDecimal("0.99");
                 coinsToAdd = 50;
@@ -518,7 +581,7 @@ public class MonetizationService {
                 wallet.setStripeSubscriptionId("sim_sub_" + UUID.randomUUID());
                 wallet.setProExpiresAt(ZonedDateTime.now().plusMonths(1));
             }
-            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pack inconnu: " + request.packId());
+            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pack inconnu: " + packId);
         }
 
         wallet.setCoins(wallet.getCoins() + coinsToAdd);
@@ -531,20 +594,22 @@ public class MonetizationService {
                 .amountEur(amountEur)
                 .coinsDelta(coinsToAdd)
                 .description(desc)
+                .stripeSessionId(sessionId)
                 .status("COMPLETED")
                 .build();
         transactionRepository.save(transaction);
+        log.info("Session simulée {} validée pour user {}: pack={}", sessionId, user.getEmail(), packId);
+    }
 
-        String affiliateCode = wallet.getAffiliateCode() != null ? wallet.getAffiliateCode() : user.getPseudo();
-        return new WalletDto(
-                wallet.getCoins(),
-                wallet.getTotalSpentEur(),
-                wallet.isPro(),
-                wallet.getProExpiresAt(),
-                wallet.getEarningsEur(),
-                wallet.getReferralCount(),
-                affiliateCode
-        );
+    /**
+     * Méthode de simulation pour développement local et tests sans Stripe.
+     */
+    @Transactional
+    public WalletDto simulateCheckout(String email, CheckoutSimulationRequest request) {
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        simulateCheckoutInternal(user, request.packId(), "sim_" + UUID.randomUUID());
+        return getWalletDto(email);
     }
 
     @Transactional

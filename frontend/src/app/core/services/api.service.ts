@@ -214,6 +214,10 @@ export class ApiService {
     return this.http.post<{ sessionId: string, checkoutUrl: string }>(`${this.API_URL}/monetization/create-checkout-session`, { packId, promoCode });
   }
 
+  confirmCheckoutSession(sessionId: string): Observable<WalletDto> {
+    return this.http.post<WalletDto>(`${this.API_URL}/monetization/confirm-session?sessionId=${encodeURIComponent(sessionId)}`, {});
+  }
+
   simulateCheckout(packId: string): Observable<WalletDto> {
     return this.http.post<WalletDto>(`${this.API_URL}/monetization/checkout-simulate`, { packId });
   }

@@ -133,5 +133,20 @@ describe('ApiService', () => {
       expect(httpClientMock.get).toHaveBeenCalledWith(`${API_URL}/monetization/wallet`);
       expect(wallet?.isPro).toBe(true);
     });
+
+    it('devrait confirmer une session de paiement checkout', () => {
+      const mockWallet: WalletDto = {
+        coins: 150,
+        totalSpentEur: 4.99,
+        isPro: true
+      };
+      httpClientMock.post.mockReturnValue(of(mockWallet));
+
+      let wallet: WalletDto | undefined;
+      service.confirmCheckoutSession('cs_test_123').subscribe(data => (wallet = data));
+
+      expect(httpClientMock.post).toHaveBeenCalledWith(`${API_URL}/monetization/confirm-session?sessionId=cs_test_123`, {});
+      expect(wallet?.isPro).toBe(true);
+    });
   });
 });

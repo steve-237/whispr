@@ -38,6 +38,13 @@ public class MonetizationController {
         return ResponseEntity.ok(monetizationService.createCheckoutSession(authentication.getName(), request));
     }
 
+    @PostMapping("/confirm-session")
+    public ResponseEntity<WalletDto> confirmCheckoutSession(
+            Authentication authentication,
+            @RequestParam String sessionId) {
+        return ResponseEntity.ok(monetizationService.confirmCheckoutSession(authentication.getName(), sessionId));
+    }
+
     @PostMapping("/webhook")
     public ResponseEntity<String> handleStripeWebhook(
             @RequestBody String payload,

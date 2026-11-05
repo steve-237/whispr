@@ -511,4 +511,30 @@ class MonetizationServiceTest {
         verify(transactionRepository, times(1)).save(any(Transaction.class));
     }
 
+    @Test
+    void confirmCheckoutSession_ShouldUnlockPro_WhenMockProSessionProvided() {
+        when(userRepository.findByEmailIgnoreCase(mockUser.getEmail())).thenReturn(Optional.of(mockUser));
+        when(walletRepository.findByUserId(mockUser.getId())).thenReturn(Optional.of(mockWallet));
+        when(transactionRepository.existsByStripeSessionId("mock_cs_PRO_MONTHLY_uuid123")).thenReturn(false);
+
+        WalletDto result = monetizationService.confirmCheckoutSession(mockUser.getEmail(), "mock_cs_PRO_MONTHLY_uuid123");
+
+        assertNotNull(result);
+        assertTrue(result.isPro());
+        assertEquals("ACTIVE", result.subscriptionStatus());
+        verify(walletRepository, times(1)).save(mockWallet);
+        verify(transactionRepository, times(1)).save(any(Transaction.class));
+    }
+
+    @Test
+    void confirmCheckoutSession_ShouldBeIdempotent_WhenSessionAlreadyProcessed() {
+        when(userRepository.findByEmailIgnoreCase(mockUser.getEmail())).thenReturn(Optional.of(mockUser));
+        when(walletRepository.findByUserId(mockUser.getId())).thenReturn(Optional.of(mockWallet));
+        when(transactionRepository.existsByStripeSessionId("cs_already_processed")).thenReturn(true);
+
+        WalletDto result = monetizationService.confirmCheckoutSession(mockUser.getEmail(), "cs_already_processed");
+
+        assertNotNull(result);
+        verify(transactionRepository, never()).save(any(Transaction.class));
+    }
 }
