@@ -450,7 +450,7 @@ import Chart from 'chart.js/auto';
 })
 export class AdminDashboardComponent implements OnInit {
   isSuperAdmin = computed(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('whispr_token') || localStorage.getItem('token');
     if (!token) return false;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
