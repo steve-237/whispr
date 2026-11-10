@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { ApiService, MessageDto, StatsDto } from '../../../core/services/api.service';
+import { ApiService, MessageDto, StatsDto, PromptDto, CreatePromptRequest } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -74,6 +74,16 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   profileThemeId = signal('neon');
   isSavingProfile = signal(false);
   profileSavedSuccess = signal(false);
+
+  // Whispr Prompts State (Partie 1)
+  showPromptsModal = signal(false);
+  promptsList = signal<PromptDto[]>([]);
+  activePrompt = signal<PromptDto | null>(null);
+  isSavingPrompt = signal(false);
+  newPromptQuestion = signal('');
+  newPromptType = signal<'TEXT' | 'POLL' | 'RATING'>('POLL');
+  newPromptOptions = signal<string[]>(['Oui', 'Non']);
+  newPromptScaleMax = signal<number>(10);
   
   // Dashboard IA Stats
   showStats = signal(false);
@@ -128,6 +138,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     this.walletService.loadWallet();
     this.loadMessages();
     this.loadProfileInfo();
+    this.loadPrompts();
     this.loadStats();
     this.loadVisitorAnalytics();
     this.loadAds();
@@ -771,6 +782,125 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
         this.isCapturing.set(false);
       }
     }, 250);
+  }
+
+  // --- Whispr Prompts Management ---
+  loadPrompts(): void {
+    this.apiService.getMyPrompts().subscribe({
+      next: (list) => {
+        this.promptsList.set(list);
+        const active = list.find(p => p.isActive) || null;
+        this.activePrompt.set(active);
+      },
+      error: (err) => console.error('Erreur chargement prompts', err)
+    });
+  }
+
+  togglePromptsModal(): void {
+    this.showPromptsModal.update(v => !v);
+  }
+
+  addPollOption(): void {
+    if (this.newPromptOptions().length < 6) {
+      this.newPromptOptions.update(opts => [...opts, '']);
+    } else {
+      this.toastService.info('Maximum 6 options autorisées.');
+    }
+  }
+
+  removePollOption(index: number): void {
+    if (this.newPromptOptions().length > 2) {
+      this.newPromptOptions.update(opts => opts.filter((_, i) => i !== index));
+    } else {
+      this.toastService.info('Un QCM requiert au moins 2 options.');
+    }
+  }
+
+  updatePollOption(index: number, val: string): void {
+    this.newPromptOptions.update(opts => {
+      const copy = [...opts];
+      copy[index] = val;
+      return copy;
+    });
+  }
+
+  selectPresetPrompt(preset: { question: string, type: 'TEXT' | 'POLL' | 'RATING', options?: string[], scaleMax?: number }): void {
+    this.newPromptQuestion.set(preset.question);
+    this.newPromptType.set(preset.type);
+    if (preset.options && preset.options.length >= 2) {
+      this.newPromptOptions.set([...preset.options]);
+    }
+    if (preset.scaleMax) {
+      this.newPromptScaleMax.set(preset.scaleMax);
+    }
+  }
+
+  createPrompt(): void {
+    const q = this.newPromptQuestion().trim();
+    if (!q) {
+      this.toastService.info('Veuillez renseigner la question du sondage.');
+      return;
+    }
+
+    const type = this.newPromptType();
+    let options: string[] | undefined = undefined;
+
+    if (type === 'POLL') {
+      const validOpts = this.newPromptOptions().map(o => o.trim()).filter(o => o.length > 0);
+      if (validOpts.length < 2) {
+        this.toastService.info('Veuillez renseigner au moins 2 options valides.');
+        return;
+      }
+      options = validOpts;
+    }
+
+    this.isSavingPrompt.set(true);
+    this.apiService.createPrompt({
+      question: q,
+      type: type,
+      options: options,
+      scaleMax: type === 'RATING' ? this.newPromptScaleMax() : undefined
+    }).subscribe({
+      next: () => {
+        this.isSavingPrompt.set(false);
+        this.toastService.success('🎯 Sondage créé et activé sur votre profil !');
+        this.newPromptQuestion.set('');
+        this.newPromptOptions.set(['Oui', 'Non']);
+        this.loadPrompts();
+      },
+      error: (err) => {
+        this.isSavingPrompt.set(false);
+        const msg = err.error?.message || err.error || 'Erreur lors de la création du sondage.';
+        this.toastService.error(msg);
+      }
+    });
+  }
+
+  togglePromptStatus(promptId: string, currentActive: boolean): void {
+    this.apiService.togglePromptStatus(promptId, !currentActive).subscribe({
+      next: () => {
+        this.toastService.success(currentActive ? 'Sondage désactivé.' : 'Sondage activé sur votre profil !');
+        this.loadPrompts();
+      },
+      error: (err) => {
+        const msg = err.error?.message || err.error || 'Erreur lors de la mise à jour.';
+        this.toastService.error(msg);
+      }
+    });
+  }
+
+  deletePrompt(promptId: string): void {
+    if (!confirm('Voulez-vous vraiment supprimer ce sondage et ses résultats ?')) return;
+    this.apiService.deletePrompt(promptId).subscribe({
+      next: () => {
+        this.toastService.success('Sondage supprimé.');
+        this.loadPrompts();
+      },
+      error: (err) => {
+        const msg = err.error?.message || err.error || 'Erreur lors de la suppression.';
+        this.toastService.error(msg);
+      }
+    });
   }
 
   private downloadImage(dataUrl: string): void {

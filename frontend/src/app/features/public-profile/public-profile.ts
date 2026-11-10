@@ -47,6 +47,14 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
   isSuperWhisprSuccess = signal(false);
   tipSuccessAmount = signal<number | null>(null);
 
+  // --- Whispr Prompts State ---
+  selectedPollOptionId = signal<string | null>(null);
+  selectedRating = signal<number | null>(null);
+  promptTextAnswer = signal<string>('');
+  isSubmittingPrompt = signal<boolean>(false);
+  promptSubmitted = signal<boolean>(false);
+  promptFeedbackMessage = signal<string>('');
+
   private recordingInterval: any = null;
   private previewAudio: HTMLAudioElement | null = null;
 
@@ -417,6 +425,106 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
     this.isSuperWhispr.set(false);
     this.messageContent.set('');
     this.cancelOrResetAudio();
+  }
+
+  // --- Whispr Prompts Actions ---
+  selectPollOption(optionId: string): void {
+    if (this.promptSubmitted()) return;
+    this.selectedPollOptionId.set(optionId);
+  }
+
+  submitPollVote(): void {
+    const optId = this.selectedPollOptionId();
+    if (!optId) {
+      this.toastService.info('Veuillez sélectionner une option avant de voter.');
+      return;
+    }
+    this.isSubmittingPrompt.set(true);
+    this.apiService.respondToPrompt(this.slug(), { selectedOptionId: optId }).subscribe({
+      next: (res) => {
+        this.isSubmittingPrompt.set(false);
+        this.promptSubmitted.set(true);
+        this.promptFeedbackMessage.set(res.message);
+        if (res.prompt) {
+          this.profile.update(p => p ? { ...p, activePrompt: res.prompt } : p);
+        }
+        if (res.success) {
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+          this.toastService.success(res.message);
+        } else {
+          this.toastService.info(res.message);
+        }
+      },
+      error: (err) => {
+        this.isSubmittingPrompt.set(false);
+        const msg = err.error?.message || err.error || 'Erreur lors de l\'enregistrement du vote.';
+        this.toastService.error(msg);
+      }
+    });
+  }
+
+  selectRating(score: number): void {
+    if (this.promptSubmitted()) return;
+    this.selectedRating.set(score);
+  }
+
+  submitRating(): void {
+    const rating = this.selectedRating();
+    if (rating === null || rating === undefined) {
+      this.toastService.info('Veuillez choisir une note.');
+      return;
+    }
+    this.isSubmittingPrompt.set(true);
+    this.apiService.respondToPrompt(this.slug(), {
+      ratingValue: rating,
+      textAnswer: this.promptTextAnswer() || undefined
+    }).subscribe({
+      next: (res) => {
+        this.isSubmittingPrompt.set(false);
+        this.promptSubmitted.set(true);
+        this.promptFeedbackMessage.set(res.message);
+        if (res.prompt) {
+          this.profile.update(p => p ? { ...p, activePrompt: res.prompt } : p);
+        }
+        if (res.success) {
+          confetti({ particleCount: 180, spread: 90, origin: { y: 0.6 } });
+          this.toastService.success(res.message);
+        } else {
+          this.toastService.info(res.message);
+        }
+      },
+      error: (err) => {
+        this.isSubmittingPrompt.set(false);
+        const msg = err.error?.message || err.error || 'Erreur lors de l\'envoi de la note.';
+        this.toastService.error(msg);
+      }
+    });
+  }
+
+  submitPromptTextAnswer(): void {
+    const text = this.promptTextAnswer().trim();
+    if (!text) {
+      this.toastService.info('Veuillez écrire votre réponse.');
+      return;
+    }
+    this.isSubmittingPrompt.set(true);
+    this.apiService.respondToPrompt(this.slug(), { textAnswer: text }).subscribe({
+      next: (res) => {
+        this.isSubmittingPrompt.set(false);
+        this.promptSubmitted.set(true);
+        this.promptFeedbackMessage.set(res.message);
+        if (res.prompt) {
+          this.profile.update(p => p ? { ...p, activePrompt: res.prompt } : p);
+        }
+        confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+        this.toastService.success(res.message);
+      },
+      error: (err) => {
+        this.isSubmittingPrompt.set(false);
+        const msg = err.error?.message || err.error || 'Erreur lors de l\'envoi de la réponse.';
+        this.toastService.error(msg);
+      }
+    });
   }
 
 }

@@ -9,6 +9,10 @@ public record LinkDto(
         String profileBio,
         String profileAvatarUrl,
         String profileThemeId,
-        String profileDailyQuestion
+        String profileDailyQuestion,
+        PromptDto activePrompt
 ) {
+    public LinkDto(UUID id, String slug, Boolean isActive, String profileBio, String profileAvatarUrl, String profileThemeId, String profileDailyQuestion) {
+        this(id, slug, isActive, profileBio, profileAvatarUrl, profileThemeId, profileDailyQuestion, null);
+    }
 }

@@ -11,6 +11,47 @@ export interface LinkDto {
   profileAvatarUrl: string;
   profileThemeId: string;
   profileDailyQuestion: string;
+  activePrompt?: PromptDto;
+}
+
+export interface PromptOptionDto {
+  id: string;
+  optionText: string;
+  voteCount: number;
+  displayOrder: number;
+  percentage: number;
+}
+
+export interface PromptDto {
+  id: string;
+  question: string;
+  type: 'TEXT' | 'POLL' | 'RATING';
+  isActive: boolean;
+  scaleMax?: number;
+  totalResponses: number;
+  averageRating?: number;
+  ratingCount?: number;
+  options: PromptOptionDto[];
+  createdAt: string;
+}
+
+export interface CreatePromptRequest {
+  question: string;
+  type: 'TEXT' | 'POLL' | 'RATING';
+  scaleMax?: number;
+  options?: string[];
+}
+
+export interface RespondPromptRequest {
+  selectedOptionId?: string;
+  ratingValue?: number;
+  textAnswer?: string;
+}
+
+export interface PromptResponseResultDto {
+  success: boolean;
+  message: string;
+  prompt: PromptDto;
 }
 
 export interface WalletDto {
@@ -355,6 +396,31 @@ export class ApiService {
 
   unblockSender(blockId: string): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/messages/blocks/${blockId}`);
+  }
+
+  // --- Whispr Prompts & Sondages ---
+  getMyPrompts(): Observable<PromptDto[]> {
+    return this.http.get<PromptDto[]>(`${this.API_URL}/prompts/my`);
+  }
+
+  createPrompt(req: CreatePromptRequest): Observable<PromptDto> {
+    return this.http.post<PromptDto>(`${this.API_URL}/prompts`, req);
+  }
+
+  togglePromptStatus(id: string, active: boolean): Observable<PromptDto> {
+    return this.http.put<PromptDto>(`${this.API_URL}/prompts/${id}/status?active=${active}`, {});
+  }
+
+  deletePrompt(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/prompts/${id}`);
+  }
+
+  getPublicActivePrompt(slug: string): Observable<PromptDto> {
+    return this.http.get<PromptDto>(`${this.API_URL}/prompts/public/${slug}`);
+  }
+
+  respondToPrompt(slug: string, req: RespondPromptRequest): Observable<PromptResponseResultDto> {
+    return this.http.post<PromptResponseResultDto>(`${this.API_URL}/prompts/public/${slug}/respond`, req);
   }
 }
 
