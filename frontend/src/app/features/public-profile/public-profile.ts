@@ -7,12 +7,13 @@ import { AuthService } from '../../core/services/auth.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { VoiceDistorterService, VoiceFilterType } from '../../core/services/voice-distorter.service';
+import { PromptCardComponent } from './prompt-card.component';
 import confetti from 'canvas-confetti';
 
 @Component({
   selector: 'app-public-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe],
+  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, PromptCardComponent],
   templateUrl: './public-profile.html'
 })
 export class PublicProfileComponent implements OnInit, OnDestroy {
@@ -48,9 +49,6 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
   tipSuccessAmount = signal<number | null>(null);
 
   // --- Whispr Prompts State ---
-  selectedPollOptionId = signal<string | null>(null);
-  selectedRating = signal<number | null>(null);
-  promptTextAnswer = signal<string>('');
   isSubmittingPrompt = signal<boolean>(false);
   promptSubmitted = signal<boolean>(false);
   promptFeedbackMessage = signal<string>('');
@@ -428,19 +426,9 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
   }
 
   // --- Whispr Prompts Actions ---
-  selectPollOption(optionId: string): void {
-    if (this.promptSubmitted()) return;
-    this.selectedPollOptionId.set(optionId);
-  }
-
-  submitPollVote(): void {
-    const optId = this.selectedPollOptionId();
-    if (!optId) {
-      this.toastService.info('Veuillez sélectionner une option avant de voter.');
-      return;
-    }
+  handlePollVoted(optionId: string): void {
     this.isSubmittingPrompt.set(true);
-    this.apiService.respondToPrompt(this.slug(), { selectedOptionId: optId }).subscribe({
+    this.apiService.respondToPrompt(this.slug(), { selectedOptionId: optionId }).subscribe({
       next: (res) => {
         this.isSubmittingPrompt.set(false);
         this.promptSubmitted.set(true);
@@ -463,21 +451,11 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectRating(score: number): void {
-    if (this.promptSubmitted()) return;
-    this.selectedRating.set(score);
-  }
-
-  submitRating(): void {
-    const rating = this.selectedRating();
-    if (rating === null || rating === undefined) {
-      this.toastService.info('Veuillez choisir une note.');
-      return;
-    }
+  handleRatingSubmitted(data: { rating: number, comment?: string }): void {
     this.isSubmittingPrompt.set(true);
     this.apiService.respondToPrompt(this.slug(), {
-      ratingValue: rating,
-      textAnswer: this.promptTextAnswer() || undefined
+      ratingValue: data.rating,
+      textAnswer: data.comment
     }).subscribe({
       next: (res) => {
         this.isSubmittingPrompt.set(false);
@@ -501,12 +479,7 @@ export class PublicProfileComponent implements OnInit, OnDestroy {
     });
   }
 
-  submitPromptTextAnswer(): void {
-    const text = this.promptTextAnswer().trim();
-    if (!text) {
-      this.toastService.info('Veuillez écrire votre réponse.');
-      return;
-    }
+  handleTextSubmitted(text: string): void {
     this.isSubmittingPrompt.set(true);
     this.apiService.respondToPrompt(this.slug(), { textAnswer: text }).subscribe({
       next: (res) => {

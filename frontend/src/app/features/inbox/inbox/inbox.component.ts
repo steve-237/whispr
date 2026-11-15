@@ -16,6 +16,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { OnboardingComponent } from '../onboarding/onboarding.component';
 import { MessageCardComponent } from './message-card.component';
 import { ProfileCustomizerComponent } from './profile-customizer.component';
+import { PromptsManagerComponent } from './prompts-manager.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Title } from '@angular/platform-browser';
 import { WalletService } from '../../../shared/components/shop/wallet.service';
@@ -30,7 +31,8 @@ import { ClueResponseDto, AdvertisementDto, VisitorAnalyticsDto, BlockedSenderDt
     TranslatePipe, 
     OnboardingComponent, 
     MessageCardComponent, 
-    ProfileCustomizerComponent
+    ProfileCustomizerComponent,
+    PromptsManagerComponent
   ],
   templateUrl: './inbox.component.html'
 })
@@ -80,10 +82,6 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   promptsList = signal<PromptDto[]>([]);
   activePrompt = signal<PromptDto | null>(null);
   isSavingPrompt = signal(false);
-  newPromptQuestion = signal('');
-  newPromptType = signal<'TEXT' | 'POLL' | 'RATING'>('POLL');
-  newPromptOptions = signal<string[]>(['Oui', 'Non']);
-  newPromptScaleMax = signal<number>(10);
   
   // Dashboard IA Stats
   showStats = signal(false);
@@ -800,72 +798,13 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     this.showPromptsModal.update(v => !v);
   }
 
-  addPollOption(): void {
-    if (this.newPromptOptions().length < 6) {
-      this.newPromptOptions.update(opts => [...opts, '']);
-    } else {
-      this.toastService.info('Maximum 6 options autorisées.');
-    }
-  }
-
-  removePollOption(index: number): void {
-    if (this.newPromptOptions().length > 2) {
-      this.newPromptOptions.update(opts => opts.filter((_, i) => i !== index));
-    } else {
-      this.toastService.info('Un QCM requiert au moins 2 options.');
-    }
-  }
-
-  updatePollOption(index: number, val: string): void {
-    this.newPromptOptions.update(opts => {
-      const copy = [...opts];
-      copy[index] = val;
-      return copy;
-    });
-  }
-
-  selectPresetPrompt(preset: { question: string, type: 'TEXT' | 'POLL' | 'RATING', options?: string[], scaleMax?: number }): void {
-    this.newPromptQuestion.set(preset.question);
-    this.newPromptType.set(preset.type);
-    if (preset.options && preset.options.length >= 2) {
-      this.newPromptOptions.set([...preset.options]);
-    }
-    if (preset.scaleMax) {
-      this.newPromptScaleMax.set(preset.scaleMax);
-    }
-  }
-
-  createPrompt(): void {
-    const q = this.newPromptQuestion().trim();
-    if (!q) {
-      this.toastService.info('Veuillez renseigner la question du sondage.');
-      return;
-    }
-
-    const type = this.newPromptType();
-    let options: string[] | undefined = undefined;
-
-    if (type === 'POLL') {
-      const validOpts = this.newPromptOptions().map(o => o.trim()).filter(o => o.length > 0);
-      if (validOpts.length < 2) {
-        this.toastService.info('Veuillez renseigner au moins 2 options valides.');
-        return;
-      }
-      options = validOpts;
-    }
-
+  handleCreatePrompt(req: CreatePromptRequest): void {
     this.isSavingPrompt.set(true);
-    this.apiService.createPrompt({
-      question: q,
-      type: type,
-      options: options,
-      scaleMax: type === 'RATING' ? this.newPromptScaleMax() : undefined
-    }).subscribe({
+    this.apiService.createPrompt(req).subscribe({
       next: () => {
         this.isSavingPrompt.set(false);
+        this.showPromptsModal.set(false);
         this.toastService.success('🎯 Sondage créé et activé sur votre profil !');
-        this.newPromptQuestion.set('');
-        this.newPromptOptions.set(['Oui', 'Non']);
         this.loadPrompts();
       },
       error: (err) => {
@@ -876,10 +815,10 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  togglePromptStatus(promptId: string, currentActive: boolean): void {
-    this.apiService.togglePromptStatus(promptId, !currentActive).subscribe({
+  handleTogglePromptStatus(event: { id: string, active: boolean }): void {
+    this.apiService.togglePromptStatus(event.id, !event.active).subscribe({
       next: () => {
-        this.toastService.success(currentActive ? 'Sondage désactivé.' : 'Sondage activé sur votre profil !');
+        this.toastService.success(event.active ? 'Sondage désactivé.' : 'Sondage activé sur votre profil !');
         this.loadPrompts();
       },
       error: (err) => {
@@ -889,7 +828,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  deletePrompt(promptId: string): void {
+  handleDeletePrompt(promptId: string): void {
     if (!confirm('Voulez-vous vraiment supprimer ce sondage et ses résultats ?')) return;
     this.apiService.deletePrompt(promptId).subscribe({
       next: () => {
