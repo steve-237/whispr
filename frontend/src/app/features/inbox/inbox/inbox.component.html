@@ -10,6 +10,9 @@
       <button *ngIf="notificationService.isSupported()" (click)="enableNotifications()" [title]="notificationService.hasPermission() ? ('INBOX.NOTIF_ACTIVE' | translate) : ('INBOX.NOTIF_ENABLE' | translate)" [style.background]="notificationService.hasPermission() ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)'" [style.borderColor]="notificationService.hasPermission() ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.1)'" style="padding: 0.55rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border: 1px solid; cursor: pointer; transition: all 0.2s; color: white;">
         <span style="font-size: 1.05rem;">🔔</span>
       </button>
+      <button (click)="togglePromptsModal()" [style.background]="showPromptsModal() ? 'rgba(139, 92, 246, 0.25)' : 'rgba(255,255,255,0.05)'" [style.borderColor]="showPromptsModal() ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)'" style="padding: 0.55rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border: 1px solid; cursor: pointer; transition: all 0.2s; color: white;" title="Sondages & Whispr Prompts">
+        <span style="font-size: 1.1rem;">🎯</span>
+      </button>
       <button (click)="showSettings.set(!showSettings())" [style.background]="showSettings() ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)'" style="padding: 0.55rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s; color: white;">
         <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
       </button>
@@ -85,6 +88,36 @@
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- BANNIÈRE SONDAGE ACTIF / CRÉATION -->
+    <div *ngIf="activePrompt() as ap" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.1)); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 20px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+      <div style="text-align: left;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+          <span style="font-size: 0.75rem; font-weight: 800; background: rgba(139, 92, 246, 0.3); color: #c4b5fd; padding: 0.15rem 0.55rem; border-radius: 12px; text-transform: uppercase;">
+            {{ ap.type === 'POLL' ? '📊 Sondage QCM' : (ap.type === 'RATING' ? '⭐ Note sur 10' : '🎯 Question') }}
+          </span>
+          <span style="font-size: 0.8rem; color: #10b981; font-weight: 700;">● Actif sur votre profil</span>
+        </div>
+        <p style="margin: 0; color: white; font-weight: 700; font-size: 1rem;">{{ ap.question }}</p>
+        <p style="margin: 0.25rem 0 0 0; font-size: 0.82rem; color: var(--color-text-muted);">
+          {{ ap.totalResponses }} réponse{{ ap.totalResponses > 1 ? 's' : '' }}
+          <span *ngIf="ap.type === 'RATING' && ap.averageRating"> • Moyenne : <strong>{{ ap.averageRating }} / {{ ap.scaleMax || 10 }}</strong></span>
+        </p>
+      </div>
+      <button (click)="togglePromptsModal()" class="btn btn-glass" style="font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 12px; white-space: nowrap; font-weight: 700;">
+        Gérer 🎯
+      </button>
+    </div>
+
+    <div *ngIf="!activePrompt()" style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.15); border-radius: 18px; padding: 1.1rem 1.25rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+      <div style="text-align: left;">
+        <p style="margin: 0; color: white; font-weight: 700; font-size: 0.95rem;">🎯 Booster vos réponses avec un Sondage</p>
+        <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: var(--color-text-muted);">QCM anonyme, note sur 10 ou question thématique pour engager vos visiteurs.</p>
+      </div>
+      <button (click)="togglePromptsModal()" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 12px; white-space: nowrap; font-weight: 700;">
+        Créer un sondage 🎯
+      </button>
     </div>
 
     <!-- STATS IA -->
@@ -403,6 +436,17 @@
       </div>
     </div>
   </div>
+
+  <!-- MODAL WHISPR PROMPTS & SONDAGES (EXTRAIT DANS PROMPTS-MANAGER) -->
+  <app-prompts-manager
+    [isOpen]="showPromptsModal()"
+    [promptsList]="promptsList()"
+    [isSaving]="isSavingPrompt()"
+    (close)="showPromptsModal.set(false)"
+    (create)="handleCreatePrompt($event)"
+    (toggleStatus)="handleTogglePromptStatus($event)"
+    (delete)="handleDeletePrompt($event)">
+  </app-prompts-manager>
 
 </div>
 <app-onboarding *ngIf="showOnboarding()" (completed)="closeOnboarding()"></app-onboarding>

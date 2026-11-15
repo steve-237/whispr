@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { ApiService, MessageDto, StatsDto } from '../../../core/services/api.service';
+import { ApiService, MessageDto, StatsDto, PromptDto, CreatePromptRequest } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -16,6 +16,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { OnboardingComponent } from '../onboarding/onboarding.component';
 import { MessageCardComponent } from './message-card.component';
 import { ProfileCustomizerComponent } from './profile-customizer.component';
+import { PromptsManagerComponent } from './prompts-manager.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Title } from '@angular/platform-browser';
 import { WalletService } from '../../../shared/components/shop/wallet.service';
@@ -30,7 +31,8 @@ import { ClueResponseDto, AdvertisementDto, VisitorAnalyticsDto, BlockedSenderDt
     TranslatePipe, 
     OnboardingComponent, 
     MessageCardComponent, 
-    ProfileCustomizerComponent
+    ProfileCustomizerComponent,
+    PromptsManagerComponent
   ],
   templateUrl: './inbox.component.html'
 })
@@ -74,6 +76,12 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
   profileThemeId = signal('neon');
   isSavingProfile = signal(false);
   profileSavedSuccess = signal(false);
+
+  // Whispr Prompts State (Partie 1)
+  showPromptsModal = signal(false);
+  promptsList = signal<PromptDto[]>([]);
+  activePrompt = signal<PromptDto | null>(null);
+  isSavingPrompt = signal(false);
   
   // Dashboard IA Stats
   showStats = signal(false);
@@ -128,6 +136,7 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
     this.walletService.loadWallet();
     this.loadMessages();
     this.loadProfileInfo();
+    this.loadPrompts();
     this.loadStats();
     this.loadVisitorAnalytics();
     this.loadAds();
@@ -771,6 +780,66 @@ export class InboxComponent implements OnInit, OnDestroy, AfterViewInit {
         this.isCapturing.set(false);
       }
     }, 250);
+  }
+
+  // --- Whispr Prompts Management ---
+  loadPrompts(): void {
+    this.apiService.getMyPrompts().subscribe({
+      next: (list) => {
+        this.promptsList.set(list);
+        const active = list.find(p => p.isActive) || null;
+        this.activePrompt.set(active);
+      },
+      error: (err) => console.error('Erreur chargement prompts', err)
+    });
+  }
+
+  togglePromptsModal(): void {
+    this.showPromptsModal.update(v => !v);
+  }
+
+  handleCreatePrompt(req: CreatePromptRequest): void {
+    this.isSavingPrompt.set(true);
+    this.apiService.createPrompt(req).subscribe({
+      next: () => {
+        this.isSavingPrompt.set(false);
+        this.showPromptsModal.set(false);
+        this.toastService.success('🎯 Sondage créé et activé sur votre profil !');
+        this.loadPrompts();
+      },
+      error: (err) => {
+        this.isSavingPrompt.set(false);
+        const msg = err.error?.message || err.error || 'Erreur lors de la création du sondage.';
+        this.toastService.error(msg);
+      }
+    });
+  }
+
+  handleTogglePromptStatus(event: { id: string, active: boolean }): void {
+    this.apiService.togglePromptStatus(event.id, !event.active).subscribe({
+      next: () => {
+        this.toastService.success(event.active ? 'Sondage désactivé.' : 'Sondage activé sur votre profil !');
+        this.loadPrompts();
+      },
+      error: (err) => {
+        const msg = err.error?.message || err.error || 'Erreur lors de la mise à jour.';
+        this.toastService.error(msg);
+      }
+    });
+  }
+
+  handleDeletePrompt(promptId: string): void {
+    if (!confirm('Voulez-vous vraiment supprimer ce sondage et ses résultats ?')) return;
+    this.apiService.deletePrompt(promptId).subscribe({
+      next: () => {
+        this.toastService.success('Sondage supprimé.');
+        this.loadPrompts();
+      },
+      error: (err) => {
+        const msg = err.error?.message || err.error || 'Erreur lors de la suppression.';
+        this.toastService.error(msg);
+      }
+    });
   }
 
   private downloadImage(dataUrl: string): void {

@@ -20,6 +20,20 @@
       </p>
     </div>
 
+    <!-- ═══════════════════════════════════════ -->
+    <!-- CARTE PROMPT / SONDAGE ACTIF (PARTIE 1) -->
+    <!-- ═══════════════════════════════════════ -->
+    <app-prompt-card
+      *ngIf="p.activePrompt as prompt"
+      [prompt]="prompt"
+      [isSubmitting]="isSubmittingPrompt()"
+      [isSubmitted]="promptSubmitted()"
+      [feedbackMessage]="promptFeedbackMessage()"
+      (pollVoted)="handlePollVoted($event)"
+      (ratingSubmitted)="handleRatingSubmitted($event)"
+      (textSubmitted)="handleTextSubmitted($event)">
+    </app-prompt-card>
+
     <!-- Zone de Message (Glassmorphism) -->
     <div class="glass-panel" style="padding: 1.25rem; text-align: left;">
       <h3 style="margin-bottom: 1rem; font-weight: 600; text-align: center;">
